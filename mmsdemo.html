@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<!-- 
+DO NOT REMOVE THIS COPYRIGHT
+Copyright 2020-2024 MagTek, Inc., Paul Deignan
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), 
+to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
+and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, 
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+-->
+<html lang="en">
+<html>
+  <head>
+    <title>MagTek WebHID MMS Demo</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="./css/site.css"/>
+    <script type="module" src="./js/mmsdemo.js"></script>
+    
+  </head>
+  <body>
+    <div class="container">
+      <a href="https://www.magtek.com/">
+        <img src="./images/magtek_logo.png" alt="Logo" width="150">
+      </a>
+    </div>
+    <div class="container">
+      <h1>MagTek WebHID MMS Demo</h1>
+    </div>
+    <div class="container">
+      <textarea class="form-control" name="LogData" id="LogData" rows="12"></textarea>
+      <button class="btn btn-primary" id="deviceOpen">Open</button>
+      <button class="btn btn-primary" id="deviceClose">Close</button>
+      <button class="btn btn-primary" id="clearCommand">Clear</button>
+      <div class="form-group" id="autoStartOptions">
+        <input type="checkbox" id="chk-AutoStart" name="AutoStart" value=""><label for="chk-AutoStart">Auto Start</label>
+         <br> 
+        <input type="checkbox" id="chk-AutoEMV" name="AutoEMV" value=""><label for="chk-AutoEMV">EMV</label>
+        <input type="checkbox" id="chk-AutoNFC" name="AutoNFC" value=""><label for="chk-AutoNFC">NFC</label>
+        <input type="checkbox" id="chk-AutoMSR" name="AutoMSR" value=""><label for="chk-AutoMSR">MSR</label>
+        <input type="checkbox" id="chk-AutoTouch" name="AutoTouch" value=""><label for="chk-AutoTouch">Touch</label>
+        <hr>
+        <div id="updDeviceContainer" class="container" style.visibility ='hidden'>      
+          <p></p> 
+          <div id="progressContainer" class="progress" style.visibility ='hidden'>
+            <div id="progressBar" style.visibility ='hidden' class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width:0%">
+            </div>
+          </div>
+        </div>
+        <label for="sendData">Command Data</label>
+        <input type="text" class="form-control" name="sendData" id="sendData" aria-describedby="helpId"
+          value="SENDCOMMAND,AA00810401001001842B100182013CA3098101018201018301018402000386159C01009F02060000000001009F0306000000000000">
+        <button class="btn btn-primary" id="sendCommand">Send Command</button>
+      </div>
+      <div class="form-group shadow-textarea">
+        <label for="CommandList"></label>
+          <select class="form-control-3" name="CommandList" id="CommandList">
+          <option value="SENDCOMMAND,AA00810401001001842B100182013CA3098101018201018301018402000386159C01009F02060000000001009F0306000000000000">
+            START EMV</option>
+          <option value="SENDCOMMAND,AA0081040113100884021008">CANCEL EMV</option>
+          <option value="SENDCOMMAND,AA00810401121F0184021F01">Reset Device</option>
+          <option value="SENDCOMMAND,AA0081040155D101840FD1018501018704020701028902C100">Get User Notify</option>
+          <option value="SENDCOMMAND,AA0081040155D1118413D1118501018704020701028906C1048F000000">Set User Notify to All Events
+          </option>
+          <option value="SENDCOMMAND,AA0081040155D1118413D1118501018704020701028906C10483000000">Set DynaProx User Notify to
+            Contactless and Barcode</option>
+          <option
+            value="SENDCOMMAND,AA008104010010018430100182013CA30981010082010183010084020003861A9C01009F02060000000001009F03060000000000005F2A020840">
+            START CONTACT</option>
+          <option
+            value="SENDCOMMAND,AA008104010010018430100182013CA30981010082010083010184020003861A9C01009F02060000000001009F03060000000000005F2A020840">
+            START CONTACTLESS</option>
+          <option
+            value="SENDCOMMAND,AA008104010010018430100182013CA30981010182010083010084020003861A9C01009F02060000000001009F03060000000000005F2A020840">
+            START MSR</option>
+          <option value="SENDCOMMAND,AA00810401B5D1018418D10181072B06010401F6098501028704020101018902C100">Get SN</option>
+          <option value="SENDCOMMAND,AA00810401E0D101841AD10181072B06010401F609850102890AE208E106E104E102C200">Get Capabilities
+          </option>
+          <option
+            value="SENDCOMMAND,AA00810401031001843D1001820178A3098101008201008301038402020386279C01009F02060000000001009F03060000000000005F2A0208405F3601029F150200009F530100">
+            NFC</option>
+          <option value="SENDCOMMAND,AA00810401041100840C110081023000820100830100">NFC Mifare</option>
+          <option value="SENDCOMMAND,AA00810401051100840D110081033A047F8201008301FF">NFC Mifare 2</option>
+          <option value="SENDCOMMAND,AA0081040155180384081803810100820101">Display Amount</option>
+          <option value="SENDCOMMAND,AA0081040155180384081803810100820102">Display Amount OK?</option>
+          <option value="SENDCOMMAND,AA0081040155180384081803810100820103">Display Approved</option>
+          <option value="SENDCOMMAND,AA0081040155180384081803810100820114">Display Welcome</option>
+          <option value="SENDCOMMAND,AA008104012C182184081821810101830100">Display Screen 1</option>
+          <option value="SENDCOMMAND,AA008104012C182184081821810102830100">Display Screen 2</option>
+          <option value="SENDCOMMAND,AA008104017A2001841C200181013C82010083020804850100A10B81010C8206123456789012">Request PIN</option>
+          <option value="SENDCOMMAND,AA008104017A2001841C200181013C8201FF83020804850100A10B81010C8206123456789012">PIN Entry Success</option>
+          <option value="SENDCOMMAND,AA008104017A2001841C200181013C8201FE83020804850100A10B81010C8206123456789012">PIN Entry Fail</option>
+        </select>
+        <br>
+        <label class="form-control-2" for="contactlessDelay">Contactless Delay</label><br>
+        <input type="text" class="form-control-2" name="contactlessDelay" id="contactlessDelay" aria-describedby="helpId" value="500">
+      </div>
+      
+    </div>
+    <br>
+
+    
+  </body>
+</html>
