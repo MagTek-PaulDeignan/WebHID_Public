@@ -18,8 +18,11 @@ import * as mt_RMS_API from "./mt_rms_api.js";
 let _KSN = "";
 let _UIK = "";
 let _FWID = "";
+let _BLEFWID = "";
 let _MUT = "";
 let _DeviceDetected =false; 
+let _HasBLEFirmware = false;
+let _DeviceConfigList;
 
 export function setDeviceDetected(bval) {
   _DeviceDetected = bval;
@@ -41,10 +44,15 @@ export async function updateDevice() {
   try {
     LogData(`${mt_RMS_API.ProfileName}: Checking for updates...`);
     bStatus = await getDeviceInfo();
-    bStatus = await updateFirmware("main");
+    bStatus = await updateFirmware("Main");
+    if (_HasBLEFirmware)
+    {
+      bStatus = await updateFirmware("BLE");
+    }
+
     bStatus = await updateAllTags();
     LogData(`Device has been updated`);
-    updateProgressBar("", 100);
+    updateProgressBar("", 0);
   } catch (error) {
     LogData(`${error.message}`);
   }
@@ -64,6 +72,9 @@ async function getDeviceInfo() {
   LogData(`   UIK: ${_UIK}`);
   _FWID = await mt_V5.sendCommand("00013A");
   LogData(`   FWID: ${_FWID}`);
+  
+  _BLEFWID = await mt_V5.getBLEFWID();
+  
   _MUT = await mt_V5.sendCommand("1900");
   LogData(`   MUT: ${_MUT}`);
   return true;
@@ -124,7 +135,18 @@ async function updateTags(command) {
 };
 async function updateFirmware(fwType) {
   try {
-    LogData(`Checking firmware...`);
+    _HasBLEFirmware = false;
+    let fwid ;
+    switch (fwType.toLowerCase()) {
+      case "ble":
+        fwid = _BLEFWID;
+        break;
+      default:
+        fwid = _FWID;
+        break;
+    }
+
+    LogData(`Checking ${fwType} firmware...`);
     let req = {
       Authentication: null,
       ProfileName: mt_RMS_API.ProfileName,
@@ -133,16 +155,35 @@ async function updateFirmware(fwType) {
       UIK: _UIK,
       MUT: _MUT,
       KSN: _KSN,
-      FirmwareID: _FWID,
+      FirmwareID: fwid,
       InterfaceType: "USB",
       DownloadPayload: true,
     };
 
     var firmwareResp = await mt_RMS_API.GetFirmware(req);
+    if(firmwareResp.ReleaseNotes != null ) LogData(firmwareResp.ReleaseNotes);
+          if(firmwareResp.HasBLEFirmware && fwType.toLowerCase() == "main"){
+            _HasBLEFirmware = true;
+            LogData("This reader has BLE firmware");
+          } 
+          if(firmwareResp.DeviceConfigs != null && fwType.toLowerCase() == "main"){
+            _DeviceConfigList = firmwareResp.DeviceConfigs;
+            LogData("This reader has device configs");
+          } 
+
     switch (firmwareResp.ResultCode) {
       case 0:
         LogData(`The ${fwType} firmware has an update available!`);
         if (firmwareResp.Commands.length > 0) {
+          if(firmwareResp.ReleaseNotes.length > 0 ) LogData(firmwareResp.ReleaseNotes);
+          if(firmwareResp.HasBLEFirmware && fwType.toLowerCase() == "main"){
+            _HasBLEFirmware = true;
+            LogData("This reader has BLE firmware");
+          } 
+          if(firmwareResp.DeviceConfigs != null && fwType.toLowerCase() == "main"){
+            _DeviceConfigList = firmwareResp.DeviceConfigs;
+            LogData("This reader has device configs");
+          } 
           await parseRMSCommands(firmwareResp.Description, firmwareResp.Commands);
         }
         break;
@@ -150,10 +191,10 @@ async function updateFirmware(fwType) {
         LogData(`The ${fwType} firmware is up to date.`);
         break;
       case 2:
-        LogData(`The ${fwType} firmware is up to date.`);
+        LogData(`The ${fwType}firmware is up to date.`);
         break;
       default:
-        LogData(`${firmwareResp.Result}`);
+        LogData(`${fwType} ${firmwareResp.Result}`);
         break;
     }
     return true;

@@ -348,6 +348,14 @@ export async function sendExtCommand(cmdData) {
   }
 }
 
+export async function getBLEFWID() {
+  let ret = await sendCommand("460401000000");
+  if(ret.substring(0,2) != "00") return "";
+  let data = ret.substring(10);
+  let dl = mt_Utils.makeHex(data.length);
+  return `00${dl}${data}`;
+
+}
 export async function sendCommand(cmdToSend) {
   try {
     if (window._device == null) {
