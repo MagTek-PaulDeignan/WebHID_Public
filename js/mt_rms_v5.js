@@ -66,17 +66,55 @@ async function updateAllTags() {
   return bStatus;
 };
 async function getDeviceInfo() {
-  _KSN = await mt_V5.sendCommand("0900");
-  LogData(`   KSN: ${_KSN}`);
-  _UIK = await mt_V5.sendCommand("2100");
-  LogData(`   UIK: ${_UIK}`);
-  _FWID = await mt_V5.sendCommand("00013A");
-  LogData(`   FWID: ${_FWID}`);
   
-  _BLEFWID = await mt_V5.getBLEFWID();
-  
-  _MUT = await mt_V5.sendCommand("1900");
-  LogData(`   MUT: ${_MUT}`);
+  let resp;
+  //if in bootlaoder
+  if (window._device.productId == 0x5357)
+  {
+    LogData(`In Bootloader... `);
+    _KSN = mt_Utils.getDefaultValue("KSN","")
+    LogData(`   KSN: ${_KSN}`);
+    _UIK = mt_Utils.getDefaultValue("UIK","")
+    LogData(`   UIK: ${_UIK}`);
+    _FWID = mt_Utils.getDefaultValue("FWID","")
+    LogData(`   FWID: ${_FWID}`);
+    _BLEFWID = mt_Utils.getDefaultValue("BLEFWID","")
+    _MUT = mt_Utils.getDefaultValue("FWID","")
+    LogData(`   MUT: ${_MUT}`);
+  }
+  else
+  {
+    resp = await mt_V5.sendCommand("0900");
+    if (resp.substring(0,2) == "00"){
+      _KSN = resp;
+      mt_Utils.saveDefaultValue("KSN",_KSN);
+      
+    } 
+    LogData(`   KSN: ${_KSN}`);
+    resp = await mt_V5.sendCommand("2100");
+    if (resp.substring(0,2) == "00"){
+      _UIK = resp;
+      mt_Utils.saveDefaultValue("UIK",_UIK);      
+    } 
+    LogData(`   UIK: ${_UIK}`);
+    resp = await mt_V5.sendCommand("00013A");
+    if (resp.substring(0,2) == "00"){
+      _FWID = resp;
+      mt_Utils.saveDefaultValue("FWID",_FWID);      
+    } 
+    LogData(`   FWID: ${_FWID}`);
+    resp = await mt_V5.getBLEFWID();
+    if (resp.substring(0,2) == "00"){
+      _BLEFWID = resp;
+      mt_Utils.saveDefaultValue("BLEFWID",_BLEFWID);      
+    } 
+    resp = await mt_V5.sendCommand("1900");
+    if (resp.substring(0,2) == "00"){
+      _MUT = resp;
+      mt_Utils.saveDefaultValue("MUT",_MUT);      
+    } 
+    LogData(`   MUT: ${_MUT}`);
+  }
   return true;
 };
 

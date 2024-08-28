@@ -51,8 +51,11 @@ async function handleDOMLoaded() {
   mt_UI.ClearLog();
   var devices = await mt_HID.getDeviceList();
   mt_UI.LogData(`Devices currently attached and allowed:`);
+  
   devices.forEach((device) => {
     mt_UI.LogData(`${device.productName}`);
+    mt_UI.setUSBConnected("connected");
+
   });
 
   navigator.hid.addEventListener("connect", async ({ device }) => {
@@ -70,7 +73,7 @@ async function handleDOMLoaded() {
 
 async function handleCloseButton() {
   mt_V5.closeDevice();  
-  mt_UI.ClearLog();
+  mt_UI.ClearLog();  
 }
 async function handleClearButton() {
   mt_UI.ClearLog();
@@ -131,7 +134,7 @@ async function parseCommand(message) {
       window._device = await mt_V5.openDevice();
       break;
     case "CLOSEDEVICE":
-      await mt_V5.closeDevice();      
+      await mt_V5.closeDevice();        
       break;
     case "WAIT":
       mt_UI.LogData(`Waitng ${cmd[1]/1000} seconds...`);
@@ -174,17 +177,21 @@ function ClearAutoCheck() {
 }
 
 const deviceConnectLogger = (e) => {
-  mt_UI.LogData(`${e.Device.productName} connected`);  
+  //mt_UI.LogData(`${e.Device.productName} connected`);  
+  mt_UI.setUSBConnected("connected");
 };
 const deviceDisconnectLogger = (e) => {
-  mt_UI.LogData(`${e.Device.productName} disconnected`);
+  //mt_UI.LogData(`${e.Device.productName} disconnected`);
+  mt_UI.setUSBConnected("disconnected");
 };
 const deviceCloseLogger = (e) => {
-  mt_UI.LogData(`${e.Device.productName} closed`);
+  //mt_UI.LogData(`${e.Device.productName} closed`);
+  mt_UI.setUSBConnected("closed");
 };
 const deviceOpenLogger = (e) => {
-  mt_UI.LogData(`${e.Device.productName} opened`);
+  //mt_UI.LogData(`${e.Device.productName} opened`);
   mt_RMS.setDeviceDetected(true);
+  mt_UI.setUSBConnected("opened");
 };
 const dataLogger = (e) => {
   mt_UI.LogData(`Received Data: ${e.Name}: ${e.Data}`);

@@ -50,6 +50,7 @@ async function handleDOMLoaded() {
   mt_UI.LogData(`Devices currently attached and allowed:`);
   devices.forEach((device) => {
     mt_UI.LogData(`${device.productName}`);
+    mt_UI.setUSBConnected("connected");
   });
 
   //Add the hid event listener for connect/plug in
@@ -134,16 +135,20 @@ function ClearAutoCheck() {
 }
 
 const deviceConnectLogger = (e) => {
-  mt_UI.LogData(`${e.Device.productName} connected`);
+  //mt_UI.LogData(`${e.Device.productName} connected`);
+  mt_UI.setUSBConnected("connected");
 };
 const deviceDisconnectLogger = (e) => {
-  mt_UI.LogData(`${e.Device.productName} disconnected`);
+  //mt_UI.LogData(`${e.Device.productName} disconnected`);
+  mt_UI.setUSBConnected("disconnected");
 };
 const deviceCloseLogger = (e) => {
-  mt_UI.LogData(`${e.Device.productName} closed`);
+  //mt_UI.LogData(`${e.Device.productName} closed`);
+  mt_UI.setUSBConnected("closed");
 };
 const deviceOpenLogger = (e) => {
-  mt_UI.LogData(`${e.Device.productName} opened`);
+  //mt_UI.LogData(`${e.Device.productName} opened`);
+  mt_UI.setUSBConnected("opened");
 };
 const dataLogger = (e) => {
   mt_UI.LogData(`Received Data: ${e.Name}: ${e.Data}`);

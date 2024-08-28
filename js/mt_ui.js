@@ -47,3 +47,25 @@ export function FromListToText() {
     document.getElementById("sendData").value = val;
   }
   
+  export function setUSBConnected(value) {
+    const item = document.getElementById("USBStatus");
+    
+    switch (value.toLowerCase()) {
+      case "opened":
+        item.src = "./images/usb-opened-48.png";
+        break;
+      case "closed":
+        item.src = "./images/usb-closed-48.png";
+        break;
+      case "connected":
+        item.src = "./images/usb-connected-48.png";
+        break;
+      case "disconnected": 
+        item.src = "./images/usb-disconnected-48.png"; 
+        break;
+      default:
+        item.src = "./images/usb-disconnected-48.png";
+        break;
+    }
+  };
+  
