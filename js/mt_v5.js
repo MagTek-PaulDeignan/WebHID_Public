@@ -39,6 +39,7 @@ export function parseV5Packet(data) {
       processMsgType(hex);
       break;
     case "01":
+      processMsgType(hex);
       break;
     case "02":
       var outString = parseExtendedReport(hex);
@@ -458,23 +459,19 @@ function processMsgType(msg) {
       msgType = "Device Extended Response";
       processDeviceExtendedResponseMsg(msgType, msg);
       break;
-    case "40": //Append Log
-      AppendLogData(msg.substring(2) + "\n");
-      break;
-    case "41": //Display Message
-      TextArea = document.getElementById("Display");
-      TextArea.innerHTML = msg.substring(2);
-      break;
-    case "42": //Get TLV Tag Value
-      AppendLogData(msg.substring(2) + "\n");
-      break;
-    case "43": //Get JSON
-      AppendLogData(msg.substring(2) + "\n");
-      break;
-    case "DB": //Debug
-      msgType = "Debug";
-      processDebugMsg(msgType, msg);
-      break;
+    // case "40": //Append Log
+    //   AppendLogData(msg.substring(2) + "\n");
+    //   break;
+    // case "41": //Display Message
+    //   TextArea = document.getElementById("Display");
+    //   TextArea.innerHTML = msg.substring(2);
+    //   break;
+    // case "42": //Get TLV Tag Value
+    //   AppendLogData(msg.substring(2) + "\n");
+    //   break;
+    // case "43": //Get JSON
+    //   AppendLogData(msg.substring(2) + "\n");
+    //   break;
     default: //Unknown
       msgType = "Unknown";
       processUnknownMsg(msgType, msg);
@@ -490,79 +487,7 @@ function processDeviceExtendedResponseMsg(messageType, msg) {
 }
 
 function processMSRDataMsg(messageType, msg) {
-  chk = document.getElementById("chk-AutoStart");
-  if (chk.checked) {
-    var ParsedMSR = ParseMSR(hexToBytes(msg.substring(2)));
-    AppendLogData(
-      "Track_1_Masked_Data: " +
-        hexToASCII(toHexString(ParsedMSR.Track_1_Masked_Data)).substring(
-          0,
-          ParsedMSR.Track_1_Masked_Data_Length
-        ) +
-        "\n"
-    );
-    AppendLogData(
-      "Track_2_Masked_Data: " +
-        hexToASCII(toHexString(ParsedMSR.Track_2_Masked_Data)).substring(
-          0,
-          ParsedMSR.Track_2_Masked_Data_Length
-        ) +
-        "\n"
-    );
-    AppendLogData(
-      "Track_3_Masked_Data: " +
-        hexToASCII(toHexString(ParsedMSR.Track_3_Masked_Data)).substring(
-          0,
-          ParsedMSR.Track_3_Masked_Data_Length
-        ) +
-        "\n"
-    );
-    AppendLogData(
-      "Track_1_Encrypted_Data: " +
-        toHexString(ParsedMSR.Track_1_Encrypted_Data).substring(
-          0,
-          ParsedMSR.Track_1_Encrypted_Data_Length * 2
-        ) +
-        "\n"
-    );
-    AppendLogData(
-      "Track_2_Encrypted_Data: " +
-        toHexString(ParsedMSR.Track_2_Encrypted_Data).substring(
-          0,
-          ParsedMSR.Track_2_Encrypted_Data_Length * 2
-        ) +
-        "\n"
-    );
-    AppendLogData(
-      "Track_3_Encrypted_Data: " +
-        toHexString(ParsedMSR.Track_3_Encrypted_Data).substring(
-          0,
-          ParsedMSR.Track_3_Encrypted_Data_Length * 2
-        ) +
-        "\n"
-    );
-    AppendLogData(
-      "KSN: " + toHexString(ParsedMSR.DUKPT_Key_Serial_Number) + "\n"
-    );
-    AppendLogData(
-      "Track_1_Decode_Status: " +
-        toHexString(ParsedMSR.Track_1_Decode_Status) +
-        "\n"
-    );
-    AppendLogData(
-      "Track_2_Decode_Status: " +
-        toHexString(ParsedMSR.Track_2_Decode_Status) +
-        "\n"
-    );
-    AppendLogData(
-      "Track_3_Decode_Status: " +
-        toHexString(ParsedMSR.Track_3_Decode_Status) +
-        "\n"
-    );
-    AppendLogData(msg.substring(2) + "\n");
-  } else {
-    AppendLogData("Ignoring Swipe" + "\n");
-  }
+    var ParsedMSR = ParseMSR(mt_Utils.hexToBytes(msg));
 }
 
 function processNotificationMsg(messageType, msg) {

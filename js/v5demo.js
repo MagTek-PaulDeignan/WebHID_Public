@@ -52,9 +52,10 @@ async function handleDOMLoaded() {
   var devices = await mt_HID.getDeviceList();
   mt_UI.LogData(`Devices currently attached and allowed:`);
   
+  if (devices.length == 0 ) mt_UI.setUSBConnected("Connect a device");
   devices.forEach((device) => {
     mt_UI.LogData(`${device.productName}`);
-    mt_UI.setUSBConnected("connected");
+    mt_UI.setUSBConnected("Connected");
 
   });
 
@@ -178,20 +179,20 @@ function ClearAutoCheck() {
 
 const deviceConnectLogger = (e) => {
   //mt_UI.LogData(`${e.Device.productName} connected`);  
-  mt_UI.setUSBConnected("connected");
+  mt_UI.setUSBConnected("Connected");
 };
 const deviceDisconnectLogger = (e) => {
   //mt_UI.LogData(`${e.Device.productName} disconnected`);
-  mt_UI.setUSBConnected("disconnected");
+  mt_UI.setUSBConnected("Disconnected");
 };
 const deviceCloseLogger = (e) => {
   //mt_UI.LogData(`${e.Device.productName} closed`);
-  mt_UI.setUSBConnected("closed");
+  mt_UI.setUSBConnected("Closed");
 };
 const deviceOpenLogger = (e) => {
   //mt_UI.LogData(`${e.Device.productName} opened`);
   mt_RMS.setDeviceDetected(true);
-  mt_UI.setUSBConnected("opened");
+  mt_UI.setUSBConnected("Opened");
 };
 const dataLogger = (e) => {
   mt_UI.LogData(`Received Data: ${e.Name}: ${e.Data}`);

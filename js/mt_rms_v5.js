@@ -22,7 +22,7 @@ let _BLEFWID = "";
 let _MUT = "";
 let _DeviceDetected =false; 
 let _HasBLEFirmware = false;
-let _DeviceConfigList;
+let _DeviceConfigList = null;
 
 export function setDeviceDetected(bval) {
   _DeviceDetected = bval;
@@ -36,11 +36,12 @@ function LogData(data){
   EmitObject({ Name: "OnRMSLogData", Data: data });
 };
 
-function updateProgressBar(caption, progress ){
+function updateProgress(caption, progress ){
   EmitObject({ Name: "OnRMSProgress", Data: {Caption: caption, Progress: progress }});
 };
 export async function updateDevice() {
   var bStatus = true;
+  _DeviceConfigList = null;
   try {
     LogData(`${mt_RMS_API.ProfileName}: Checking for updates...`);
     bStatus = await getDeviceInfo();
@@ -51,8 +52,10 @@ export async function updateDevice() {
     }
 
     bStatus = await updateAllTags();
+    bStatus = await updateAllConfigs();
+
     LogData(`Device has been updated`);
-    updateProgressBar("", 0);
+    updateProgress("", -1);
   } catch (error) {
     LogData(`${error.message}`);
   }
@@ -73,14 +76,14 @@ async function getDeviceInfo() {
   {
     LogData(`In Bootloader... `);
     _KSN = mt_Utils.getDefaultValue("KSN","")
-    LogData(`   KSN: ${_KSN}`);
+    //LogData(`   KSN: ${_KSN}`);
     _UIK = mt_Utils.getDefaultValue("UIK","")
-    LogData(`   UIK: ${_UIK}`);
+    //LogData(`   UIK: ${_UIK}`);
     _FWID = mt_Utils.getDefaultValue("FWID","")
-    LogData(`   FWID: ${_FWID}`);
+    //LogData(`   FWID: ${_FWID}`);
     _BLEFWID = mt_Utils.getDefaultValue("BLEFWID","")
     _MUT = mt_Utils.getDefaultValue("FWID","")
-    LogData(`   MUT: ${_MUT}`);
+    //LogData(`   MUT: ${_MUT}`);
   }
   else
   {
@@ -90,19 +93,19 @@ async function getDeviceInfo() {
       mt_Utils.saveDefaultValue("KSN",_KSN);
       
     } 
-    LogData(`   KSN: ${_KSN}`);
+    //LogData(`   KSN: ${_KSN}`);
     resp = await mt_V5.sendCommand("2100");
     if (resp.substring(0,2) == "00"){
       _UIK = resp;
       mt_Utils.saveDefaultValue("UIK",_UIK);      
     } 
-    LogData(`   UIK: ${_UIK}`);
+    //LogData(`   UIK: ${_UIK}`);
     resp = await mt_V5.sendCommand("00013A");
     if (resp.substring(0,2) == "00"){
       _FWID = resp;
       mt_Utils.saveDefaultValue("FWID",_FWID);      
     } 
-    LogData(`   FWID: ${_FWID}`);
+    //LogData(`   FWID: ${_FWID}`);
     resp = await mt_V5.getBLEFWID();
     if (resp.substring(0,2) == "00"){
       _BLEFWID = resp;
@@ -113,20 +116,18 @@ async function getDeviceInfo() {
       _MUT = resp;
       mt_Utils.saveDefaultValue("MUT",_MUT);      
     } 
-    LogData(`   MUT: ${_MUT}`);
+    //LogData(`   MUT: ${_MUT}`);
   }
   return true;
 };
-
 async function parseRMSCommands(description, messageArray) {
   for (let index = 0; index < messageArray.length; index++) {
-    
     const element = messageArray[index];        
     var progress = parseInt((index / messageArray.length) * 100);
-    updateProgressBar(`Loading ${description}`, progress);
+    updateProgress(`Loading ${description}`, progress);
     await parseRMSCommand(element);
   }
-  updateProgressBar(`Done Loading ${description}...`, 100);
+  updateProgress(`Done Loading ${description}...`, 100);
 };
 async function updateTags(command) {
   try {
@@ -151,7 +152,7 @@ async function updateTags(command) {
 
     switch (tagsResp.ResultCode) {
       case 0:
-        LogData(`The ${tagsResp.Description} has an update available!`);
+        //LogData(`The ${tagsResp.Description} has an update available!`);
         if (tagsResp.Commands.length > 0) {
           await parseRMSCommands(tagsResp.Description, tagsResp.Commands);
         }
@@ -171,6 +172,67 @@ async function updateTags(command) {
     return error;
   }
 };
+
+async function updateAllConfigs() {
+  let bStatus = true;
+  if(_DeviceConfigList != null)
+  {
+    bStatus = false;
+    LogData(`Checking firmware specific configs...`);
+    for (let index = 0; index < _DeviceConfigList.length; index++) 
+    {
+      bStatus = await getDeviceInfo();
+      bStatus = await updateConfig(_DeviceConfigList[index]);      
+    }
+
+  }
+  return bStatus;
+}
+async function updateConfig(configname) {
+  try {
+    
+    
+      let req = {
+        Authentication: null,
+        ProfileName: mt_RMS_API.ProfileName,
+        ConfigurationName: configname,
+        TerminalConfiguration: null,
+        BillingLabel: "Web Demo",
+        Version: null,
+        UIK: _UIK,
+        MUT: _MUT,
+        KSN: _KSN,
+        InterfaceType: "USB",
+        DownloadPayload: true,
+      };
+      var configResp = await mt_RMS_API.GetConfig(req);      
+
+
+    switch (configResp.ResultCode) {
+      case 0:
+        //LogData(`The ${configResp.Description} has an update available!`);
+        if (configResp.Commands.length > 0) {
+          await parseRMSCommands(configResp.Description, configResp.Commands);
+        }
+        break;
+      case 1:
+        LogData(`The ${configResp.Description} is up to date.`);
+        break;
+      case 2:
+        LogData(`The ${configResp.Description} is up to date.`);
+        break;
+      default:
+        LogData(`${configResp.Result}`);
+        break;
+    }
+    return true;
+  } 
+  catch (error) 
+  {
+    return error;
+  }
+};
+
 async function updateFirmware(fwType) {
   try {
     _HasBLEFirmware = false;
@@ -202,7 +264,7 @@ async function updateFirmware(fwType) {
     if(firmwareResp.ReleaseNotes != null ) LogData(firmwareResp.ReleaseNotes);
           if(firmwareResp.HasBLEFirmware && fwType.toLowerCase() == "main"){
             _HasBLEFirmware = true;
-            LogData("This reader has BLE firmware");
+            //LogData("This reader has BLE firmware");
           } 
           if(firmwareResp.DeviceConfigs != null && fwType.toLowerCase() == "main"){
             _DeviceConfigList = firmwareResp.DeviceConfigs;
@@ -211,7 +273,7 @@ async function updateFirmware(fwType) {
 
     switch (firmwareResp.ResultCode) {
       case 0:
-        LogData(`The ${fwType} firmware has an update available!`);
+        //LogData(`The ${fwType} firmware has an update available!`);
         if (firmwareResp.Commands.length > 0) {
           if(firmwareResp.ReleaseNotes.length > 0 ) LogData(firmwareResp.ReleaseNotes);
           if(firmwareResp.HasBLEFirmware && fwType.toLowerCase() == "main"){
@@ -229,7 +291,7 @@ async function updateFirmware(fwType) {
         LogData(`The ${fwType} firmware is up to date.`);
         break;
       case 2:
-        LogData(`The ${fwType}firmware is up to date.`);
+        LogData(`The ${fwType} firmware is up to date.`);
         break;
       default:
         LogData(`${fwType} ${firmwareResp.Result}`);
@@ -280,11 +342,11 @@ async function parseRMSCommand(message) {
       while (index < numQseconds && !_DeviceDetected) {
         let progress = parseInt((index / numQseconds) * 100);
         await mt_Utils.wait(250);
-        updateProgressBar(`Waiting up to ${numSecs} seconds...`, progress)  
+        updateProgress(`Waiting up to ${numSecs} seconds...`, progress)  
         index++
       }
       if(_DeviceDetected){
-        updateProgressBar(``, 100)
+        updateProgress(``, 100)
         await mt_Utils.wait(1000);
       }
       break;

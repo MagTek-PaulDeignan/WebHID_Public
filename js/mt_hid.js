@@ -100,6 +100,10 @@ export function getDeviceInfo(pid) {
      productId: 0x1F, //iDynamo 6
    },
    {
+    vendorId: vendorId,
+    productId: 0x20, //iDynamo 5G3
+   },
+   {
      vendorId: vendorId,
      productId: 0x5357, // bootloader
    },

@@ -23,7 +23,7 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
   </head>
   <body>
     <div class="container">
-      <a href="https://www.magtek.com/">
+      <a href="index.html">
         <img src="./images/magtek_logo.png" alt="Logo" width="150">
       </a>
     </div>
@@ -32,9 +32,12 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
     </div>
     <div class="container">
       <textarea class="form-control" name="LogData" id="LogData" rows="12"></textarea>
+      <div class="container-left">
+      <img id="USBStatus" src="./images/usb-disconnected-48.png"><label id="lblUSBStatus" for="USBStatus">Disconnected</label>
+      </div>
       <button class="btn btn-primary" id="deviceOpen">Open</button>
       <button class="btn btn-primary" id="deviceClose">Close</button>
-      <button class="btn btn-primary" id="clearCommand">Clear</button>
+      <button class="btn btn-primary" id="clearCommand">Clear</button>      
       <div class="form-group" id="autoStartOptions">        
         <input type="checkbox" id="chk-AutoStart" name="AutoStart" value=""><label for="chk-AutoStart">Auto Start</label>
       </div>
@@ -86,6 +89,5 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
       </div>
     </div>
     <br>
-    <img  id="USBStatus" src="./images/usb-disconnected-48.png">
   </body>
 </html>

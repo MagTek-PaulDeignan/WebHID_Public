@@ -18,13 +18,13 @@ document.querySelector("#btnSave").addEventListener("click", handleSaveButton);
 
 async function handleDOMLoaded() {
   let item = document.getElementById("txAPIKey");
-  item.value = mt_Utils.getDefaultValue("APIKey", "");
+  item.value = mt_Utils.getDefaultValue("APIKey", "MTPublic-AEECD44A-8755-4AA0-AD58-53C33FBBB4A8");
 
   item = document.getElementById("txProfileName");
-  item.value = mt_Utils.getDefaultValue("ProfileName", "");
+  item.value = mt_Utils.getDefaultValue("ProfileName", "MagTek_Production");
 
   item = document.getElementById("txURL");
-  item.value = mt_Utils.getDefaultValue("baseURL", "");
+  item.value = mt_Utils.getDefaultValue("baseURL", "https://rms.magensa.net/ReaderSupport/FirmwareUpdate-v2/api");
 }
 async function handleSaveButton() {
   let item = document.getElementById("txAPIKey");
