@@ -43,8 +43,9 @@ export function ClearLog() {
   
  
 export function FromListToText() {
-    var val = document.getElementById("CommandList").value;
-    document.getElementById("sendData").value = val;
+    const val = document.getElementById("CommandList").value;
+    const item = document.getElementById("sendData")
+    item.value = val;
   }
   
   export function setUSBConnected(value) {
