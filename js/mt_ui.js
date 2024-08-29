@@ -44,7 +44,7 @@ export function ClearLog() {
  
 export function FromListToText() {
     const val = document.getElementById("CommandList").value;
-    const item = document.getElementById("sendData")
+    const item = document.getElementById("sendData");
     item.value = val;
   }
   
