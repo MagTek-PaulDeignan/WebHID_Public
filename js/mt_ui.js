@@ -70,6 +70,9 @@ export function FromListToText() {
       case "connect a device":
         item.src = ""; 
         break;
+      case "detecting...":
+          item.src = ""; 
+          break;
       default:
         item.src = "./images/usb-disconnected.png";
         break;

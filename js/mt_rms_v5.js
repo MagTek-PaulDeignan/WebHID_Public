@@ -23,7 +23,7 @@ let _MUT = "";
 let _DeviceDetected =false; 
 let _HasBLEFirmware = false;
 let _DeviceConfigList = null;
-
+let  _openTimeDelay = 2000;
 export function setDeviceDetected(bval) {
   _DeviceDetected = bval;
 };
@@ -69,21 +69,16 @@ async function updateAllTags() {
   return bStatus;
 };
 async function getDeviceInfo() {
-  
   let resp;
   //if in bootlaoder
   if (window._device.productId == 0x5357)
   {
     LogData(`In Bootloader... `);
     _KSN = mt_Utils.getDefaultValue("KSN","")
-    //LogData(`   KSN: ${_KSN}`);
     _UIK = mt_Utils.getDefaultValue("UIK","")
-    //LogData(`   UIK: ${_UIK}`);
     _FWID = mt_Utils.getDefaultValue("FWID","")
-    //LogData(`   FWID: ${_FWID}`);
     _BLEFWID = mt_Utils.getDefaultValue("BLEFWID","")
     _MUT = mt_Utils.getDefaultValue("FWID","")
-    //LogData(`   MUT: ${_MUT}`);
   }
   else
   {
@@ -93,19 +88,16 @@ async function getDeviceInfo() {
       mt_Utils.saveDefaultValue("KSN",_KSN);
       
     } 
-    //LogData(`   KSN: ${_KSN}`);
     resp = await mt_V5.sendCommand("2100");
     if (resp.substring(0,2) == "00"){
       _UIK = resp;
       mt_Utils.saveDefaultValue("UIK",_UIK);      
     } 
-    //LogData(`   UIK: ${_UIK}`);
     resp = await mt_V5.sendCommand("00013A");
     if (resp.substring(0,2) == "00"){
       _FWID = resp;
       mt_Utils.saveDefaultValue("FWID",_FWID);      
     } 
-    //LogData(`   FWID: ${_FWID}`);
     resp = await mt_V5.getBLEFWID();
     if (resp.substring(0,2) == "00"){
       _BLEFWID = resp;
@@ -116,7 +108,6 @@ async function getDeviceInfo() {
       _MUT = resp;
       mt_Utils.saveDefaultValue("MUT",_MUT);      
     } 
-    //LogData(`   MUT: ${_MUT}`);
   }
   return true;
 };
@@ -261,14 +252,13 @@ async function updateFirmware(fwType) {
     };
 
     var firmwareResp = await mt_RMS_API.GetFirmware(req);
-    if(firmwareResp.ReleaseNotes != null ) LogData(firmwareResp.ReleaseNotes);
           if(firmwareResp.HasBLEFirmware && fwType.toLowerCase() == "main"){
             _HasBLEFirmware = true;
             //LogData("This reader has BLE firmware");
           } 
           if(firmwareResp.DeviceConfigs != null && fwType.toLowerCase() == "main"){
             _DeviceConfigList = firmwareResp.DeviceConfigs;
-            LogData("This reader has device configs");
+            //LogData("This reader has device configs");
           } 
 
     switch (firmwareResp.ResultCode) {
@@ -353,6 +343,7 @@ async function parseRMSCommand(message) {
     case "DETECTDEVICE":
       await mt_V5.closeDevice();
       await mt_V5.openDevice();
+      await mt_Utils.wait(_openTimeDelay);
       if (window._device.opened) _DeviceDetected = true;
       break;
     case "APPENDLOG":

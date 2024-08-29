@@ -555,6 +555,11 @@ function processNotificationType(msg) {
       var hexstring = msg.substring(12);
       EmitObject({ Name: "OnSPIData", Source: "V5", Data: hexstring });
       break;
+    case "0600":  
+      notifyType = "Firmware Load Status";
+      var hexstring = msg.substring(6);    
+      EmitObject({ Name: "OnFirmwareLoadStatus", Source: "V5", Data: hexstring });
+      break;
     default:
       notifyType = "Unknown Notification";
       EmitObject({
@@ -816,7 +821,7 @@ function ParseMSR(cardDataBytes) {
 
 
 function ParseInputReportBytes(input) {
-    var dataLen =parseInt( mt_Utils.toHexString(input.slice(7, 9)),16); 
+    var dataLen = parseInt( mt_Utils.toHexString(input.slice(7, 9)),16); 
     let _resp = {
       ReportID: mt_Utils.toHexString(input.slice(0, 1)),
       ReportLen: mt_Utils.toHexString(input.slice(1, 3)),
