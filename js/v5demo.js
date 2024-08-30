@@ -100,7 +100,7 @@ async function handleOpenButton() {
 async function handleSendCommandButton() {
   let data = document.getElementById("sendData");
   let resp = await parseCommand(data.value);
-}
+  }
 
 async function parseCommand(message) {
   let Response ;
@@ -173,6 +173,31 @@ async function parseCommand(message) {
         mt_UI.LogData(`Please set APIKey and ProfileName`);      
       }
       break;
+    case "TESTBOOTLOADER":
+      if(window._device.productId != 0x5357)
+        {
+          mt_UI.LogData(`Switching to Bootloader... `);      
+          await mt_V5.sendCommand("6800");
+          await mt_Utils.wait(3000);
+          if (document.getElementById("lblUSBStatus").innerText.toLowerCase() == "opened")          
+          {
+            await mt_V5.sendCommand("7100");
+            mt_UI.LogData(`Success: You have paired the Bootloader`);            
+          }
+          else
+          {
+            mt_UI.LogData(`Press the 'Open' button to 'permit' access to the Bootloader and repeat the test`);            
+          }
+          
+        }else
+        {
+          await mt_V5.sendCommand("7100");
+          mt_UI.LogData(`Exiting the Bootloader`);
+          mt_UI.LogData(`Please repeat the test`);
+        }
+        break;
+      
+
     default:
       mt_UI.LogData(`Unknown Parse Command: ${cmd[0]}`);    
   }
