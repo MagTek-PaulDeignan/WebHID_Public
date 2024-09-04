@@ -843,34 +843,16 @@ function ParseInputReportBytes(input) {
   export async function openDevice() {
     try {
       var devices = await navigator.hid.getDevices();
-      console.log(devices);
+      //console.log(devices);
       if(devices.length == 0 )
       {
           devices = await navigator.hid.requestDevice({
           filters: mt_HID.filters,
         });
       }
-      console.log(devices);
-      //else
-      //{
         var device = devices.find((d) => d.vendorId === mt_HID.vendorId);
-        console.log(device);
-      //}
+        //console.log(device);
       
-        
-      // if (!device) {
-      //   reqDevice = await navigator.hid.requestDevice({
-      //     filters: mt_HID.filters,
-      //   });
-      //   if(reqDevice != null)
-      //   {
-      //     if (reqDevice.length> 0)
-      //     {
-      //       device = reqDevice[0];
-      //     }
-      //   }
-      // }
-  
       if (!device.opened) {        
         device.addEventListener("inputreport", handleInputReport);
         await device.open();
