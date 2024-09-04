@@ -25,7 +25,7 @@ export var _openTimeDelay = 2000;
 // these will need to be changed and are here for testing
 let defaultRMSURL = '';
 let defaultRMSAPIKey = '';
-let defaultRMSProfileNAme = '';
+let defaultRMSProfileName = '';
 
 document
   .querySelector("#deviceOpen")
@@ -87,6 +87,7 @@ async function handleClearButton() {
 async function handleOpenButton() {
   window._device = await mt_V5.openDevice();
   mt_Utils.debugLog(`PID: ${window._device.productId}`)
+  
   //dont set date or USB output if in Bootloader '0x5357'
   if(window._device.productId != 0x5357){
     let Response = await mt_V5.sendCommand(mt_V5.calcDateTime());  //Set Date and Time
@@ -99,7 +100,7 @@ async function handleOpenButton() {
 async function handleSendCommandButton() {
   let data = document.getElementById("sendData");
   let resp = await parseCommand(data.value);
-}
+  }
 
 async function parseCommand(message) {
   let Response ;
@@ -147,7 +148,9 @@ async function parseCommand(message) {
       mt_UI.LogData(`Done Waitng`);
       break;
     case "DETECTDEVICE":
-      window._device = await mt_V5.openDevice();
+      await mt_V5.closeDevice();
+      window._device = await mt_V5.openDevice();      
+      await mt_Utils.wait(_openTimeDelay);
       break;
     case "DISPLAYMESSAGE":
       mt_UI.LogData(cmd[1]);
@@ -163,13 +166,38 @@ async function parseCommand(message) {
     case "UPDATEDEVICE":
       mt_RMS_API.setURL(mt_Utils.getDefaultValue('baseURL',defaultRMSURL));
       mt_RMS_API.setAPIKey(mt_Utils.getDefaultValue('APIKey',defaultRMSAPIKey));
-      mt_RMS_API.setProfileName(mt_Utils.getDefaultValue('ProfileName',defaultRMSProfileNAme));
+      mt_RMS_API.setProfileName(mt_Utils.getDefaultValue('ProfileName',defaultRMSProfileName));
       if(mt_RMS_API.BaseURL.length > 0 && mt_RMS_API.APIKey.length > 0 && mt_RMS_API.ProfileName.length > 0){
         await mt_RMS.updateDevice();
       }else{
         mt_UI.LogData(`Please set APIKey and ProfileName`);      
       }
       break;
+    case "TESTBOOTLOADER":
+      if(window._device.productId != 0x5357)
+        {
+          mt_UI.LogData(`Switching to Bootloader... `);      
+          await mt_V5.sendCommand("6800");
+          await mt_Utils.wait(3000);
+          if (document.getElementById("lblUSBStatus").innerText.toLowerCase() == "opened")          
+          {
+            await mt_V5.sendCommand("7100");
+            mt_UI.LogData(`Success: You have paired the Bootloader`);            
+          }
+          else
+          {
+            mt_UI.LogData(`Press the 'Open' button to 'permit' access to the Bootloader and repeat the test`);            
+          }
+          
+        }else
+        {
+          await mt_V5.sendCommand("7100");
+          mt_UI.LogData(`Exiting the Bootloader`);
+          mt_UI.LogData(`Please repeat the test`);
+        }
+        break;
+      
+
     default:
       mt_UI.LogData(`Unknown Parse Command: ${cmd[0]}`);    
   }
@@ -219,6 +247,9 @@ const displayRMSProgressLogger = (e) => {
   mt_UI.updateProgressBar(e.Data.Caption, e.Data.Progress)
 };
 
+const displayFirmwareLoadStatusLogger = (e) => {  
+  mt_UI.LogData(`RMS Firmware Load Status: ${e.Data}`);
+};
 
 
 const displayUserSelectionLogger = (e) =>{
@@ -372,4 +403,4 @@ EventEmitter.on("OnUserSelection", displayUserSelectionLogger);
 
 EventEmitter.on("OnRMSLogData", displayRMSLogger);
 EventEmitter.on("OnRMSProgress", displayRMSProgressLogger);
-
+EventEmitter.on("OnFirmwareLoadStatus", displayFirmwareLoadStatusLogger);

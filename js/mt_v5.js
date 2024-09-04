@@ -555,6 +555,11 @@ function processNotificationType(msg) {
       var hexstring = msg.substring(12);
       EmitObject({ Name: "OnSPIData", Source: "V5", Data: hexstring });
       break;
+    case "0600":  
+      notifyType = "Firmware Load Status";
+      var hexstring = msg.substring(6);    
+      EmitObject({ Name: "OnFirmwareLoadStatus", Source: "V5", Data: hexstring });
+      break;
     default:
       notifyType = "Unknown Notification";
       EmitObject({
@@ -816,7 +821,7 @@ function ParseMSR(cardDataBytes) {
 
 
 function ParseInputReportBytes(input) {
-    var dataLen =parseInt( mt_Utils.toHexString(input.slice(7, 9)),16); 
+    var dataLen = parseInt( mt_Utils.toHexString(input.slice(7, 9)),16); 
     let _resp = {
       ReportID: mt_Utils.toHexString(input.slice(0, 1)),
       ReportLen: mt_Utils.toHexString(input.slice(1, 3)),
@@ -837,25 +842,36 @@ function ParseInputReportBytes(input) {
   
   export async function openDevice() {
     try {
-      var reqDevice;
       var devices = await navigator.hid.getDevices();
-      var device = devices.find((d) => d.vendorId === mt_HID.vendorId);
-  
-      if (!device) {
-        let vendorId = mt_HID.vendorId;
-        reqDevice = await navigator.hid.requestDevice({
+      console.log(devices);
+      if(devices.length == 0 )
+      {
+          devices = await navigator.hid.requestDevice({
           filters: mt_HID.filters,
         });
-        if(reqDevice != null)
-        {
-          if (reqDevice.length> 0)
-          {
-            device = reqDevice[0];
-          }
-        }
       }
+      console.log(devices);
+      //else
+      //{
+        var device = devices.find((d) => d.vendorId === mt_HID.vendorId);
+        console.log(device);
+      //}
+      
+        
+      // if (!device) {
+      //   reqDevice = await navigator.hid.requestDevice({
+      //     filters: mt_HID.filters,
+      //   });
+      //   if(reqDevice != null)
+      //   {
+      //     if (reqDevice.length> 0)
+      //     {
+      //       device = reqDevice[0];
+      //     }
+      //   }
+      // }
   
-      if (!device.opened) {
+      if (!device.opened) {        
         device.addEventListener("inputreport", handleInputReport);
         await device.open();
       }
@@ -879,10 +895,12 @@ function ParseInputReportBytes(input) {
         }
       }
       return device;
-    } catch (error) {
+    } 
+    catch (error) 
+    {
       EmitObject({Name:"OnError",
         Source: "OpenDevice",
-        Data: "Error opening device",
+        Data: `Error opening device: ${error.message}`,
       });
     }
   };
