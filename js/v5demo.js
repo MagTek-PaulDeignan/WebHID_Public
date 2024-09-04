@@ -98,8 +98,8 @@ async function handleOpenButton() {
 }
 
 async function handleSendCommandButton() {
-  let data = document.getElementById("sendData");
-  let resp = await parseCommand(data.value);
+    let data = document.getElementById("sendData");
+    let resp = await parseCommand(data.value);  
   }
 
 async function parseCommand(message) {

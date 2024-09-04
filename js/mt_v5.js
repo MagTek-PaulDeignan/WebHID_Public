@@ -555,11 +555,11 @@ function processNotificationType(msg) {
       var hexstring = msg.substring(12);
       EmitObject({ Name: "OnSPIData", Source: "V5", Data: hexstring });
       break;
-    case "0600":  
-      notifyType = "Firmware Load Status";
-      var hexstring = msg.substring(6);    
-      EmitObject({ Name: "OnFirmwareLoadStatus", Source: "V5", Data: hexstring });
-      break;
+     case "0600":  
+       notifyType = "Firmware Load Status";
+       var hexstring = msg.substring(6);    
+       EmitObject({ Name: "OnFirmwareLoadStatus", Source: "V5", Data: hexstring });
+       break;
     default:
       notifyType = "Unknown Notification";
       EmitObject({
