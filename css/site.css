@@ -52,3 +52,24 @@ h1 {
     font-weight:bold;
 }
 
+.btn-primary {
+    background-color:rgba(210, 18, 66, 1);
+    border-bottom-color:rgba(210, 18, 66, 1);
+    border-left-color:rgba(210, 18, 66, 1);
+    border-right-color:rgba(210, 18, 66, 1);
+    border-top-color:rgba(210, 18, 66, 1);
+    
+    --bs-btn-border-color: rgba(147, 149, 152, 1);
+    --bs-btn-hover-bg:rgba(147, 149, 152, 1);
+    --bs-btn-bg:rgba(147, 149, 152, 1);
+    --bs-btn-hover-border-color:rgba(147, 149, 152, 1);
+    --bs-btn-active-border-color:rgba(147, 149, 152, 1);
+    --bs-btn-disabled-bg:rgba(147, 149, 152, 1);
+    --bs-btn-active-border-color:rgba(147, 149, 152, 1);
+    --bs-btn-disabled-border-color:rgba(147, 149, 152, 1);
+    --bs-btn-active-bg:rgba(147, 149, 152, 1);
+}
+
+.progress-bar-striped {
+    --bs-progress-bar-bg:rgba(210, 18, 66, 1);
+}

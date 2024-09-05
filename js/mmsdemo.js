@@ -140,26 +140,22 @@ function ClearAutoCheck() {
 }
 
 const deviceConnectLogger = (e) => {
-  //mt_UI.LogData(`${e.Device.productName} connected`);
   mt_UI.setUSBConnected("Connected");
 };
 const deviceDisconnectLogger = (e) => {
-  //mt_UI.LogData(`${e.Device.productName} disconnected`);
   mt_UI.setUSBConnected("Disconnected");
 };
 const deviceCloseLogger = (e) => {
-  //mt_UI.LogData(`${e.Device.productName} closed`);
   mt_UI.setUSBConnected("Closed");
 };
 const deviceOpenLogger = (e) => {
-  //mt_UI.LogData(`${e.Device.productName} opened`);
   mt_UI.setUSBConnected("Opened");
 };
 const dataLogger = (e) => {
   mt_UI.LogData(`Received Data: ${e.Name}: ${e.Data}`);
 };
 const trxCompleteLogger = (e) => {
-  mt_UI.LogData(`Transaction Complete: ${e.Name}: ${e.Data}`);
+  mt_UI.LogData(`${e.Name}: ${e.Data}`);
 };
 const displayMessageLogger = (e) => {
   mt_UI.LogData(`Display: ${e.Data}`);

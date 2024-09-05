@@ -198,6 +198,9 @@ async function parseCommand(message) {
         break;
       
 
+    case "UPDATEPROGRESS":
+      mt_UI.updateProgressBar(cmd[1],cmd[2])  
+      break;
     default:
       mt_UI.LogData(`Unknown Parse Command: ${cmd[0]}`);    
   }
