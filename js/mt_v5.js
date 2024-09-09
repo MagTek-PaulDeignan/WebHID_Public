@@ -842,16 +842,21 @@ function ParseInputReportBytes(input) {
   
   export async function openDevice() {
     try {
-      var devices = await navigator.hid.getDevices();
-      //console.log(devices);
-      if(devices.length == 0 )
-      {
-          devices = await navigator.hid.requestDevice({
-          filters: mt_HID.filters,
-        });
-      }
-        var device = devices.find((d) => d.vendorId === mt_HID.vendorId);
-        //console.log(device);
+    let reqDevice;    
+    let devices = await navigator.hid.getDevices();
+    let device = devices.find((d) => d.vendorId === mt_HID.vendorId);
+
+    if (!device) {
+      let vendorId = mt_HID.vendorId;
+      reqDevice = await navigator.hid.requestDevice({ filters: mt_HID.V5filters });
+      if(reqDevice != null)
+        {
+          if (reqDevice.length> 0)
+          {
+            device = reqDevice[0];
+          }
+        }
+    }
       
       if (!device.opened) {        
         device.addEventListener("inputreport", handleInputReport);
@@ -886,7 +891,6 @@ function ParseInputReportBytes(input) {
       });
     }
   };
-  
   export async function closeDevice(){
     wasOpened = false;
   if (window._device != null) {

@@ -31,6 +31,7 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
       <h1>MagTek WebHID V5 Demo</h1>
     </div>
     <div class="container">
+      <div id="DeviceDisplay">WELCOME</div>
       <textarea class="form-control" name="LogData" id="LogData" rows="12"></textarea>
       <div class="container-left">
       <img id="USBStatus" src="./images/usb-disconnected.png"><label id="lblUSBStatus" for="USBStatus">Disconnected</label>
@@ -79,8 +80,8 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
             <option value="SENDEXTENDEDCOMMAND,0304,00">Cancel EMV</option>
             <option value="SENDEXTENDEDCOMMAND,0300,1E068000000000100000000000000000084001">START BOTH EMV</option>		
             <option value="SENDEXTCOMMAND,0300001300078000000000100000000000000000084000">START 3 EMV</option>		
-            <option value="SENDEXTCOMMAND,030200020000">User Selection 1</option>		
-            <option value="SENDEXTCOMMAND,030200020001">User Selection 2</option>
+            <option value="SENDEXTCOMMAND,030200020000">User Selection 0</option>		
+            <option value="SENDEXTCOMMAND,030200020001">User Selection 1</option>
             <option value="SENDCOMMAND,491900000300001300072100000000150000000000000000084002">Start NFC</option>
             <option value="SENDCOMMAND,491900000330001300000000000000000000000000000000000060">NFC Read Version</option>
             <option value="SENDCOMMAND,49190000033000140000000000000000000000000000000000003000">NFC Read Data</option>

@@ -79,6 +79,7 @@ async function handleCloseButton() {
 }
 async function handleClearButton() {
   mt_UI.ClearLog();
+  mt_UI.DeviceDisplay("");
 }
 
 async function handleOpenButton() {
@@ -159,6 +160,7 @@ const trxCompleteLogger = (e) => {
 };
 const displayMessageLogger = (e) => {
   mt_UI.LogData(`Display: ${e.Data}`);
+  mt_UI.DeviceDisplay(e.Data);
 };
 const barcodeLogger = (e) => {
   mt_UI.LogData(`Barcode  Data: ${e.Data}`);

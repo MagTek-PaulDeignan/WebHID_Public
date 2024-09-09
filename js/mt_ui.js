@@ -79,3 +79,12 @@ export function FromListToText() {
     }
   };
   
+   export function DeviceDisplay(value) {
+     const item = document.getElementById("DeviceDisplay");
+     if (value.length == 0){
+       item.innerText =  "WELCOME";
+     }
+     else{
+       item.innerText = value;
+     }
+   };

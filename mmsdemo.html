@@ -32,6 +32,7 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
       <h1>MagTek WebHID MMS Demo</h1>
     </div>
     <div class="container">
+      <div id="DeviceDisplay">WELCOME</div>
       <textarea class="form-control" name="LogData" id="LogData" rows="12"></textarea>
       <div class="container-left">
         <img id="USBStatus" src="./images/usb-disconnected.png"><label id="lblUSBStatus" for="USBStatus">Disconnected</label>
@@ -97,6 +98,8 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
           <option value="SENDCOMMAND,AA008104017A2001841C200181013C82010083020804850100A10B81010C8206123456789012">Request PIN</option>
           <option value="SENDCOMMAND,AA008104017A2001841C200181013C8201FF83020804850100A10B81010C8206123456789012">PIN Entry Success</option>
           <option value="SENDCOMMAND,AA008104017A2001841C200181013C8201FE83020804850100A10B81010C8206123456789012">PIN Entry Fail</option>
+          <option value="SENDCOMMAND,AA0081040100180284081802810100820100">User Selection 0</option>
+          <option value="SENDCOMMAND,AA0081040100180284081802810100820101">User Selection 1</option>          
         </select>
         <br>
         <label class="form-control-2" for="contactlessDelay">Contactless Delay</label><br>

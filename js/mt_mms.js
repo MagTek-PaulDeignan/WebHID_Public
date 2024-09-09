@@ -18,7 +18,7 @@ export var LogMMStoConsole = false;
 export var LogMMStoEvent = false;
 export var wasOpened = false;
 
-let _mtDeviceType = "";
+let mtDeviceType = "";
 
 let data_buffer_response = [];
 
@@ -691,19 +691,17 @@ export async function openDevice() {
     let reqDevice;
     let devices = await navigator.hid.getDevices();
     let device = devices.find((d) => d.vendorId === mt_HID.vendorId);
-
     if (!device) {
       let vendorId = mt_HID.vendorId;
-      reqDevice = await navigator.hid.requestDevice({ filters: mt_HID.filters });
+      reqDevice = await navigator.hid.requestDevice({filters: mt_HID.MMSfilters });
       if(reqDevice != null)
         {
-          if (reqDevice.length> 0)
+          if (reqDevice.length > 0)
           {
             device = reqDevice[0];
           }
         }
     }
-
     if (!device.opened) {
       device.addEventListener("inputreport", handleInputReport);
       await device.open();
@@ -711,16 +709,16 @@ export async function openDevice() {
     if (device.opened) {
       wasOpened = true;      
       let _devinfo = mt_HID.getDeviceInfo(device.productId);
-      _mtDeviceType = _devinfo.DeviceType;
+      mtDeviceType = _devinfo.DeviceType;
 
-      switch (_mtDeviceType) {
+      switch (mtDeviceType) {
         case "MMS":
           EmitObject({Name:"OnDeviceOpen", Device:device});
           break;
         default:
           EmitObject({Name:"OnError",
             Source: "Bad DeviceType",
-            Data: `Use the ${_mtDeviceType} Parser`
+            Data: `Use the ${mtDeviceType} Parser`
           });
           break;
       }      
@@ -744,7 +742,7 @@ export async function closeDevice(){
 
 function handleInputReport(e) {
   let dataArray = new Uint8Array(e.data.buffer);
-  switch (_mtDeviceType) {
+  switch (mtDeviceType) {
     case "CMF":
       EmitObject({Name:"OnError",
         Source: "DeviceType",

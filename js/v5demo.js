@@ -82,6 +82,7 @@ async function handleCloseButton() {
 }
 async function handleClearButton() {
   mt_UI.ClearLog();
+  mt_UI.DeviceDisplay("");
 }
 
 async function handleOpenButton() {
@@ -235,7 +236,8 @@ const trxCompleteLogger = (e) => {
   mt_UI.LogData(`Transaction Complete: ${e.Name}: ${e.Data}`);
 };
 const displayMessageLogger = (e) => {
-  mt_UI.LogData(`Display: ${e.Data}`);
+  //mt_UI.LogData(`Display: ${e.Data}`);
+  mt_UI.DeviceDisplay(e.Data);
 };
 
 const displayRMSLogger = (e) => {
@@ -311,7 +313,11 @@ const contactCardInsertedLogger = async (e) => {
 };
 
 const contactCardRemovedLogger = (e) => {
-  if (e.Data.toLowerCase() == "idle") mt_UI.LogData(`Contact Card Removed`);
+  if (e.Data.toLowerCase() == "idle"){
+    mt_UI.LogData(`Contact Card Removed`);
+    mt_UI.DeviceDisplay("");
+  } 
+
 };
 
 const msrSwipeDetectedLogger = (e) => {
