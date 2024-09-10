@@ -495,7 +495,7 @@ function parseNotificationFromDevice(Msg) {
     EmitObject({
       Name: "OnError",
       Source: "NotificationError",
-      Data: error.Message,
+      Data:  JSON.stringify(Msg) + error.Message
     });
   }
 }
