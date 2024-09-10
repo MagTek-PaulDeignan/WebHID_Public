@@ -74,7 +74,7 @@ export function getDeviceInfo(pid) {
   return { DeviceType: deviceType, ReportLen: reportLen };
 }
 
- export const filters = [
+ export const V5filters = [
    {
      vendorId: vendorId,
      productId: 0x03,
@@ -106,25 +106,28 @@ export function getDeviceInfo(pid) {
    {
      vendorId: vendorId,
      productId: 0x5357, // bootloader
-   },
-   {
-     vendorId: vendorId,
-     productId: 0x2020, //DynaFlex
-   },
-   {
-     vendorId: vendorId,
-     productId: 0x2021, //DynaFlex Boot 0
-   },
-   {
-     vendorId: vendorId,
-     productId: 0x2022, //DynaFlex Boot 1
-   },
-   {
-     vendorId: vendorId,
-     productId: 0x2023, //  DynaProx
-   },
-   {
-     vendorId: vendorId,
-     productId: 0x2024, //  DynaProx II Go
    }
  ];
+
+ export const MMSfilters = [
+  {
+    vendorId: vendorId,
+    productId: 0x2020, //DynaFlex
+  },
+  {
+    vendorId: vendorId,
+    productId: 0x2021, //DynaFlex Boot 0
+  },
+  {
+    vendorId: vendorId,
+    productId: 0x2022, //DynaFlex Boot 1
+  },
+  {
+    vendorId: vendorId,
+    productId: 0x2023, //  DynaProx
+  },
+  {
+    vendorId: vendorId,
+    productId: 0x2024, //  DynaProx II Go
+  }
+];

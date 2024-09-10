@@ -82,6 +82,7 @@ async function handleCloseButton() {
 }
 async function handleClearButton() {
   mt_UI.ClearLog();
+  mt_UI.DeviceDisplay("");
 }
 
 async function handleOpenButton() {
@@ -98,8 +99,8 @@ async function handleOpenButton() {
 }
 
 async function handleSendCommandButton() {
-  let data = document.getElementById("sendData");
-  let resp = await parseCommand(data.value);
+    let data = document.getElementById("sendData");
+    let resp = await parseCommand(data.value);  
   }
 
 async function parseCommand(message) {
@@ -198,6 +199,9 @@ async function parseCommand(message) {
         break;
       
 
+    case "UPDATEPROGRESS":
+      mt_UI.updateProgressBar(cmd[1],cmd[2])  
+      break;
     default:
       mt_UI.LogData(`Unknown Parse Command: ${cmd[0]}`);    
   }
@@ -210,19 +214,15 @@ function ClearAutoCheck() {
 }
 
 const deviceConnectLogger = (e) => {
-  //mt_UI.LogData(`${e.Device.productName} connected`);  
   mt_UI.setUSBConnected("Connected");
 };
 const deviceDisconnectLogger = (e) => {
-  //mt_UI.LogData(`${e.Device.productName} disconnected`);
   mt_UI.setUSBConnected("Disconnected");
 };
 const deviceCloseLogger = (e) => {
-  //mt_UI.LogData(`${e.Device.productName} closed`);
   mt_UI.setUSBConnected("Closed");
 };
 const deviceOpenLogger = (e) => {
-  //mt_UI.LogData(`${e.Device.productName} opened`);
   mt_RMS.setDeviceDetected(true);
   mt_UI.setUSBConnected("Opened");
 };
@@ -236,7 +236,8 @@ const trxCompleteLogger = (e) => {
   mt_UI.LogData(`Transaction Complete: ${e.Name}: ${e.Data}`);
 };
 const displayMessageLogger = (e) => {
-  mt_UI.LogData(`Display: ${e.Data}`);
+  //mt_UI.LogData(`Display: ${e.Data}`);
+  mt_UI.DeviceDisplay(e.Data);
 };
 
 const displayRMSLogger = (e) => {
@@ -312,7 +313,11 @@ const contactCardInsertedLogger = async (e) => {
 };
 
 const contactCardRemovedLogger = (e) => {
-  if (e.Data.toLowerCase() == "idle") mt_UI.LogData(`Contact Card Removed`);
+  if (e.Data.toLowerCase() == "idle"){
+    mt_UI.LogData(`Contact Card Removed`);
+    mt_UI.DeviceDisplay("");
+  } 
+
 };
 
 const msrSwipeDetectedLogger = (e) => {
@@ -321,7 +326,6 @@ const msrSwipeDetectedLogger = (e) => {
   var _autoStart = document.getElementById("chk-AutoStart");
   if (_autoStart.checked & chk.checked & (e.Data.toLowerCase() == "idle")) {
     ClearAutoCheck();
-    //mt_UI.LogData(`Auto Starting MSR...`);    
   }
 };
 

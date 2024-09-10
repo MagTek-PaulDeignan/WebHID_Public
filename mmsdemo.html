@@ -32,9 +32,10 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
       <h1>MagTek WebHID MMS Demo</h1>
     </div>
     <div class="container">
+      <div id="DeviceDisplay">WELCOME</div>
       <textarea class="form-control" name="LogData" id="LogData" rows="12"></textarea>
-      <div class="container-left">
-        <img id="USBStatus" src="./images/usb-disconnected.png"><label id="lblUSBStatus" for="USBStatus">Disconnected</label>
+      <div class="form-group container-left">
+        <img id="USBStatus" src="./images/usb-disconnected.png"><span id="lblUSBStatus">Disconnected</span>
       </div>
       <button class="btn btn-primary" id="deviceOpen">Open</button>
       <button class="btn btn-primary" id="deviceClose">Close</button>
@@ -45,7 +46,7 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
         <input type="checkbox" id="chk-AutoEMV" name="AutoEMV" value=""><label for="chk-AutoEMV">EMV</label>
         <input type="checkbox" id="chk-AutoNFC" name="AutoNFC" value=""><label for="chk-AutoNFC">NFC</label>
         <input type="checkbox" id="chk-AutoMSR" name="AutoMSR" value=""><label for="chk-AutoMSR">MSR</label>
-        <input type="checkbox" id="chk-AutoTouch" name="AutoTouch" value=""><label for="chk-AutoTouch">Touch</label>
+        <input type="checkbox" id="chk-AutoTouch" name="AutoTouch" value="" hidden="true"><label for="chk-AutoTouch" hidden="true">Touch</label>
         <hr>
         <div id="updDeviceContainer" class="container" style.visibility ='hidden'>      
           <p></p> 
@@ -97,6 +98,8 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
           <option value="SENDCOMMAND,AA008104017A2001841C200181013C82010083020804850100A10B81010C8206123456789012">Request PIN</option>
           <option value="SENDCOMMAND,AA008104017A2001841C200181013C8201FF83020804850100A10B81010C8206123456789012">PIN Entry Success</option>
           <option value="SENDCOMMAND,AA008104017A2001841C200181013C8201FE83020804850100A10B81010C8206123456789012">PIN Entry Fail</option>
+          <option value="SENDCOMMAND,AA0081040100180284081802810100820100">User Selection 0</option>
+          <option value="SENDCOMMAND,AA0081040100180284081802810100820101">User Selection 1</option>          
         </select>
         <br>
         <label class="form-control-2" for="contactlessDelay">Contactless Delay</label><br>

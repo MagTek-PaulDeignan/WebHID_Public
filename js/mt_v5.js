@@ -555,11 +555,11 @@ function processNotificationType(msg) {
       var hexstring = msg.substring(12);
       EmitObject({ Name: "OnSPIData", Source: "V5", Data: hexstring });
       break;
-    case "0600":  
-      notifyType = "Firmware Load Status";
-      var hexstring = msg.substring(6);    
-      EmitObject({ Name: "OnFirmwareLoadStatus", Source: "V5", Data: hexstring });
-      break;
+     case "0600":  
+       notifyType = "Firmware Load Status";
+       var hexstring = msg.substring(6);    
+       EmitObject({ Name: "OnFirmwareLoadStatus", Source: "V5", Data: hexstring });
+       break;
     default:
       notifyType = "Unknown Notification";
       EmitObject({
@@ -842,35 +842,22 @@ function ParseInputReportBytes(input) {
   
   export async function openDevice() {
     try {
-      var devices = await navigator.hid.getDevices();
-      console.log(devices);
-      if(devices.length == 0 )
-      {
-          devices = await navigator.hid.requestDevice({
-          filters: mt_HID.filters,
-        });
-      }
-      console.log(devices);
-      //else
-      //{
-        var device = devices.find((d) => d.vendorId === mt_HID.vendorId);
-        console.log(device);
-      //}
+    let reqDevice;    
+    let devices = await navigator.hid.getDevices();
+    let device = devices.find((d) => d.vendorId === mt_HID.vendorId);
+
+    if (!device) {
+      let vendorId = mt_HID.vendorId;
+      reqDevice = await navigator.hid.requestDevice({ filters: mt_HID.V5filters });
+      if(reqDevice != null)
+        {
+          if (reqDevice.length> 0)
+          {
+            device = reqDevice[0];
+          }
+        }
+    }
       
-        
-      // if (!device) {
-      //   reqDevice = await navigator.hid.requestDevice({
-      //     filters: mt_HID.filters,
-      //   });
-      //   if(reqDevice != null)
-      //   {
-      //     if (reqDevice.length> 0)
-      //     {
-      //       device = reqDevice[0];
-      //     }
-      //   }
-      // }
-  
       if (!device.opened) {        
         device.addEventListener("inputreport", handleInputReport);
         await device.open();
@@ -904,7 +891,6 @@ function ParseInputReportBytes(input) {
       });
     }
   };
-  
   export async function closeDevice(){
     wasOpened = false;
   if (window._device != null) {
