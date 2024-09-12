@@ -25,6 +25,10 @@ async function handleDOMLoaded() {
 
   item = document.getElementById("txURL");
   item.value = mt_Utils.getDefaultValue("baseURL", "https://rms.magensa.net/ReaderSupport/FirmwareUpdate-v2/api");
+
+  item = document.getElementById("txWSAddress");
+  item.value = mt_Utils.getDefaultValue("txWSAddress", "ws://192.168.1.200");
+   
 }
 async function handleSaveButton() {
   let item = document.getElementById("txAPIKey");
@@ -35,5 +39,11 @@ async function handleSaveButton() {
 
   item = document.getElementById("txURL");
   mt_Utils.saveDefaultValue("baseURL", item.value);
-  alert("Saved");
+
+  item = document.getElementById("txWSAddress");
+  mt_Utils.saveDefaultValue("txWSAddress", item.value);
+ 
+  item = document.getElementById("status");
+  item.innerText = "Saved"
+  //alert("Saved");
 }

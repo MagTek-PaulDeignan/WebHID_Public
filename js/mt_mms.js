@@ -91,7 +91,7 @@ export function parseMMSPacket(data) {
       });
   }
 }
-function ParseMMSMessage(Msg) {
+export function ParseMMSMessage(Msg) {
   const MMSMessage = {
     MsgHeader: mt_Utils.makeHex(Msg[0], 2),
     MsgVersion: mt_Utils.makeHex(Msg[1], 2),
@@ -439,7 +439,16 @@ function parseNotificationFromDevice(Msg) {
         break;
       case "0205":
         NotifyDetail = Msg.TLVData;
-        EmitObject({ Name: "OnPINComplete", Data: Msg.TLVData });
+        
+        let data = mt_Utils.getTagValue("F5", "", Msg.TLVData.substring(24), false); 
+
+        let PBF = mt_Utils.getTagValue("DF71", "", data, false);
+        let EPB = mt_Utils.getTagValue("99", "", data, false);
+        let KSN = mt_Utils.getTagValue("DFDF41", "", data, false);
+        let EncType = mt_Utils.getTagValue("DFDF42", "", data, false);
+
+
+        EmitObject({ Name: "OnPINComplete", Data: { PBF:PBF,EPB:EPB,KSN:KSN,EncType:EncType, TLV:Msg.TLVData }});
         break;
       case "0905":
         NotifyDetail = Msg.TLVData;
