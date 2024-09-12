@@ -20,6 +20,9 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link rel="stylesheet" type="text/css" href="./css/site.css"/>
     <script type="module" src="./js/v5demo.js"></script>
+    <script>
+      function FromListToText(event) {document.getElementById('sendData').value = event.target.value};
+    </script>
   </head>
   <body>
     <div class="container">
@@ -58,7 +61,7 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
       </div>
       <div class="form-group shadow-textarea">
         <label for="CommandList"></label>
-          <select class="form-control-3" name="CommandList" id="CommandList">
+          <select class="form-control-3" name="CommandList" onchange="FromListToText(event)" id="CommandList">
             <option value="SENDCOMMAND,0900">GET KSN</option>
             <option value="SENDCOMMAND,491900000300001300078000000000100000000000000000084001">START 3 - No Timeout</option>		
             <option value="SENDCOMMAND,000100">GET FIRMWARE</option>

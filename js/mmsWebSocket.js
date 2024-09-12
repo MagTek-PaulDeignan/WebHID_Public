@@ -16,7 +16,7 @@ import * as mt_UI from "./mt_ui.js";
 import "./mt_events.js";
 
 const wsAddress = mt_Utils.getDefaultValue('txWSAddress','');
-var MTWebSocket;
+var MTWebSocket = undefined;
   
 
 let _contactSeated = false;
@@ -36,14 +36,8 @@ document
 document
   .querySelector("#clearCommand")
   .addEventListener("click", handleClearButton);
-document
-   .querySelector("#CommandList")
-   .addEventListener("onchange", mt_UI.FromListToText);
-document
-   .querySelector("#CommandList")
-   .addEventListener("click", mt_UI.FromListToText);
 
-document.addEventListener("DOMContentLoaded", handleDOMLoaded);
+  document.addEventListener("DOMContentLoaded", handleDOMLoaded);
 
 function EmitObject(e_obj) {
   EventEmitter.emit(e_obj.Name, e_obj);
@@ -52,15 +46,31 @@ function EmitObject(e_obj) {
 async function handleDOMLoaded() {
 }
 function OpenWS(address){
-    MTWebSocket = new WebSocket(address);
-    MTWebSocket.onopen = ws_onopen;
-    MTWebSocket.onerror = ws_onerror;
-    MTWebSocket.onmessage = ws_onmessage;
-    MTWebSocket.onclose = ws_onclose;
+
+  // if(MTWebSocket == undefined)
+  // {
+  //   MTWebSocket = new WebSocket(address);
+  //   MTWebSocket.onopen = ws_onopen;
+  //   MTWebSocket.onerror = ws_onerror;
+  //   MTWebSocket.onmessage = ws_onmessage;
+  //   MTWebSocket.onclose = ws_onclose;
+  // }  
+  if(MTWebSocket == undefined || MTWebSocket.readyState != 1)
+    {
+      MTWebSocket = new WebSocket(address);
+      MTWebSocket.onopen = ws_onopen;
+      MTWebSocket.onerror = ws_onerror;
+      MTWebSocket.onmessage = ws_onmessage;
+      MTWebSocket.onclose = ws_onclose;
+  } 
 };
 
 function CloseWS(){
-    MTWebSocket.close();    
+  if(MTWebSocket != undefined){
+    if(MTWebSocket.readyState == 1){
+      MTWebSocket.close();    
+    }
+  }
 };
 
 function SendCommand(cmdHexString) {

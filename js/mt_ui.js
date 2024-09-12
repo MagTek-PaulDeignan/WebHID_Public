@@ -42,11 +42,9 @@ export function ClearLog() {
   }
   
  
-export function FromListToText() {
-    const val = document.getElementById("CommandList").value;
-    const item = document.getElementById("sendData");
-    item.value = val;
-  }
+export function FromListToText(event) {
+    document.getElementById('sendData').value = event.target.value
+}
   
   export function setUSBConnected(value) {
     const item = document.getElementById("USBStatus");
