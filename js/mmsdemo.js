@@ -33,8 +33,10 @@ document
 document
   .querySelector("#clearCommand")
   .addEventListener("click", handleClearButton);
-
-  document.addEventListener("DOMContentLoaded", handleDOMLoaded);
+document
+  .querySelector("#CommandList")
+  .addEventListener("change", mt_UI.FromListToText);
+document.addEventListener("DOMContentLoaded", handleDOMLoaded);
 
 function EmitObject(e_obj) {
   EventEmitter.emit(e_obj.Name, e_obj);

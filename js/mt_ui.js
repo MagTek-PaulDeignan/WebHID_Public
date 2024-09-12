@@ -43,7 +43,7 @@ export function ClearLog() {
   
  
 export function FromListToText(event) {
-    document.getElementById('sendData').value = event.target.value
+    document.getElementById("sendData").value = event.target.value;
 }
   
   export function setUSBConnected(value) {

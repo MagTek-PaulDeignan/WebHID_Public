@@ -36,6 +36,10 @@ document
 document
   .querySelector("#clearCommand")
   .addEventListener("click", handleClearButton);
+document
+  .querySelector("#CommandList")
+  .addEventListener("change", mt_UI.FromListToText);
+
 
   document.addEventListener("DOMContentLoaded", handleDOMLoaded);
 
