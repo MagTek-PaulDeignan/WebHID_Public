@@ -18,7 +18,7 @@ import "./mt_events.js";
 
 let _contactSeated = false;
 let _AwaitingContactEMV = false;
-export let _contactlessDelay = 1500;
+export let _contactlessDelay = 500;
 export let _openTimeDelay = 1500;
 
 document
@@ -34,12 +34,8 @@ document
   .querySelector("#clearCommand")
   .addEventListener("click", handleClearButton);
 document
-   .querySelector("#CommandList")
-   .addEventListener("onchange", mt_UI.FromListToText);
-document
-   .querySelector("#CommandList")
-   .addEventListener("click", mt_UI.FromListToText);
-
+  .querySelector("#CommandList")
+  .addEventListener("change", mt_UI.FromListToText);
 document.addEventListener("DOMContentLoaded", handleDOMLoaded);
 
 function EmitObject(e_obj) {

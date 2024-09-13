@@ -40,15 +40,8 @@ document
   .querySelector("#clearCommand")
   .addEventListener("click", handleClearButton);
 document
-   .querySelector("#CommandList")
-   .addEventListener("onchange", mt_UI.FromListToText);
-document
-   .querySelector("#CommandList")
-   .addEventListener("click", mt_UI.FromListToText);
-  document
-   .querySelector("#CommandList")
-   .addEventListener("onmouseup", mt_UI.FromListToText);
-
+  .querySelector("#CommandList")
+  .addEventListener("change", mt_UI.FromListToText);
 document.addEventListener("DOMContentLoaded", handleDOMLoaded);
 
 async function handleDOMLoaded() {
