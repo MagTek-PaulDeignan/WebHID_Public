@@ -48,6 +48,17 @@ export function hexToASCIInulltoNewLine(hexString) {
   return str;
 }
 
+function hexToASCIIRemoveNull(hexString) {
+  var str = "";
+  for (var n = 0; n < hexString.length; n += 2) {
+    if(parseInt(hexString.substr(n, 2), 16)!=0)
+    {
+      str += String.fromCharCode(parseInt(hexString.substr(n, 2), 16));
+    }
+  }
+  return str;
+};
+
 
 export function tlvParser(hexdata) {
   var data = hexToBytes(hexdata);
@@ -136,7 +147,7 @@ export function getTagValue(tagName, defaultTagValue, tlvData, asASCII) {
     var currtlv = TLVS.find((tlv) => tlv.tag === tagName);
     if (currtlv != null) {
       if (asASCII == true) {
-        return hexToASCII(currtlv.tagValue);
+        return hexToASCIIRemoveNull(currtlv.tagValue);
       } else {
         return currtlv.tagValue;
       }

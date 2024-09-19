@@ -88,6 +88,7 @@ async function handleSendCommandButton() {
 }
 
 async function parseCommand(message) {
+  let Response;
   let cmd = message.split(",");
   switch (cmd[0].toUpperCase()) {
     case "GETAPPVERSION":
@@ -97,7 +98,8 @@ async function parseCommand(message) {
       mt_Utils.debugLog("GETDEVINFO " + getDeviceInfo());      
       break;
     case "SENDCOMMAND":
-      mt_MMS.sendCommand(cmd[1]);
+      Response = await mt_MMS.sendCommand(cmd[1]);
+      EmitObject({ Name: "OnDeviceResponse", Data: Response });
       break;
     case "GETDEVICELIST":
       devices = getDeviceList();      
@@ -168,7 +170,7 @@ const batchLogger = (e) => {
   mt_UI.LogData(`${e.Source} Batch Data: ${e.Data}`);
 };
 const fromDeviceLogger = (e) => {
-  mt_UI.LogData(`Device Response: ${e.Data.TLVData}`);
+  mt_UI.LogData(`Device Response: ${e.Data.HexString}`);
 };
 const inputReportLogger = (e) => {
   mt_UI.LogData(`Input Report: ${e.Data}`);
@@ -185,12 +187,14 @@ const touchUpLogger = (e) => {
     mt_UI.LogData(`Touch Up: X: ${e.Data.Xpos} Y: ${e.Data.Ypos}`);
   }
 };
+
 const touchDownLogger = (e) => {
   var chk = document.getElementById("chk-AutoTouch");
   if (chk.checked) {
     mt_UI.LogData(`Touch Down: X: ${e.Data.Xpos} Y: ${e.Data.Ypos}`);
   }
 };
+
 const contactlessCardDetectedLogger = async (e) => {
   if (e.Data.toLowerCase() == "idle") mt_UI.LogData(`Contactless Card Detected`);
   var chk = document.getElementById("chk-AutoNFC");
@@ -206,10 +210,11 @@ const contactlessCardDetectedLogger = async (e) => {
       await mt_Utils.wait(_contactlessDelay);
     }
     if (!_contactSeated) {
+      _AwaitingContactEMV = false;
       // We didn't get a contact seated, do start the contactless transaction
       mt_MMS.sendCommand(
         "AA008104010010018430100182010AA30981010082010083010184020003861A9C01009F02060000000001009F03060000000000005F2A020840"
-      );
+      );      
     }
   }
 };
@@ -257,6 +262,11 @@ const msrSwipeDetectedLogger = (e) => {
 const userEventLogger = (e) => {
   mt_UI.LogData(`User Event Data: ${e.Name} ${e.Data}`);
 };
+
+const fileLogger = (e) => {
+  mt_UI.LogData(`File: ${e.Data.HexString}`);
+};
+
 
 // Subscribe to  events
 EventEmitter.on("OnInputReport", inputReportLogger);
@@ -322,3 +332,6 @@ EventEmitter.on("OnError", errorLogger);
 EventEmitter.on("OnPINComplete", dataLogger);
 EventEmitter.on("OnUIDisplayMessage", displayMessageLogger);
 EventEmitter.on("OnDebug", debugLogger);
+
+EventEmitter.on("OnFileFromHost", fileLogger);
+EventEmitter.on("OnFileFromDevice", fileLogger);

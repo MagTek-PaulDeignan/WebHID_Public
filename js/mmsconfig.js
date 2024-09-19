@@ -12,17 +12,19 @@ DO NOT REMOVE THIS COPYRIGHT
 
 import * as mt_Utils from "./mt_utils.js";
 import * as mt_MMS from "./mt_mms.js";
+import * as mt_HID from "./mt_hid.js";
 import * as mt_UI from "./mt_ui.js";
 import "./mt_events.js";
-
-const wsAddress = mt_Utils.getDefaultValue('txWSAddress','');
-var MTWebSocket = undefined;
-  
 
 let _contactSeated = false;
 let _AwaitingContactEMV = false;
 export let _contactlessDelay = 500;
 export let _openTimeDelay = 1500;
+
+
+document
+  .querySelector("#getSSID")
+  .addEventListener("click", getSSID);
 
 document
   .querySelector("#deviceOpen")
@@ -39,79 +41,54 @@ document
 document
   .querySelector("#CommandList")
   .addEventListener("change", mt_UI.FromListToText);
-
-
-  document.addEventListener("DOMContentLoaded", handleDOMLoaded);
+document.addEventListener("DOMContentLoaded", handleDOMLoaded);
 
 function EmitObject(e_obj) {
   EventEmitter.emit(e_obj.Name, e_obj);
 };
 
-async function handleDOMLoaded() {
+
+async function getSSID() {
+  let Resp = await mt_MMS.sendCommand("AA0081040112D101841AD10181072B06010401F609850101890AE208E206E104E102C100");
+  mt_UI.LogData(JSON.stringify(Resp));
+  let Tag84 = mt_Utils.getTagValue("84","",Resp.TLVData);
+  Tag84.substring(4)
+  console.log(Tag84.substring(4));
+    
+
 }
-function OpenWS(address){
 
-  if(MTWebSocket == undefined || MTWebSocket.readyState != 1)
-    {
-      MTWebSocket = new WebSocket(address);
-      MTWebSocket.binaryType = "arraybuffer";
-      MTWebSocket.onopen = ws_onopen;
-      MTWebSocket.onerror = ws_onerror;
-      MTWebSocket.onmessage = ws_onmessage;
-      MTWebSocket.onclose = ws_onclose;
-  } 
-};
-
-function CloseWS(){
-  if(MTWebSocket != undefined){
-    if(MTWebSocket.readyState == 1){
-      MTWebSocket.close();    
-    }
-  }
-};
-
-function SendCommand(cmdHexString) {
-    MTWebSocket.send(cmdHexString);    
-};
-
-function ws_onopen() {
-    //MTWebSocket.send('AA0081040155180384081803810100820114');
-    mt_UI.ClearLog();
-    mt_UI.setUSBConnected("Opened");
-  };
-
-function ws_onerror(error) {
-    console.log(error);
-    //mt_UI.LogData('Websocket Server Error ' + JSON.stringify(error, ["message", "arguments", "type", "name"]) + '\n');
-  };
-
-function ws_onmessage(ws_msg) {			
-    var dataArray
-    if( typeof ws_msg.data == 'string')
-    {
-      dataArray = mt_Utils.hexToBytes(ws_msg.data);
-    }
-    else
-    {
-      dataArray = new Uint8Array(ws_msg.data);
-    }
-    processMsg(dataArray);
-  };
-
-function ws_onclose(e) {
-    mt_UI.LogData('Websocket Closed');
-    mt_UI.setUSBConnected("Closed");
-  };
-
+async function handleDOMLoaded() {
+  let devices = await mt_HID.getDeviceList();
+  mt_UI.LogData(`Devices currently attached and allowed:`);
   
-function processMsg(msg) {
-    //AppendLogData(  msg + '\n');
-    //mt_MMS.ParseMMSMessage(mt_Utils.hexToBytes(msg));
-    mt_MMS.ParseMMSMessage(msg);
-  };
+  if (devices.length == 0) mt_UI.setUSBConnected("Connect a device");
+  devices.forEach((device) => {
+    mt_UI.LogData(`${device.productName}`);
+    mt_UI.setUSBConnected("Connected");
+  });
+
+
+
+  //Add the hid event listener for connect/plug in
+  navigator.hid.addEventListener("connect", async ({ device }) => {
+    EmitObject({Name:"OnDeviceConnect", Device:device});
+    if (mt_MMS.wasOpened) {
+      await mt_Utils.wait(_openTimeDelay);
+      await handleOpenButton();
+    }
+  });
+
+  //Add the hid event listener for disconnect/unplug
+  navigator.hid.addEventListener("disconnect", ({ device }) => {
+    EmitObject({Name:"OnDeviceDisconnect", Device:device});
+  });
+}
+
+
 
 async function handleCloseButton() {
-  CloseWS();
+  mt_MMS.closeDevice();
   mt_UI.ClearLog();
 }
 async function handleClearButton() {
@@ -120,7 +97,7 @@ async function handleClearButton() {
 }
 
 async function handleOpenButton() {
-  OpenWS(wsAddress);
+  window._device = await mt_MMS.openDevice();
 }
 
 async function handleSendCommandButton() {
@@ -129,6 +106,7 @@ async function handleSendCommandButton() {
 }
 
 async function parseCommand(message) {
+  let Response;
   let cmd = message.split(",");
   switch (cmd[0].toUpperCase()) {
     case "GETAPPVERSION":
@@ -138,25 +116,26 @@ async function parseCommand(message) {
       mt_Utils.debugLog("GETDEVINFO " + getDeviceInfo());      
       break;
     case "SENDCOMMAND":
-      SendCommand(cmd[1]);
+      Response = await mt_MMS.sendCommand(cmd[1]);
+      EmitObject({ Name: "OnDeviceResponse", Data: Response });
       break;
     case "GETDEVICELIST":
       devices = getDeviceList();      
       break;
-    case "OPENDEVICE":      
-      OpenWS(wsAddress);     
+    case "OPENDEVICE":
+      window._device = await mt_MMS.openDevice();      
       break;
-    case "CLOSEDEVICE":      
-      CloseWS();
+    case "CLOSEDEVICE":
+      await mt_MMS.closeDevice();
       break;
     case "WAIT":
       wait(cmd[1]);
       break;
     case "DETECTDEVICE":
-      //window._device = await mt_MMS.openDevice();      
+      window._device = await mt_MMS.openDevice();      
       break;
     case "GETTAGVALUE":
-      var retval = mt_Utils.getTagValue(cmd[1], cmd[2], cmd[3], cmd[4]);
+      var retval = mt_Utils.getTagValue(cmd[1], cmd[2], cmd[3], Boolean(cmd[4]));
       mt_UI.LogData(retval);
       break;
     case "PARSETLV":
@@ -192,11 +171,6 @@ const deviceOpenLogger = (e) => {
 const dataLogger = (e) => {
   mt_UI.LogData(`Received Data: ${e.Name}: ${e.Data}`);
 };
-
-const PINLogger = (e) => {
-  mt_UI.LogData(`${e.Name}: EPB:${e.Data.EPB} KSN:${e.Data.KSN} Encryption Type:${e.Data.EncType} PIN Block Format: ${e.Data.PBF} TLV: ${e.Data.TLV}`);
-};
-
 const trxCompleteLogger = (e) => {
   mt_UI.LogData(`${e.Name}: ${e.Data}`);
 };
@@ -214,7 +188,7 @@ const batchLogger = (e) => {
   mt_UI.LogData(`${e.Source} Batch Data: ${e.Data}`);
 };
 const fromDeviceLogger = (e) => {
-  mt_UI.LogData(`Device Response: ${e.Data.TLVData}`);
+  mt_UI.LogData(`Device Response: ${e.Data.HexString}`);
 };
 const inputReportLogger = (e) => {
   mt_UI.LogData(`Input Report: ${e.Data}`);
@@ -253,7 +227,9 @@ const contactlessCardDetectedLogger = async (e) => {
     }
     if (!_contactSeated) {
       // We didn't get a contact seated, do start the contactless transaction
-      SendCommand("AA008104010010018430100182010AA30981010082010083010184020003861A9C01009F02060000000001009F03060000000000005F2A020840");
+      mt_MMS.sendCommand(
+        "AA008104010010018430100182010AA30981010082010083010184020003861A9C01009F02060000000001009F03060000000000005F2A020840"
+      );
     }
   }
 };
@@ -274,7 +250,9 @@ const contactCardInsertedLogger = (e) => {
     _AwaitingContactEMV = false;
     ClearAutoCheck();
     mt_UI.LogData(`Auto Starting EMV...`);
-    SendCommand("AA008104010010018430100182010AA30981010082010183010084020003861A9C01009F02060000000001009F03060000000000005F2A020840");
+    mt_MMS.sendCommand(
+      "AA008104010010018430100182010AA30981010082010183010084020003861A9C01009F02060000000001009F03060000000000005F2A020840"
+    );
   }
 };
 
@@ -290,13 +268,20 @@ const msrSwipeDetectedLogger = (e) => {
   if (_autoStart.checked & chk.checked & (e.Data.toLowerCase() == "idle")) {
     ClearAutoCheck();
     mt_UI.LogData(`Auto Starting MSR...`);
-    SendCommand("AA008104010010018430100182010AA30981010182010183010084020003861A9C01009F02060000000001009F03060000000000005F2A020840");
+    mt_MMS.sendCommand(
+      "AA008104010010018430100182010AA30981010182010183010084020003861A9C01009F02060000000001009F03060000000000005F2A020840"
+    );
   }
 };
 
 const userEventLogger = (e) => {
   mt_UI.LogData(`User Event Data: ${e.Name} ${e.Data}`);
 };
+
+const fileLogger = (e) => {
+  mt_UI.LogData(`File: ${e.Data.HexString}`);
+};
+
 
 // Subscribe to  events
 EventEmitter.on("OnInputReport", inputReportLogger);
@@ -359,6 +344,9 @@ EventEmitter.on("OnTouchDown", touchDownLogger);
 EventEmitter.on("OnTouchUp", touchUpLogger);
 
 EventEmitter.on("OnError", errorLogger);
-EventEmitter.on("OnPINComplete", PINLogger);
+EventEmitter.on("OnPINComplete", dataLogger);
 EventEmitter.on("OnUIDisplayMessage", displayMessageLogger);
 EventEmitter.on("OnDebug", debugLogger);
+
+EventEmitter.on("OnFileFromHost", fileLogger);
+EventEmitter.on("OnFileFromDevice", fileLogger);
