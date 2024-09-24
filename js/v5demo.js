@@ -150,12 +150,12 @@ async function parseCommand(message) {
       mt_UI.LogData(cmd[1]);
       break;
     case "GETTAGVALUE":
-      var retval = mt_Utils.getTagValue(cmd[1], cmd[2], cmd[3]);
+      var retval = mt_Utils.getTagValue(cmd[1], cmd[2], cmd[3], Boolean(cmd[4]));
       mt_UI.LogData(`Get Tags for ${retval}`);      
       break;
     case "PARSETLV":
-      var retval = mt_Utils.tlvParser(mt_Utils.hexToBytes(cmd[1]));
-      broadcastJSON("PARSETLV", retval);
+      var retval = mt_Utils.tlvParser(cmd[1]);
+      mt_UI.LogData(JSON.stringify(retval));
       break;
     case "UPDATEDEVICE":
       mt_RMS_API.setURL(mt_Utils.getDefaultValue('baseURL',defaultRMSURL));

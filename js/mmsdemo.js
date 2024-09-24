@@ -72,6 +72,7 @@ async function handleDOMLoaded() {
 async function handleCloseButton() {
   mt_MMS.closeDevice();
   mt_UI.ClearLog();
+  mt_UI.DeviceDisplay("");
 }
 async function handleClearButton() {
   mt_UI.ClearLog();
@@ -117,12 +118,11 @@ async function parseCommand(message) {
       window._device = await mt_MMS.openDevice();      
       break;
     case "GETTAGVALUE":
-      var retval = mt_Utils.getTagValue(cmd[1], cmd[2], cmd[3], cmd[4]);
+      var retval = mt_Utils.getTagValue(cmd[1], cmd[2], cmd[3], Boolean(cmd[4]));
       mt_UI.LogData(retval);
       break;
     case "PARSETLV":
       var retval = mt_Utils.tlvParser(cmd[1]);
-      
       mt_UI.LogData(JSON.stringify(retval));
       break;
     case "DISPLAYMESSAGE":

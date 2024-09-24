@@ -12,7 +12,7 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
 <html lang="en">
 	<head>
 
-		<title>MagTek WebHID Demo</title>
+		<title>MagTek Configure</title>
 		<!-- Required meta tags -->
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=yes">
@@ -31,42 +31,70 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
 		</div>
 		  
 		<div class="container">
-		<h1>MagTek WebHID Configuration</h1>
+		<h1>Configuration</h1>
 		</div>
+		<hr>
+		<h3>RMS Options</h3>
 		<div class="container-left">
             <div class="form-group row">
-                <div class="col-md-6">
+                <div class="col-md-3">
                   <label for="txProfileName">Profile Name</label>
                   <input class="form-control" id="txProfileName" type="text" value="">
                 </div>
             </div>    
             <div class="form-group row">
-                <div class="col-md-6">
+                <div class="col-md-3">
                     <label for="txAPIKey">APIKey</label>
                     <input class="form-control" id="txAPIKey" type="password"value="">
                 </div>
             </div>
             <div class="form-group row">
-                <div class="col-md-6">
+                <div class="col-md-3">
                     <label for="txURL">URL</label>
                     <input class="form-control" id="txURL" type="text" value="">
                 </div>
             </div>
 			<hr>
+			<h3>Web Socket Options</h3>
 			<div class="form-group row">
-                <div class="col-md-6">
+                <div class="col-md-3">
                     <label for="txWSAddress">WebSocket Address</label>
                     <input class="form-control" id="txWSAddress" type="text" value="">
                 </div>
             </div>
+			<hr>
+			<h3>MQTT Options</h3>
+			<div class="form-group row">
+                <div class="col-md-3">
+                    <label for="txMQTTURL">MQTT Address</label>
+                    <input class="form-control" id="txMQTTURL" type="text" value="">
+                </div>
+            </div>
+			<div class="form-group row">				
+                <div class="col-md-3">
+                    <label for="txMQTTDevice">MQTT Device</label>
+                    <input class="form-control" id="txMQTTDevice" type="text" value="">
+                </div>
+            </div>
+			<div class="form-group row">				
+                <div class="col-md-3">
+                    <label for="txMQTTUser">MQTT User</label>
+                    <input class="form-control" id="txMQTTUser" type="text" value="">
+                </div>
+            </div>
+			<div class="form-group row">				
+                <div class="col-md-3">
+                    <label for="txMQTTPassword">MQTT Password</label>
+                    <input class="form-control" id="txMQTTPassword" type="password" value="">
+                </div>
+            </div>
 
-            <button class="btn btn-primary" id="btnSave">Save</button>
-
-			<div class="container">
-				<div id="status"></div>
+			
+            <div>
+                <button class="btn btn-primary" id="btnBack">Back</button>
+                <button class="btn btn-primary" id="btnSave">Save</button><span id="status"></span>
 			</div>
 	
-            
 		</div>
             
 	</body>

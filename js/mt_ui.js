@@ -41,7 +41,20 @@ export function ClearLog() {
     updateProgressBar("",-1);
   }
   
- 
+export function UpdateValue(id, value ) {
+    const element= document.getElementById(id);
+    element.value = value;    
+  }
+
+export function GetValue(id ) {
+    try {
+      const element= document.getElementById(id);
+      return element.value;  
+    } catch (error) {
+      return null;  
+    }
+  }
+  
 export function FromListToText(event) {
     document.getElementById("sendData").value = event.target.value;
 }

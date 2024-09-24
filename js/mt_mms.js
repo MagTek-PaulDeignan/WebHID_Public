@@ -613,8 +613,8 @@ function parseRequestFromDevice(Msg) {
   EmitObject({ Name: "OnRequestFromDevice", Data: NotifyDetail });
 }
 function parseResponseFromDevice(Msg) {
-  //let NotifyDetail = Msg.TLVData;
-  //EmitObject({ Name: "OnDeviceResponse", Data: Msg });
+  let NotifyDetail = Msg.TLVData;
+  EmitObject({ Name: "OnDeviceResponse", Data: Msg });
   device_response = Msg; 
 }
 function parseRequestFromHost(Msg) {

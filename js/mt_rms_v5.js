@@ -352,7 +352,7 @@ async function parseRMSCommand(message) {
       LogData(cmd[1]);
       break;
     case "GETTAGVALUE":
-      var retval = mt_Utils.getTagValue(cmd[1], cmd[2], cmd[3]);
+      var retval = mt_Utils.getTagValue(cmd[1], cmd[2], cmd[3], Boolean(cmd[4]));
       LogData(`Get Tags for ${retval}`);
       break;
     case "PARSETLV":
