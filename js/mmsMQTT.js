@@ -17,11 +17,27 @@ import mqtt  from "./mqtt.esm.js";
 
 import "./mt_events.js";
 
-let url = mt_Utils.getDefaultValue('MQTTURL','');
+let url = mt_Utils.getDefaultValue('MQTTURL','wss://hd513d49.ala.us-east-1.emqxsl.com:8084/mqtt');
 let devPath = mt_Utils.getDefaultValue('MQTTDevice','');
-let userName = mt_Utils.getDefaultValue('MQTTUser','');
-let password = mt_Utils.getDefaultValue('MQTTPassword','');
+let userName = mt_Utils.getDefaultValue('MQTTUser','testDevice1');
+let password = mt_Utils.getDefaultValue('MQTTPassword','t3stD3v1c1');
 let client = null;
+
+
+const params = new Proxy(new URLSearchParams(window.location.search), {
+  get: (searchParams, prop) => searchParams.get(prop),
+});
+
+let value = params.devpath;
+if (value != null) {
+  devPath = value;
+}
+
+
+
+
+if (userName.length == 0 ) userName = null;
+if (password.length == 0 ) password = null;
 
 // Create an MQTT client instance
 const options = {
@@ -29,13 +45,13 @@ const options = {
   connectTimeout: 4000,
   clientId: `MagTekClient-${mt_Utils.makeid(6)}`,
   username: userName,
-  password: password
+  password: password  
 };
 
 let _contactSeated = false;
 let _AwaitingContactEMV = false;
 
-export let _contactlessDelay = 500;
+export let _contactlessDelay = parseInt(mt_Utils.getDefaultValue("ContactlessDelay", "500"));
 export let _openTimeDelay = 1500;
 
 document
@@ -61,6 +77,8 @@ function EmitObject(e_obj) {
 };
 
 async function handleDOMLoaded() {
+  mt_UI.LogData(`Configured Device: ${devPath}`);
+  handleOpenButton();
 }
 
 function SendCommand(cmdHexString) {
@@ -68,26 +86,39 @@ function SendCommand(cmdHexString) {
 };
 
 function OpenMQTT(){
-  client = mqtt.connect(url, options);
-  client.on('connect', onMQTTConnect);
-  client.on('message', onMQTTMessage);
+  mt_UI.ClearLog();
+  mt_UI.LogData(`Configured Device: ${devPath}`);
+  
+  if(client == null)
+  {
+    client = mqtt.connect(url, options);
+    client.on('connect', ()=>{});
+    client.on('connect', onMQTTConnect);
+    
+    client.on('message', ()=>{});
+    client.on('message', onMQTTMessage);
+  }
 }
 
-function CloseMQTT(){
-  
+async function CloseMQTT(){
   if(client)
   {
-    client.end();
+    await client.end();
     client = null;      
   }
   EmitObject({Name:"OnDeviceClose", Device:client});
 }
 
-
-function onMQTTConnect() {  
-  mt_UI.setUSBConnected("Opened");
+async function onMQTTConnect(connack) {  
+  //console.log(`conack: ${JSON.stringify(connack)}`);
+  if(client != null){
   // Subscribe to a topic
-  client.subscribe(`MagTek/Server/${devPath}/MMSMessage`, CheckMQTTError)
+  await client.unsubscribe(`MagTek/Server/${devPath}/MMSMessage`, CheckMQTTError);
+  await client.unsubscribe(`MagTek/Server/+/+/Status`, CheckMQTTError);
+  
+  await client.subscribe(`MagTek/Server/${devPath}/MMSMessage`, CheckMQTTError);
+  await client.subscribe(`MagTek/Server/+/+/Status`, CheckMQTTError);
+}
 };
 
 function CheckMQTTError (err) {
@@ -101,19 +132,54 @@ function CheckMQTTError (err) {
 };
 
 function onMQTTMessage(topic, message) {
+
     
     let data = message.toString();
-    //console.log(`${topic}: ${data}`);
-    processMsg(data);  
-};
-
-function processMsg(msg) {
-    mt_MMS.ParseMMSMessage(mt_Utils.hexToBytes(msg));
+    let topicArray = topic.split('/');
+    if(topicArray.length == 5){
+      switch (topicArray[4]) {
+        case "Status":
+          if( `${topicArray[2]}/${topicArray[3]}` == devPath){
+          mt_UI.LogData(`Device Status: ${topicArray[2]}/${topicArray[3]}: ${message}`);
+          if( data.toLowerCase() == "connected")
+          {
+            if(client)
+              {              
+              EmitObject({Name:"OnDeviceOpen", Device:client}); 
+              }
+            else
+              {
+              EmitObject({Name:"OnDeviceConnect", Device:null});
+              }              
+          }
+          else
+          {
+            EmitObject({Name:"OnDeviceDisconnect", Device:null});
+          }
+          }
+          else
+          {
+            mt_UI.LogData(`Device Status: ${topicArray[2]}/${topicArray[3]}: ${message}`);
+            if(message == "connected"){
+              mt_UI.AddDeviceLink(topicArray[2], `${topicArray[3]}`,`mmsMQTTDemo.html?devpath=${topicArray[2]}/${topicArray[3]}`);
+            }
+          }
+          break; 
+        case "MMSMessage":
+          mt_MMS.ParseMMSMessage(mt_Utils.hexToBytes(data));
+          break;
+        case "V5Message":
+          //mt_MMS.ParseMMSMessage(mt_Utils.hexToBytes(data));
+          break;
+        default:
+          console.log(`${topic}: ${data}`);
+          break;
+      }
+    }
 };
 
 async function handleCloseButton() {
-  
-  CloseMQTT();
+  await CloseMQTT();
   mt_UI.ClearLog();
 }
 async function handleClearButton() {
@@ -241,8 +307,7 @@ const touchDownLogger = (e) => {
 const contactlessCardDetectedLogger = async (e) => {
   if (e.Data.toLowerCase() == "idle") mt_UI.LogData(`Contactless Card Detected`);
   var chk = document.getElementById("chk-AutoNFC");
-  var chkEMV = document.getElementById("chk-AutoEMV");
-  _contactlessDelay = document.getElementById("contactlessDelay").value;
+  var chkEMV = document.getElementById("chk-AutoEMV");  
   var _autoStart = document.getElementById("chk-AutoStart");
   if (_autoStart.checked & chk.checked & (e.Data.toLowerCase() == "idle")) {
     ClearAutoCheck();

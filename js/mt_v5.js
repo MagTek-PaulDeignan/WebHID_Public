@@ -56,6 +56,32 @@ export function parseV5Packet(data) {
   }
 }
 
+export function parseID5G3Packet(data) {
+  ParseInputReportBytes(data); 
+  let hex = mt_Utils.toHexString(data);
+  let report_id = hex.substring(0, 2);
+  switch (report_id) {
+    //this case is added to support Dynamag MSR
+    case "00":
+      processMsgType(hex);
+      break;
+    case "01":
+      processMsgType(hex);
+      break;
+    case "02":
+      var outString = parseExtendedReport(hex);
+      if (outString.length > 0) {
+        processMsg(outString);
+      }
+      break;
+    default:
+      EmitObject({
+        Name: "OnError",
+        Source: "parseV5Packet Unknown Report ID",
+        Data: hex,
+      });
+  }
+}
 function AppendLogData(data) {
   const log = document.getElementById("LogData");
   log.value += data + "\n";
@@ -921,7 +947,11 @@ function ParseInputReportBytes(input) {
       case "V5":
         parseV5Packet(packetArray);
         break;
-      default:
+      case "ID5G3":
+        parseID5G3Packet(packetArray);
+        break;
+
+        default:
         EmitObject({Name: "OnError",
           Source: "DeviceType",
           Data: "Unknown Device Type"

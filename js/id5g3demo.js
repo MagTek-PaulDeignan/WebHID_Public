@@ -9,20 +9,23 @@ DO NOT REMOVE THIS COPYRIGHT
  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, 
  WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
+"use strict";
 
 import * as mt_Utils from "./mt_utils.js";
-import * as mt_MMS from "./mt_mms.js";
+import * as mt_V5 from "./mt_v5.js";
+import * as mt_HID from "./mt_hid.js";
+import * as mt_RMS from "./mt_rms_v5.js";
+import * as mt_RMS_API from "./mt_rms_api.js";
 import * as mt_UI from "./mt_ui.js";
 import "./mt_events.js";
 
-const wsAddress = mt_Utils.getDefaultValue('WSAddress','');
-var MTWebSocket = undefined;
-  
 
-let _contactSeated = false;
-let _AwaitingContactEMV = false;
-export let _contactlessDelay = parseInt(mt_Utils.getDefaultValue("ContactlessDelay", "500"));
-export let _openTimeDelay = 1500;
+export var _openTimeDelay = 2000;
+
+// these will need to be changed and are here for testing
+let defaultRMSURL = '';
+let defaultRMSAPIKey = '';
+let defaultRMSProfileName = '';
 
 document
   .querySelector("#deviceOpen")
@@ -39,76 +42,36 @@ document
 document
   .querySelector("#CommandList")
   .addEventListener("change", mt_UI.FromListToText);
-
-
-  document.addEventListener("DOMContentLoaded", handleDOMLoaded);
-
-function EmitObject(e_obj) {
-  EventEmitter.emit(e_obj.Name, e_obj);
-};
+document.addEventListener("DOMContentLoaded", handleDOMLoaded);
 
 async function handleDOMLoaded() {
-}
-function OpenWS(address){
-
-  if(MTWebSocket == undefined || MTWebSocket.readyState != 1)
-    {
-      MTWebSocket = new WebSocket(address);
-      MTWebSocket.binaryType = "arraybuffer";
-      MTWebSocket.onopen = ws_onopen;
-      MTWebSocket.onerror = ws_onerror;
-      MTWebSocket.onmessage = ws_onmessage;
-      MTWebSocket.onclose = ws_onclose;
-  } 
-};
-
-function CloseWS(){
-  if(MTWebSocket != undefined){
-    if(MTWebSocket.readyState == 1){
-      MTWebSocket.close();    
-    }
-  }
-};
-
-function SendCommand(cmdHexString) {
-    MTWebSocket.send(cmdHexString);    
-};
-
-function ws_onopen() {
-    mt_UI.ClearLog();
-    mt_UI.setUSBConnected("Opened");
-  };
-
-function ws_onerror(error) {
-    console.log(error);
-  };
-
-function ws_onmessage(ws_msg) {			
-    var dataArray
-    if( typeof ws_msg.data == 'string')
-    {
-      dataArray = mt_Utils.hexToBytes(ws_msg.data);
-    }
-    else
-    {
-      dataArray = new Uint8Array(ws_msg.data);
-    }
-    processMsg(dataArray);
-  };
-
-function ws_onclose(e) {
-    mt_UI.LogData('Websocket Closed');
-    mt_UI.setUSBConnected("Closed");
-  };
-
+  mt_UI.ClearLog();
+  var devices = await mt_HID.getDeviceList();
+  mt_UI.LogData(`Devices currently attached and allowed:`);
   
-function processMsg(msg) {
-    mt_MMS.ParseMMSMessage(msg);
-  };
+  if (devices.length == 0 ) mt_UI.setUSBConnected("Connect a device");
+  devices.forEach((device) => {
+    mt_UI.LogData(`${device.productName}`);
+    mt_UI.setUSBConnected("Connected");
+
+  });
+
+  navigator.hid.addEventListener("connect", async ({ device }) => {
+    EmitObject({Name:"OnDeviceConnect", Device:device});
+    if (mt_V5.wasOpened) {
+      await mt_Utils.wait(_openTimeDelay);
+      await handleOpenButton();
+    }
+  });
+
+  navigator.hid.addEventListener("disconnect", ({ device }) => {
+    EmitObject({Name:"OnDeviceDisconnect", Device:device});
+  });
+};
 
 async function handleCloseButton() {
-  CloseWS();
-  mt_UI.ClearLog();
+  mt_V5.closeDevice();  
+  mt_UI.ClearLog();  
 }
 async function handleClearButton() {
   mt_UI.ClearLog();
@@ -116,56 +79,127 @@ async function handleClearButton() {
 }
 
 async function handleOpenButton() {
-  OpenWS(wsAddress);
+  window._device = await mt_V5.openDevice();
+  mt_Utils.debugLog(`PID: ${window._device.productId}`)
+  
+  //dont set date or USB output if in Bootloader '0x5357'
+  // if(window._device.productId != 0x5357){
+  //   let Response = await mt_V5.sendCommand(mt_V5.calcDateTime());  //Set Date and Time
+  //   if (Response != "0A06000000000000") mt_UI.LogData(`Error Setting Date: ${Response}`);
+  //   Response = await mt_V5.sendCommand("480100");   //SET USB Output Channel
+  //   if (Response != "0000") mt_UI.LogData(`Error Setting USB Output: ${Response}`);
+  // }
 }
 
 async function handleSendCommandButton() {
-  const data = document.getElementById("sendData");
-  await parseCommand(data.value);
-}
+    let data = document.getElementById("sendData");
+    let resp = await parseCommand(data.value);  
+  }
 
 async function parseCommand(message) {
-  let cmd = message.split(",");
+  let Response ;
+  var cmd = message.split(",");
   switch (cmd[0].toUpperCase()) {
     case "GETAPPVERSION":
-      mt_Utils.debugLog("GETAPPVERSION " + appOptions.version);      
+      mt_Utils.debugLog("GETAPPVERSION " + appOptions.version);
+      return appOptions.version;
+      break;
+    case "GETSPIDATA":
+      var spiCMD = "00" + "F".repeat(cmd[1] * 2);
+      mt_V5.sendExtendedCommand("0500", spiCMD);
       break;
     case "GETDEVINFO":
-      mt_Utils.debugLog("GETDEVINFO " + getDeviceInfo());      
+      return mt_HID.getDeviceInfo();
       break;
     case "SENDCOMMAND":
-      SendCommand(cmd[1]);
+      Response = await mt_V5.sendCommand(cmd[1]);
+      return EmitObject({ Name: "OnV5DeviceResponse", Data: Response });
+      break;
+    case "SENDDATETIME":
+      Response = await mt_V5.sendCommand(mt_V5.calcDateTime()); 
+      return EmitObject({ Name: "OnV5DeviceResponse", Data: Response });
+      break;
+    case "SENDEXTENDEDCOMMAND":
+      Response = await mt_V5.sendExtendedCommand(cmd[1], cmd[2]);
+      return EmitObject({ Name: "OnV5DeviceResponse", Data: Response });
+      break;
+    case "SENDEXTCOMMAND":
+      Response = await mt_V5.sendExtCommand(cmd[1]);
+      return EmitObject({ Name: "OnV5DeviceResponse", Data: Response });
       break;
     case "GETDEVICELIST":
-      devices = getDeviceList();      
+      devices = getDeviceList();
       break;
-    case "OPENDEVICE":      
-      OpenWS(wsAddress);     
+    case "OPENDEVICE":
+      window._device = await mt_V5.openDevice();
       break;
-    case "CLOSEDEVICE":      
-      CloseWS();
+    case "CLOSEDEVICE":
+      await mt_V5.closeDevice();        
       break;
     case "WAIT":
-      wait(cmd[1]);
+      mt_UI.LogData(`Waitng ${cmd[1]/1000} seconds...`);
+      await mt_Utils.wait(cmd[1]);
+      mt_UI.LogData(`Done Waitng`);
       break;
     case "DETECTDEVICE":
-      //window._device = await mt_MMS.openDevice();      
+      await mt_V5.closeDevice();
+      window._device = await mt_V5.openDevice();      
+      await mt_Utils.wait(_openTimeDelay);
+      break;
+    case "DISPLAYMESSAGE":
+      mt_UI.LogData(cmd[1]);
       break;
     case "GETTAGVALUE":
       var retval = mt_Utils.getTagValue(cmd[1], cmd[2], cmd[3], Boolean(cmd[4]));
-      mt_UI.LogData(retval);
+      mt_UI.LogData(`Get Tags for ${retval}`);      
       break;
     case "PARSETLV":
       var retval = mt_Utils.tlvParser(cmd[1]);
       mt_UI.LogData(JSON.stringify(retval));
       break;
-    case "DISPLAYMESSAGE":
-      mt_UI.LogData(cmd[1]);
+    case "UPDATEDEVICE":
+      mt_RMS_API.setURL(mt_Utils.getDefaultValue('baseURL',defaultRMSURL));
+      mt_RMS_API.setAPIKey(mt_Utils.getDefaultValue('APIKey',defaultRMSAPIKey));
+      mt_RMS_API.setProfileName(mt_Utils.getDefaultValue('ProfileName',defaultRMSProfileName));
+      if(mt_RMS_API.BaseURL.length > 0 && mt_RMS_API.APIKey.length > 0 && mt_RMS_API.ProfileName.length > 0){
+        await mt_RMS.updateDevice();
+      }else{
+        mt_UI.LogData(`Please set APIKey and ProfileName`);      
+      }
+      break;
+    case "TESTBOOTLOADER":
+      if(window._device.productId != 0x5357)
+        {
+          mt_UI.LogData(`Switching to Bootloader... `);      
+          await mt_V5.sendCommand("6800");
+          await mt_Utils.wait(3000);
+          if (document.getElementById("lblUSBStatus").innerText.toLowerCase() == "opened")          
+          {
+            await mt_V5.sendCommand("7100");
+            mt_UI.LogData(`Success: You have paired the Bootloader`);            
+          }
+          else
+          {
+            mt_UI.LogData(`Press the 'Open' button to 'permit' access to the Bootloader and repeat the test`);            
+          }
+          
+        }else
+        {
+          await mt_V5.sendCommand("7100");
+          mt_UI.LogData(`Exiting the Bootloader`);
+          mt_UI.LogData(`Please repeat the test`);
+        }
+        break;
+      
+
+    case "UPDATEPROGRESS":
+      mt_UI.updateProgressBar(cmd[1],cmd[2])  
       break;
     default:
-      mt_Utils.debugLog("Unknown Command");
+      mt_UI.LogData(`Unknown Parse Command: ${cmd[0]}`);    
   }
-};
+}
+
 
 function ClearAutoCheck() {
   var chk = document.getElementById("chk-AutoStart");
@@ -182,44 +216,69 @@ const deviceCloseLogger = (e) => {
   mt_UI.setUSBConnected("Closed");
 };
 const deviceOpenLogger = (e) => {
+  mt_RMS.setDeviceDetected(true);
   mt_UI.setUSBConnected("Opened");
 };
 const dataLogger = (e) => {
   mt_UI.LogData(`Received Data: ${e.Name}: ${e.Data}`);
 };
-
 const PINLogger = (e) => {
   mt_UI.LogData(`${e.Name}: EPB:${e.Data.EPB} KSN:${e.Data.KSN} Encryption Type:${e.Data.EncType} PIN Block Format: ${e.Data.PBF} TLV: ${e.Data.TLV}`);
 };
 
+const v5eventLogger = (e) => {
+  mt_UI.LogData(`V5 Event: ${e.Name}: ${e.Data}`);
+};
 const trxCompleteLogger = (e) => {
-  mt_UI.LogData(`${e.Name}: ${e.Data}`);
+  mt_UI.LogData(`Transaction Complete: ${e.Name}: ${e.Data}`);
 };
 const displayMessageLogger = (e) => {
-  mt_UI.LogData(`Display: ${e.Data}`);
+  //mt_UI.LogData(`Display: ${e.Data}`);
   mt_UI.DeviceDisplay(e.Data);
 };
+
+const displayRMSLogger = (e) => {
+  mt_UI.LogData(`RMS Display: ${e.Data}`);
+};
+
+const displayRMSProgressLogger = (e) => {  
+  mt_UI.updateProgressBar(e.Data.Caption, e.Data.Progress)
+};
+
+const displayFirmwareLoadStatusLogger = (e) => {  
+  mt_UI.LogData(`RMS Firmware Load Status: ${e.Data}`);
+};
+
+
+const displayUserSelectionLogger = (e) =>{
+  mt_UI.LogData(`Language/App Selection: ${e.Data}`);
+}
+
 const barcodeLogger = (e) => {
   mt_UI.LogData(`Barcode  Data: ${e.Data}`);
 };
+
 const arqcLogger = (e) => {
   mt_UI.LogData(`${e.Source} ARQC Data:  ${e.Data}`);
 };
 const batchLogger = (e) => {
   mt_UI.LogData(`${e.Source} Batch Data: ${e.Data}`);
 };
+
 const fromDeviceLogger = (e) => {
   mt_UI.LogData(`Device Response: ${e.Data.TLVData}`);
+};
+const fromV5DeviceLogger = (e) => {
+  mt_UI.LogData(`V5 Device Response: ${e.Data}`);
 };
 const inputReportLogger = (e) => {
   mt_UI.LogData(`Input Report: ${e.Data}`);
 };
+
 const errorLogger = (e) => {
   mt_UI.LogData(`Error: ${e.Source} ${e.Data}`);
 };
-const debugLogger = (e) => {
-  mt_UI.LogData(`Error: ${e.Source} ${e.Data}`);
-};
+
 const touchUpLogger = (e) => {
   var chk = document.getElementById("chk-AutoTouch");
   if (chk.checked) {
@@ -232,49 +291,30 @@ const touchDownLogger = (e) => {
     mt_UI.LogData(`Touch Down: X: ${e.Data.Xpos} Y: ${e.Data.Ypos}`);
   }
 };
-const contactlessCardDetectedLogger = async (e) => {
-  if (e.Data.toLowerCase() == "idle") mt_UI.LogData(`Contactless Card Detected`);
-  var chk = document.getElementById("chk-AutoNFC");
-  var chkEMV = document.getElementById("chk-AutoEMV");  
-  var _autoStart = document.getElementById("chk-AutoStart");
-  if (_autoStart.checked & chk.checked & (e.Data.toLowerCase() == "idle")) {
-    ClearAutoCheck();
-    mt_UI.LogData(`Auto Starting...`);
-    if (chkEMV.checked) {
-      _AwaitingContactEMV = true;
-      mt_UI.LogData(`Delaying Contactless ${_contactlessDelay}ms`);
-      await mt_Utils.wait(_contactlessDelay);
-    }
-    if (!_contactSeated) {
-      // We didn't get a contact seated, do start the contactless transaction
-      SendCommand("AA008104010010018430100182010AA30981010082010083010184020003861A9C01009F02060000000001009F03060000000000005F2A020840");
-    }
-  }
-};
+
+const contactlessCardDetectedLogger = async (e) => {};
 
 const contactlessCardRemovedLogger = (e) => {
   if (e.Data.toLowerCase() == "idle") mt_UI.LogData(`Contactless Card Removed`);
 };
 
-const contactCardInsertedLogger = (e) => {
-  _contactSeated = true;
+const contactCardInsertedLogger = async (e) => {
   if (e.Data.toLowerCase() == "idle") mt_UI.LogData(`Contact Card Inserted`);
-  var chk = document.getElementById("chk-AutoEMV");
+
   var _autoStart = document.getElementById("chk-AutoStart");
-  if (
-    _autoStart.checked & chk.checked & (e.Data.toLowerCase() == "idle") ||
-    _AwaitingContactEMV
-  ) {
-    _AwaitingContactEMV = false;
+  if (_autoStart.checked & (e.Data.toLowerCase() == "idle")) {
     ClearAutoCheck();
     mt_UI.LogData(`Auto Starting EMV...`);
-    SendCommand("AA008104010010018430100182010AA30981010082010183010084020003861A9C01009F02060000000001009F03060000000000005F2A020840");
+    await mt_V5.sendCommand("491900000300001303028000000000100000000000000000084002");    
   }
 };
 
 const contactCardRemovedLogger = (e) => {
-  _contactSeated = false;
-  if (e.Data.toLowerCase() == "idle") mt_UI.LogData(`Contact Card Removed`);
+  if (e.Data.toLowerCase() == "idle"){
+    mt_UI.LogData(`Contact Card Removed`);
+    mt_UI.DeviceDisplay("");
+  } 
+
 };
 
 const msrSwipeDetectedLogger = (e) => {
@@ -283,8 +323,6 @@ const msrSwipeDetectedLogger = (e) => {
   var _autoStart = document.getElementById("chk-AutoStart");
   if (_autoStart.checked & chk.checked & (e.Data.toLowerCase() == "idle")) {
     ClearAutoCheck();
-    mt_UI.LogData(`Auto Starting MSR...`);
-    SendCommand("AA008104010010018430100182010AA30981010182010183010084020003861A9C01009F02060000000001009F03060000000000005F2A020840");
   }
 };
 
@@ -292,8 +330,11 @@ const userEventLogger = (e) => {
   mt_UI.LogData(`User Event Data: ${e.Name} ${e.Data}`);
 };
 
+function EmitObject(e_obj) {
+  EventEmitter.emit(e_obj.Name, e_obj);
+}
+
 // Subscribe to  events
-EventEmitter.on("OnInputReport", inputReportLogger);
 EventEmitter.on("OnDeviceConnect", deviceConnectLogger);
 EventEmitter.on("OnDeviceDisconnect", deviceDisconnectLogger);
 
@@ -325,6 +366,7 @@ EventEmitter.on("OnFirmwareUpdateSuccessful", dataLogger);
 EventEmitter.on("OnFirmwareUptoDate", dataLogger);
 
 EventEmitter.on("OnManualDataEntered", dataLogger);
+EventEmitter.on("OnManualError", dataLogger);
 
 EventEmitter.on("OnMSRCardDetected", dataLogger);
 EventEmitter.on("OnMSRCardInserted", dataLogger);
@@ -355,4 +397,11 @@ EventEmitter.on("OnTouchUp", touchUpLogger);
 EventEmitter.on("OnError", errorLogger);
 EventEmitter.on("OnPINComplete", PINLogger);
 EventEmitter.on("OnUIDisplayMessage", displayMessageLogger);
-EventEmitter.on("OnDebug", debugLogger);
+
+EventEmitter.on("OnV5Event", v5eventLogger);
+EventEmitter.on("OnV5DeviceResponse", fromV5DeviceLogger);
+EventEmitter.on("OnUserSelection", displayUserSelectionLogger);
+
+EventEmitter.on("OnRMSLogData", displayRMSLogger);
+EventEmitter.on("OnRMSProgress", displayRMSProgressLogger);
+EventEmitter.on("OnFirmwareLoadStatus", displayFirmwareLoadStatusLogger);

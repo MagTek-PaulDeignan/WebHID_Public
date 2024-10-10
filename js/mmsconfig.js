@@ -18,7 +18,7 @@ import "./mt_events.js";
 
 let _contactSeated = false;
 let _AwaitingContactEMV = false;
-export let _contactlessDelay = 500;
+export let _contactlessDelay = parseInt(mt_Utils.getDefaultValue("ContactlessDelay", "500"));
 export let _openTimeDelay = 1500;
 
 
@@ -72,11 +72,47 @@ document
   function EmitObject(e_obj) {
   EventEmitter.emit(e_obj.Name, e_obj);
 };
+async function getAddressMode(){
+
+  mt_UI.LogData("Getting Wireless Address Mode...");
+  let Resp = await mt_MMS.sendCommand("AA0081040116D101841AD10181072B06010401F609850101890AE208E206E104E102C500");
+  let Tag82 = mt_Utils.getTagValue("82","",Resp.TLVData);
+  if(Tag82 == "00000000")
+  {
+    let Tag84 = mt_Utils.getTagValue("84","",Resp.TLVData);        
+    mt_UI.UpdateValue("wirelessAddressMode",mt_Utils.getTagValue("C3","",Tag84.substring(48),false));
+  }
+}
+async function setAddressMode(){
+  mt_UI.LogData("Setting Wireless Address Mode DHCP ...");
+  let Resp = await mt_MMS.sendCommand("AA0081040117D111841ED11181072B06010401F609850101890EE20CE20AE108E106C50400000001");
+  let Tag82 = mt_Utils.getTagValue("82","",Resp.TLVData);
+  if(Tag82 == "00000000")
+  {
+    let Tag84 = mt_Utils.getTagValue("84","",Resp.TLVData);        
+    mt_UI.UpdateValue("wirelessAddressMode",mt_Utils.getTagValue("C3","",Tag84.substring(48),false));
+  }
+}
+
+async function getWireLessSecurityMode(){
+
+  mt_UI.LogData("Getting Wireless Security Mode...");
+  let Resp = await mt_MMS.sendCommand("AA0081040113D101841AD10181072B06010401F609850101890AE208E206E104E102C300");
+  let Tag82 = mt_Utils.getTagValue("82","",Resp.TLVData);
+  if(Tag82 == "00000000")
+  {
+    let Tag84 = mt_Utils.getTagValue("84","",Resp.TLVData);        
+    mt_UI.UpdateValue("wirelessSecurityMode",mt_Utils.getTagValue("C3","",Tag84.substring(48),false));
+  }
+}
+async function setWireLessSecurityPSKMode(){
+  mt_UI.LogData("Setting Wireless Security PSK Mode...");
+  let Resp = await mt_MMS.sendCommand("AA0081040114D111841BD11181072B06010401F609850101890BE209E207E105E103C30100");  
+}
 
 async function getDeviceIP(){
   mt_UI.LogData("Getting Device DHCP Address...");
   let Resp = await mt_MMS.sendCommand("AA008104010ED101841AD10181072B06010401F609850102890AE108E206E504E602C300");
-  //mt_UI.LogData(JSON.stringify(Resp));
   let Tag82 = mt_Utils.getTagValue("82","",Resp.TLVData);
   if(Tag82 == "00000000")
   {
@@ -140,8 +176,12 @@ async function getSSID() {
 async function setSSID() {
   let name = mt_UI.GetValue("ssidName");
   let val = mt_Utils.AsciiToHexPad(name, 0x20);
-  mt_UI.LogData("Setting SSID");
-  let Resp = await mt_MMS.sendCommand(`AA0081040107D111843AD11181072B06010401F609850101892AE228E226E124E122C120${val}`);
+  
+  //Set to DHCP
+    mt_UI.LogData("Setting DHCP Mode");
+    let Resp = await mt_MMS.sendCommand("AA0081040117D111841ED11181072B06010401F609850101890EE20CE20AE108E106C50400000001");
+    mt_UI.LogData("Setting SSID");
+    Resp = await mt_MMS.sendCommand(`AA0081040107D111843AD11181072B06010401F609850101892AE228E226E124E122C120${val}`);
 }
 
 async function setSSIDPassword() {
@@ -280,6 +320,10 @@ const deviceOpenLogger = (e) => {
 const dataLogger = (e) => {
   mt_UI.LogData(`Received Data: ${e.Name}: ${e.Data}`);
 };
+const PINLogger = (e) => {
+  mt_UI.LogData(`${e.Name}: EPB:${e.Data.EPB} KSN:${e.Data.KSN} Encryption Type:${e.Data.EncType} PIN Block Format: ${e.Data.PBF} TLV: ${e.Data.TLV}`);
+};
+
 const trxCompleteLogger = (e) => {
   mt_UI.LogData(`${e.Name}: ${e.Data}`);
 };
@@ -323,8 +367,7 @@ const touchDownLogger = (e) => {
 const contactlessCardDetectedLogger = async (e) => {
   if (e.Data.toLowerCase() == "idle") mt_UI.LogData(`Contactless Card Detected`);
   var chk = document.getElementById("chk-AutoNFC");
-  var chkEMV = document.getElementById("chk-AutoEMV");
-  _contactlessDelay = document.getElementById("contactlessDelay").value;
+  var chkEMV = document.getElementById("chk-AutoEMV");  
   var _autoStart = document.getElementById("chk-AutoStart");
   if (_autoStart.checked & chk.checked & (e.Data.toLowerCase() == "idle")) {
     ClearAutoCheck();
@@ -453,7 +496,7 @@ EventEmitter.on("OnTouchDown", touchDownLogger);
 EventEmitter.on("OnTouchUp", touchUpLogger);
 
 EventEmitter.on("OnError", errorLogger);
-EventEmitter.on("OnPINComplete", dataLogger);
+EventEmitter.on("OnPINComplete", PINLogger);
 EventEmitter.on("OnUIDisplayMessage", displayMessageLogger);
 EventEmitter.on("OnDebug", debugLogger);
 

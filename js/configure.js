@@ -41,9 +41,12 @@ async function handleDOMLoaded() {
 
   item = document.getElementById("txMQTTPassword");
   item.value = mt_Utils.getDefaultValue("MQTTPassword", "t3stD3v1c1");
+
+  item = document.getElementById("txContactlessDelay");
+  item.value = mt_Utils.getDefaultValue("ContactlessDelay", "500");
+  
 }
 
-  
 async function handleBackButton() {
     window.location.href = "index.html";  
 }
@@ -73,9 +76,10 @@ async function handleSaveButton() {
   item = document.getElementById("txMQTTPassword");
   mt_Utils.saveDefaultValue("MQTTPassword", item.value);
 
-  item = document.getElementById("status");
-  item.innerText = " :Saved"
-  //alert("Saved");
-  window.location.href = "index.html";
+  item = document.getElementById("txContactlessDelay");
+  mt_Utils.saveDefaultValue("ContactlessDelay", item.value);
 
+  item = document.getElementById("status");
+  item.innerText = " :Saved"  
+  window.location.href = "index.html";
 }

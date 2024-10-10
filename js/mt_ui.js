@@ -95,7 +95,25 @@ export function FromListToText(event) {
      if (value.length == 0){
        item.innerText =  "WELCOME";
      }
-     else{
+     else
+     {
        item.innerText = value;
      }
    };
+
+
+ export function AddDeviceLink(type, name, url ){
+    const img = document.createElement('img');
+    img.setAttribute('src', `./images/${type}.png`);
+    img.className = "thumbnail";
+    img.setAttribute('height', '80px');
+    img.setAttribute('width', '80px');
+    const link = document.createElement('a');
+    link.href = url;
+    link.textContent = name;
+    //link.target = "_blank"; // Opens link in a new tab
+    link.style.display = "block"; // Makes each link appear on a new line    
+    
+    link.appendChild(img);    
+    document.getElementById('device-links').appendChild(link);
+ }  

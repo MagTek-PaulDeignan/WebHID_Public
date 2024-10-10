@@ -38,6 +38,14 @@ export function getDeviceInfo(pid) {
       reportLen = 0x3D;
       deviceType = "V5";
       break;
+    case 0x20:
+      reportLen = 0x40;
+      deviceType = "ID5G3";
+      break;
+    case 0x21:
+      reportLen = 0x40;
+      deviceType = "ID5G3";
+      break;
     case 0x1A:
       reportLen = 0x3D;
       deviceType = "V5";
@@ -109,6 +117,16 @@ export function getDeviceInfo(pid) {
    }
  ];
 
+export const ID5G3filters = [
+  {
+    vendorId: vendorId,
+    productId: 0x20,
+  },
+  {
+    vendorId: vendorId,
+    productId: 0x21,
+  }
+];
  export const MMSfilters = [
   {
     vendorId: vendorId,

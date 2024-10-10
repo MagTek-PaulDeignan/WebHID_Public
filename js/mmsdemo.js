@@ -18,7 +18,7 @@ import "./mt_events.js";
 
 let _contactSeated = false;
 let _AwaitingContactEMV = false;
-export let _contactlessDelay = 500;
+export let _contactlessDelay = parseInt(mt_Utils.getDefaultValue("ContactlessDelay", "500"));
 export let _openTimeDelay = 1500;
 
 document
@@ -100,7 +100,7 @@ async function parseCommand(message) {
       break;
     case "SENDCOMMAND":
       Response = await mt_MMS.sendCommand(cmd[1]);
-      EmitObject({ Name: "OnDeviceResponse", Data: Response });
+      //EmitObject({ Name: "OnDeviceResponse", Data: Response });
       break;
     case "GETDEVICELIST":
       devices = getDeviceList();      
@@ -153,6 +153,10 @@ const deviceOpenLogger = (e) => {
 const dataLogger = (e) => {
   mt_UI.LogData(`Received Data: ${e.Name}: ${e.Data}`);
 };
+const PINLogger = (e) => {
+  mt_UI.LogData(`${e.Name}: EPB:${e.Data.EPB} KSN:${e.Data.KSN} Encryption Type:${e.Data.EncType} PIN Block Format: ${e.Data.PBF} TLV: ${e.Data.TLV}`);
+};
+
 const trxCompleteLogger = (e) => {
   mt_UI.LogData(`${e.Name}: ${e.Data}`);
 };
@@ -198,8 +202,7 @@ const touchDownLogger = (e) => {
 const contactlessCardDetectedLogger = async (e) => {
   if (e.Data.toLowerCase() == "idle") mt_UI.LogData(`Contactless Card Detected`);
   var chk = document.getElementById("chk-AutoNFC");
-  var chkEMV = document.getElementById("chk-AutoEMV");
-  _contactlessDelay = document.getElementById("contactlessDelay").value;
+  var chkEMV = document.getElementById("chk-AutoEMV");  
   var _autoStart = document.getElementById("chk-AutoStart");
   if (_autoStart.checked & chk.checked & (e.Data.toLowerCase() == "idle")) {
     ClearAutoCheck();
@@ -329,7 +332,7 @@ EventEmitter.on("OnTouchDown", touchDownLogger);
 EventEmitter.on("OnTouchUp", touchUpLogger);
 
 EventEmitter.on("OnError", errorLogger);
-EventEmitter.on("OnPINComplete", dataLogger);
+EventEmitter.on("OnPINComplete", PINLogger);
 EventEmitter.on("OnUIDisplayMessage", displayMessageLogger);
 EventEmitter.on("OnDebug", debugLogger);
 

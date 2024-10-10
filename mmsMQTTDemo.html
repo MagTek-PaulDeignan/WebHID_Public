@@ -36,9 +36,6 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
       <div class="form-group container-left">
         <img id="USBStatus" src="./images/usb-disconnected.png"><span id="lblUSBStatus">Disconnected</span>
       </div>
-      <button class="btn btn-primary" id="deviceOpen">Open</button>
-      <button class="btn btn-primary" id="deviceClose">Close</button>
-      <button class="btn btn-primary" id="clearCommand">Clear</button>
       <div class="form-group" id="autoStartOptions">
         <input type="checkbox" id="chk-AutoStart" name="AutoStart" value=""><label for="chk-AutoStart">Auto Start</label>
          <br> 
@@ -102,12 +99,18 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
           <option value="SENDCOMMAND,AA0081040100180284081802810100820101">User Selection 1</option>
           <option value="SENDCOMMAND,AA0081040155D1118410D1118501018704020201018903CA0101">Set WebSocket Connections 1</option>          
           <option value="SENDCOMMAND,AA0081040155D1118410D1118501018704020201018903CA0104">Set WebSocket Connections 4</option>
-        </select>
-        <br>
-        <label class="form-control-2" for="contactlessDelay">Contactless Delay</label><br>
-        <input type="text" class="form-control-2" name="contactlessDelay" id="contactlessDelay" aria-describedby="helpId" value="500">
+        </select>       
+       
       </div>
     </div>
     <br>
+    <div id="device-links" class="container-left">
+    </div>
+
+    <div class="container-left">
+      <button class="btn btn-primary" id="deviceOpen">Open</button>
+      <button class="btn btn-primary" id="deviceClose">Close</button>
+      <button class="btn btn-primary" id="clearCommand">Clear</button>
+    </div>
   </body>
 </html>
