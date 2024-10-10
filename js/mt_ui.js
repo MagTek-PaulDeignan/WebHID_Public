@@ -102,12 +102,19 @@ export function FromListToText(event) {
    };
 
 
- export function AddDeviceLink(type, name, url ){
+ export function AddDeviceLink(type, name, status, url ){
+    const imgOnline = document.createElement('img');
+    imgOnline.setAttribute('src', `./images/${status}.png`);
+    imgOnline.className = "thumbnail";
+    imgOnline.setAttribute('height', '10px');
+    imgOnline.setAttribute('width', '10px');
+
     const img = document.createElement('img');
     img.setAttribute('src', `./images/${type}.png`);
     img.className = "thumbnail";
-    img.setAttribute('height', '80px');
-    img.setAttribute('width', '80px');
+    img.setAttribute('height', '60px');
+    img.setAttribute('width', '60px');
+    
     const link = document.createElement('a');
     link.href = url;
     link.textContent = name;
@@ -115,5 +122,6 @@ export function FromListToText(event) {
     link.style.display = "block"; // Makes each link appear on a new line    
     
     link.appendChild(img);    
+    link.appendChild(imgOnline);    
     document.getElementById('device-links').appendChild(link);
  }  

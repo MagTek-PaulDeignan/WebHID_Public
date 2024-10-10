@@ -139,8 +139,8 @@ function onMQTTMessage(topic, message) {
     if(topicArray.length == 5){
       switch (topicArray[4]) {
         case "Status":
+          mt_UI.AddDeviceLink(topicArray[2], `${topicArray[3]}`,message, `mmsMQTTDemo.html?devpath=${topicArray[2]}/${topicArray[3]}`);
           if( `${topicArray[2]}/${topicArray[3]}` == devPath){
-          mt_UI.LogData(`Device Status: ${topicArray[2]}/${topicArray[3]}: ${message}`);
           if( data.toLowerCase() == "connected")
           {
             if(client)
@@ -156,13 +156,6 @@ function onMQTTMessage(topic, message) {
           {
             EmitObject({Name:"OnDeviceDisconnect", Device:null});
           }
-          }
-          else
-          {
-            mt_UI.LogData(`Device Status: ${topicArray[2]}/${topicArray[3]}: ${message}`);
-            if(message == "connected"){
-              mt_UI.AddDeviceLink(topicArray[2], `${topicArray[3]}`,`mmsMQTTDemo.html?devpath=${topicArray[2]}/${topicArray[3]}`);
-            }
           }
           break; 
         case "MMSMessage":
