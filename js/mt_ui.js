@@ -116,12 +116,19 @@ export function FromListToText(event) {
     img.setAttribute('width', '60px');
     
     const link = document.createElement('a');
+    link.id = `dev-${name}`;
     link.href = url;
     link.textContent = name;
     //link.target = "_blank"; // Opens link in a new tab
     link.style.display = "block"; // Makes each link appear on a new line    
     
-    link.appendChild(img);    
-    link.appendChild(imgOnline);    
-    document.getElementById('device-links').appendChild(link);
+    link.prepend(imgOnline);    
+    link.prepend(img);    
+    const existingLink  = document.getElementById(`dev-${name}`);
+    if (existingLink == null){
+      document.getElementById('device-links').appendChild(link);
+    }else
+    {
+      existingLink.replaceWith(link);
+    }
  }  
