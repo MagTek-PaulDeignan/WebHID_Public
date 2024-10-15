@@ -18,7 +18,7 @@ import "./mt_events.js";
 
 let _contactSeated = false;
 let _AwaitingContactEMV = false;
-export let _contactlessDelay = 500;
+export let _contactlessDelay = parseInt(mt_Utils.getDefaultValue("ContactlessDelay", "500"));
 export let _openTimeDelay = 1500;
 
 document
@@ -72,6 +72,7 @@ async function handleDOMLoaded() {
 async function handleCloseButton() {
   mt_MMS.closeDevice();
   mt_UI.ClearLog();
+  mt_UI.DeviceDisplay("");
 }
 async function handleClearButton() {
   mt_UI.ClearLog();
@@ -88,6 +89,7 @@ async function handleSendCommandButton() {
 }
 
 async function parseCommand(message) {
+  let Response;
   let cmd = message.split(",");
   switch (cmd[0].toUpperCase()) {
     case "GETAPPVERSION":
@@ -97,7 +99,8 @@ async function parseCommand(message) {
       mt_Utils.debugLog("GETDEVINFO " + getDeviceInfo());      
       break;
     case "SENDCOMMAND":
-      mt_MMS.sendCommand(cmd[1]);
+      Response = await mt_MMS.sendCommand(cmd[1]);
+      //EmitObject({ Name: "OnDeviceResponse", Data: Response });
       break;
     case "GETDEVICELIST":
       devices = getDeviceList();      
@@ -115,12 +118,11 @@ async function parseCommand(message) {
       window._device = await mt_MMS.openDevice();      
       break;
     case "GETTAGVALUE":
-      var retval = mt_Utils.getTagValue(cmd[1], cmd[2], cmd[3], cmd[4]);
+      var retval = mt_Utils.getTagValue(cmd[1], cmd[2], cmd[3], Boolean(cmd[4]));
       mt_UI.LogData(retval);
       break;
     case "PARSETLV":
       var retval = mt_Utils.tlvParser(cmd[1]);
-      
       mt_UI.LogData(JSON.stringify(retval));
       break;
     case "DISPLAYMESSAGE":
@@ -151,6 +153,10 @@ const deviceOpenLogger = (e) => {
 const dataLogger = (e) => {
   mt_UI.LogData(`Received Data: ${e.Name}: ${e.Data}`);
 };
+const PINLogger = (e) => {
+  mt_UI.LogData(`${e.Name}: EPB:${e.Data.EPB} KSN:${e.Data.KSN} Encryption Type:${e.Data.EncType} PIN Block Format: ${e.Data.PBF} TLV: ${e.Data.TLV}`);
+};
+
 const trxCompleteLogger = (e) => {
   mt_UI.LogData(`${e.Name}: ${e.Data}`);
 };
@@ -168,7 +174,7 @@ const batchLogger = (e) => {
   mt_UI.LogData(`${e.Source} Batch Data: ${e.Data}`);
 };
 const fromDeviceLogger = (e) => {
-  mt_UI.LogData(`Device Response: ${e.Data.TLVData}`);
+  mt_UI.LogData(`Device Response: ${e.Data.HexString}`);
 };
 const inputReportLogger = (e) => {
   mt_UI.LogData(`Input Report: ${e.Data}`);
@@ -185,17 +191,18 @@ const touchUpLogger = (e) => {
     mt_UI.LogData(`Touch Up: X: ${e.Data.Xpos} Y: ${e.Data.Ypos}`);
   }
 };
+
 const touchDownLogger = (e) => {
   var chk = document.getElementById("chk-AutoTouch");
   if (chk.checked) {
     mt_UI.LogData(`Touch Down: X: ${e.Data.Xpos} Y: ${e.Data.Ypos}`);
   }
 };
+
 const contactlessCardDetectedLogger = async (e) => {
   if (e.Data.toLowerCase() == "idle") mt_UI.LogData(`Contactless Card Detected`);
   var chk = document.getElementById("chk-AutoNFC");
-  var chkEMV = document.getElementById("chk-AutoEMV");
-  _contactlessDelay = document.getElementById("contactlessDelay").value;
+  var chkEMV = document.getElementById("chk-AutoEMV");  
   var _autoStart = document.getElementById("chk-AutoStart");
   if (_autoStart.checked & chk.checked & (e.Data.toLowerCase() == "idle")) {
     ClearAutoCheck();
@@ -206,10 +213,11 @@ const contactlessCardDetectedLogger = async (e) => {
       await mt_Utils.wait(_contactlessDelay);
     }
     if (!_contactSeated) {
+      _AwaitingContactEMV = false;
       // We didn't get a contact seated, do start the contactless transaction
       mt_MMS.sendCommand(
         "AA008104010010018430100182010AA30981010082010083010184020003861A9C01009F02060000000001009F03060000000000005F2A020840"
-      );
+      );      
     }
   }
 };
@@ -257,6 +265,11 @@ const msrSwipeDetectedLogger = (e) => {
 const userEventLogger = (e) => {
   mt_UI.LogData(`User Event Data: ${e.Name} ${e.Data}`);
 };
+
+const fileLogger = (e) => {
+  mt_UI.LogData(`File: ${e.Data.HexString}`);
+};
+
 
 // Subscribe to  events
 EventEmitter.on("OnInputReport", inputReportLogger);
@@ -319,6 +332,9 @@ EventEmitter.on("OnTouchDown", touchDownLogger);
 EventEmitter.on("OnTouchUp", touchUpLogger);
 
 EventEmitter.on("OnError", errorLogger);
-EventEmitter.on("OnPINComplete", dataLogger);
+EventEmitter.on("OnPINComplete", PINLogger);
 EventEmitter.on("OnUIDisplayMessage", displayMessageLogger);
 EventEmitter.on("OnDebug", debugLogger);
+
+EventEmitter.on("OnFileFromHost", fileLogger);
+EventEmitter.on("OnFileFromDevice", fileLogger);

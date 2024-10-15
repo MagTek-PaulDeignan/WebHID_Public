@@ -15,6 +15,7 @@ import * as mt_Utils from "./mt_utils.js";
 
 document.addEventListener("DOMContentLoaded", handleDOMLoaded);
 document.querySelector("#btnSave").addEventListener("click", handleSaveButton);
+document.querySelector("#btnBack").addEventListener("click", handleBackButton);
 
 async function handleDOMLoaded() {
   let item = document.getElementById("txAPIKey");
@@ -27,9 +28,29 @@ async function handleDOMLoaded() {
   item.value = mt_Utils.getDefaultValue("baseURL", "https://rms.magensa.net/ReaderSupport/FirmwareUpdate-v2/api");
 
   item = document.getElementById("txWSAddress");
-  item.value = mt_Utils.getDefaultValue("txWSAddress", "ws://192.168.1.200");
-   
+  item.value = mt_Utils.getDefaultValue("WSAddress", "ws://192.168.1.200");
+
+  item = document.getElementById("txMQTTURL");
+  item.value = mt_Utils.getDefaultValue("MQTTURL", "wss://hd513d49.ala.us-east-1.emqxsl.com:8084/mqtt");
+
+  item = document.getElementById("txMQTTDevice");
+  item.value = mt_Utils.getDefaultValue("MQTTDevice", "DynaFlex/B55F78E");
+
+  item = document.getElementById("txMQTTUser");
+  item.value = mt_Utils.getDefaultValue("MQTTUser", "testDevice1");
+
+  item = document.getElementById("txMQTTPassword");
+  item.value = mt_Utils.getDefaultValue("MQTTPassword", "t3stD3v1c1");
+
+  item = document.getElementById("txContactlessDelay");
+  item.value = mt_Utils.getDefaultValue("ContactlessDelay", "500");
+  
 }
+
+async function handleBackButton() {
+    window.location.href = "index.html";  
+}
+
 async function handleSaveButton() {
   let item = document.getElementById("txAPIKey");
   mt_Utils.saveDefaultValue("APIKey", item.value);
@@ -41,9 +62,24 @@ async function handleSaveButton() {
   mt_Utils.saveDefaultValue("baseURL", item.value);
 
   item = document.getElementById("txWSAddress");
-  mt_Utils.saveDefaultValue("txWSAddress", item.value);
- 
+  mt_Utils.saveDefaultValue("WSAddress", item.value);
+
+  item = document.getElementById("txMQTTURL");
+  mt_Utils.saveDefaultValue("MQTTURL", item.value);
+
+  item = document.getElementById("txMQTTDevice");
+  mt_Utils.saveDefaultValue("MQTTDevice", item.value);
+
+  item = document.getElementById("txMQTTUser");
+  mt_Utils.saveDefaultValue("MQTTUser", item.value);
+
+  item = document.getElementById("txMQTTPassword");
+  mt_Utils.saveDefaultValue("MQTTPassword", item.value);
+
+  item = document.getElementById("txContactlessDelay");
+  mt_Utils.saveDefaultValue("ContactlessDelay", item.value);
+
   item = document.getElementById("status");
-  item.innerText = "Saved"
-  //alert("Saved");
+  item.innerText = " :Saved"  
+  window.location.href = "index.html";
 }

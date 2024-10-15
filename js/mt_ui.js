@@ -41,7 +41,20 @@ export function ClearLog() {
     updateProgressBar("",-1);
   }
   
- 
+export function UpdateValue(id, value ) {
+    const element= document.getElementById(id);
+    element.value = value;    
+  }
+
+export function GetValue(id ) {
+    try {
+      const element= document.getElementById(id);
+      return element.value;  
+    } catch (error) {
+      return null;  
+    }
+  }
+  
 export function FromListToText(event) {
     document.getElementById("sendData").value = event.target.value;
 }
@@ -82,7 +95,40 @@ export function FromListToText(event) {
      if (value.length == 0){
        item.innerText =  "WELCOME";
      }
-     else{
+     else
+     {
        item.innerText = value;
      }
    };
+
+
+ export function AddDeviceLink(type, name, status, url ){
+    const imgOnline = document.createElement('img');
+    imgOnline.setAttribute('src', `./images/${status}.png`);
+    imgOnline.className = "thumbnail";
+    imgOnline.setAttribute('height', '10px');
+    imgOnline.setAttribute('width', '10px');
+
+    const img = document.createElement('img');
+    img.setAttribute('src', `./images/${type}.png`);
+    img.className = "thumbnail";
+    img.setAttribute('height', '60px');
+    img.setAttribute('width', '60px');
+    
+    const link = document.createElement('a');
+    link.id = `dev-${name}`;
+    link.href = url;
+    link.textContent = name;
+    //link.target = "_blank"; // Opens link in a new tab
+    link.style.display = "block"; // Makes each link appear on a new line    
+    
+    link.prepend(imgOnline);    
+    link.prepend(img);    
+    const existingLink  = document.getElementById(`dev-${name}`);
+    if (existingLink == null){
+      document.getElementById('device-links').appendChild(link);
+    }else
+    {
+      existingLink.replaceWith(link);
+    }
+ }  

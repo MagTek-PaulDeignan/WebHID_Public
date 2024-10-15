@@ -13,14 +13,44 @@ DO NOT REMOVE THIS COPYRIGHT
 import * as mt_Utils from "./mt_utils.js";
 import * as mt_MMS from "./mt_mms.js";
 import * as mt_UI from "./mt_ui.js";
+import mqtt  from "./mqtt.esm.js";
+
 import "./mt_events.js";
 
-const wsAddress = mt_Utils.getDefaultValue('WSAddress','');
-var MTWebSocket = undefined;
-  
+let url = mt_Utils.getDefaultValue('MQTTURL','wss://hd513d49.ala.us-east-1.emqxsl.com:8084/mqtt');
+let devPath = mt_Utils.getDefaultValue('MQTTDevice','');
+let userName = mt_Utils.getDefaultValue('MQTTUser','testDevice1');
+let password = mt_Utils.getDefaultValue('MQTTPassword','t3stD3v1c1');
+let client = null;
+
+
+const params = new Proxy(new URLSearchParams(window.location.search), {
+  get: (searchParams, prop) => searchParams.get(prop),
+});
+
+let value = params.devpath;
+if (value != null) {
+  devPath = value;
+}
+
+
+
+
+if (userName.length == 0 ) userName = null;
+if (password.length == 0 ) password = null;
+
+// Create an MQTT client instance
+const options = {
+  clean: true,
+  connectTimeout: 4000,
+  clientId: `MagTekClient-${mt_Utils.makeid(6)}`,
+  username: userName,
+  password: password  
+};
 
 let _contactSeated = false;
 let _AwaitingContactEMV = false;
+
 export let _contactlessDelay = parseInt(mt_Utils.getDefaultValue("ContactlessDelay", "500"));
 export let _openTimeDelay = 1500;
 
@@ -40,74 +70,109 @@ document
   .querySelector("#CommandList")
   .addEventListener("change", mt_UI.FromListToText);
 
-
-  document.addEventListener("DOMContentLoaded", handleDOMLoaded);
+document.addEventListener("DOMContentLoaded", handleDOMLoaded);
 
 function EmitObject(e_obj) {
   EventEmitter.emit(e_obj.Name, e_obj);
 };
 
 async function handleDOMLoaded() {
+  mt_UI.LogData(`Configured Device: ${devPath}`);
+  handleOpenButton();
 }
-function OpenWS(address){
 
-  if(MTWebSocket == undefined || MTWebSocket.readyState != 1)
-    {
-      MTWebSocket = new WebSocket(address);
-      MTWebSocket.binaryType = "arraybuffer";
-      MTWebSocket.onopen = ws_onopen;
-      MTWebSocket.onerror = ws_onerror;
-      MTWebSocket.onmessage = ws_onmessage;
-      MTWebSocket.onclose = ws_onclose;
-  } 
+function SendCommand(cmdHexString) {
+    client.publish(`MagTek/Device/${devPath}`, cmdHexString);
 };
 
-function CloseWS(){
-  if(MTWebSocket != undefined){
-    if(MTWebSocket.readyState == 1){
-      MTWebSocket.close();    
-    }
+function OpenMQTT(){
+  mt_UI.ClearLog();
+  mt_UI.LogData(`Configured Device: ${devPath}`);
+  
+  if(client == null)
+  {
+    client = mqtt.connect(url, options);
+    client.on('connect', ()=>{});
+    client.on('connect', onMQTTConnect);
+    
+    client.on('message', ()=>{});
+    client.on('message', onMQTTMessage);
+  }
+}
+
+async function CloseMQTT(){
+  if(client)
+  {
+    await client.end();
+    client = null;      
+  }
+  EmitObject({Name:"OnDeviceClose", Device:client});
+}
+
+async function onMQTTConnect(connack) {  
+  //console.log(`conack: ${JSON.stringify(connack)}`);
+  if(client != null){
+  // Subscribe to a topic
+  await client.unsubscribe(`MagTek/Server/${devPath}/MMSMessage`, CheckMQTTError);
+  await client.unsubscribe(`MagTek/Server/+/+/Status`, CheckMQTTError);
+  
+  await client.subscribe(`MagTek/Server/${devPath}/MMSMessage`, CheckMQTTError);
+  await client.subscribe(`MagTek/Server/+/+/Status`, CheckMQTTError);
+}
+};
+
+function CheckMQTTError (err) {
+  if (err) 
+  {
+    EmitObject({Name:"OnError",
+      Source: "MQTTError",
+      Data: err
+    });
   }
 };
 
-function SendCommand(cmdHexString) {
-    MTWebSocket.send(cmdHexString);    
+function onMQTTMessage(topic, message) {
+
+    
+    let data = message.toString();
+    let topicArray = topic.split('/');
+    if(topicArray.length == 5){
+      switch (topicArray[4]) {
+        case "Status":
+          mt_UI.AddDeviceLink(topicArray[2], `${topicArray[3]}`,message, `mmsMQTTDemo.html?devpath=${topicArray[2]}/${topicArray[3]}`);
+          if( `${topicArray[2]}/${topicArray[3]}` == devPath){
+          if( data.toLowerCase() == "connected")
+          {
+            if(client)
+              {              
+              EmitObject({Name:"OnDeviceOpen", Device:client}); 
+              }
+            else
+              {
+              EmitObject({Name:"OnDeviceConnect", Device:null});
+              }              
+          }
+          else
+          {
+            EmitObject({Name:"OnDeviceDisconnect", Device:null});
+          }
+          }
+          break; 
+        case "MMSMessage":
+          mt_MMS.ParseMMSMessage(mt_Utils.hexToBytes(data));
+          break;
+        case "V5Message":
+          //mt_MMS.ParseMMSMessage(mt_Utils.hexToBytes(data));
+          break;
+        default:
+          console.log(`${topic}: ${data}`);
+          break;
+      }
+    }
 };
 
-function ws_onopen() {
-    mt_UI.ClearLog();
-    mt_UI.setUSBConnected("Opened");
-  };
-
-function ws_onerror(error) {
-    console.log(error);
-  };
-
-function ws_onmessage(ws_msg) {			
-    var dataArray
-    if( typeof ws_msg.data == 'string')
-    {
-      dataArray = mt_Utils.hexToBytes(ws_msg.data);
-    }
-    else
-    {
-      dataArray = new Uint8Array(ws_msg.data);
-    }
-    processMsg(dataArray);
-  };
-
-function ws_onclose(e) {
-    mt_UI.LogData('Websocket Closed');
-    mt_UI.setUSBConnected("Closed");
-  };
-
-  
-function processMsg(msg) {
-    mt_MMS.ParseMMSMessage(msg);
-  };
-
 async function handleCloseButton() {
-  CloseWS();
+  await CloseMQTT();
   mt_UI.ClearLog();
 }
 async function handleClearButton() {
@@ -116,7 +181,7 @@ async function handleClearButton() {
 }
 
 async function handleOpenButton() {
-  OpenWS(wsAddress);
+  OpenMQTT();
 }
 
 async function handleSendCommandButton() {

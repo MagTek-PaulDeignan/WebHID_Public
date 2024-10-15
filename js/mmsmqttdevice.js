@@ -12,12 +12,20 @@ DO NOT REMOVE THIS COPYRIGHT
 
 import * as mt_Utils from "./mt_utils.js";
 import * as mt_MMS from "./mt_mms.js";
+import * as mt_HID from "./mt_hid.js";
 import * as mt_UI from "./mt_ui.js";
+import mqtt  from "./mqtt.esm.js";
+
 import "./mt_events.js";
 
-const wsAddress = mt_Utils.getDefaultValue('WSAddress','');
-var MTWebSocket = undefined;
-  
+let url = mt_Utils.getDefaultValue('MQTTURL','');
+let devPath = ""
+let userName = mt_Utils.getDefaultValue('MQTTUser','');
+let password = mt_Utils.getDefaultValue('MQTTPassword','');
+let client = null;
+
+
+
 
 let _contactSeated = false;
 let _AwaitingContactEMV = false;
@@ -39,76 +47,44 @@ document
 document
   .querySelector("#CommandList")
   .addEventListener("change", mt_UI.FromListToText);
-
-
-  document.addEventListener("DOMContentLoaded", handleDOMLoaded);
+document.addEventListener("DOMContentLoaded", handleDOMLoaded);
 
 function EmitObject(e_obj) {
   EventEmitter.emit(e_obj.Name, e_obj);
 };
 
 async function handleDOMLoaded() {
-}
-function OpenWS(address){
-
-  if(MTWebSocket == undefined || MTWebSocket.readyState != 1)
-    {
-      MTWebSocket = new WebSocket(address);
-      MTWebSocket.binaryType = "arraybuffer";
-      MTWebSocket.onopen = ws_onopen;
-      MTWebSocket.onerror = ws_onerror;
-      MTWebSocket.onmessage = ws_onmessage;
-      MTWebSocket.onclose = ws_onclose;
-  } 
-};
-
-function CloseWS(){
-  if(MTWebSocket != undefined){
-    if(MTWebSocket.readyState == 1){
-      MTWebSocket.close();    
-    }
-  }
-};
-
-function SendCommand(cmdHexString) {
-    MTWebSocket.send(cmdHexString);    
-};
-
-function ws_onopen() {
-    mt_UI.ClearLog();
-    mt_UI.setUSBConnected("Opened");
-  };
-
-function ws_onerror(error) {
-    console.log(error);
-  };
-
-function ws_onmessage(ws_msg) {			
-    var dataArray
-    if( typeof ws_msg.data == 'string')
-    {
-      dataArray = mt_Utils.hexToBytes(ws_msg.data);
-    }
-    else
-    {
-      dataArray = new Uint8Array(ws_msg.data);
-    }
-    processMsg(dataArray);
-  };
-
-function ws_onclose(e) {
-    mt_UI.LogData('Websocket Closed');
-    mt_UI.setUSBConnected("Closed");
-  };
-
+  let devices = await mt_HID.getDeviceList();
+  mt_UI.LogData(`Devices currently attached and allowed:`);
   
-function processMsg(msg) {
-    mt_MMS.ParseMMSMessage(msg);
-  };
+  if (devices.length == 0) mt_UI.setUSBConnected("Connect a device");
+  devices.forEach((device) => {
+    mt_UI.LogData(`${device.productName}`);
+    mt_UI.setUSBConnected("Connected");
+  });
+
+
+
+  //Add the hid event listener for connect/plug in
+  navigator.hid.addEventListener("connect", async ({ device }) => {
+    EmitObject({Name:"OnDeviceConnect", Device:device});
+    if (mt_MMS.wasOpened) {
+      await mt_Utils.wait(_openTimeDelay);
+      await handleOpenButton();
+    }
+  });
+
+  //Add the hid event listener for disconnect/unplug
+  navigator.hid.addEventListener("disconnect", ({ device }) => {
+    EmitObject({Name:"OnDeviceDisconnect", Device:device});
+  });
+}
 
 async function handleCloseButton() {
-  CloseWS();
+  mt_MMS.closeDevice();
   mt_UI.ClearLog();
+  mt_UI.DeviceDisplay("");
+  CloseMQTT();
 }
 async function handleClearButton() {
   mt_UI.ClearLog();
@@ -116,7 +92,10 @@ async function handleClearButton() {
 }
 
 async function handleOpenButton() {
-  OpenWS(wsAddress);
+  window._device = await mt_MMS.openDevice();
+  let devSN = "B55F78E"
+  devPath = `${window._device.productName}/${devSN}`;
+  OpenMQTT();
 }
 
 async function handleSendCommandButton() {
@@ -125,6 +104,7 @@ async function handleSendCommandButton() {
 }
 
 async function parseCommand(message) {
+  let Response;
   let cmd = message.split(",");
   switch (cmd[0].toUpperCase()) {
     case "GETAPPVERSION":
@@ -134,22 +114,23 @@ async function parseCommand(message) {
       mt_Utils.debugLog("GETDEVINFO " + getDeviceInfo());      
       break;
     case "SENDCOMMAND":
-      SendCommand(cmd[1]);
+      Response = await mt_MMS.sendCommand(cmd[1]);
+      //EmitObject({ Name: "OnDeviceResponse", Data: Response });
       break;
     case "GETDEVICELIST":
       devices = getDeviceList();      
       break;
-    case "OPENDEVICE":      
-      OpenWS(wsAddress);     
+    case "OPENDEVICE":
+      window._device = await mt_MMS.openDevice();      
       break;
-    case "CLOSEDEVICE":      
-      CloseWS();
+    case "CLOSEDEVICE":
+      await mt_MMS.closeDevice();
       break;
     case "WAIT":
       wait(cmd[1]);
       break;
     case "DETECTDEVICE":
-      //window._device = await mt_MMS.openDevice();      
+      window._device = await mt_MMS.openDevice();      
       break;
     case "GETTAGVALUE":
       var retval = mt_Utils.getTagValue(cmd[1], cmd[2], cmd[3], Boolean(cmd[4]));
@@ -187,7 +168,6 @@ const deviceOpenLogger = (e) => {
 const dataLogger = (e) => {
   mt_UI.LogData(`Received Data: ${e.Name}: ${e.Data}`);
 };
-
 const PINLogger = (e) => {
   mt_UI.LogData(`${e.Name}: EPB:${e.Data.EPB} KSN:${e.Data.KSN} Encryption Type:${e.Data.EncType} PIN Block Format: ${e.Data.PBF} TLV: ${e.Data.TLV}`);
 };
@@ -209,10 +189,11 @@ const batchLogger = (e) => {
   mt_UI.LogData(`${e.Source} Batch Data: ${e.Data}`);
 };
 const fromDeviceLogger = (e) => {
-  mt_UI.LogData(`Device Response: ${e.Data.TLVData}`);
+  mt_UI.LogData(`Device Response: ${e.Data.HexString}`);
 };
 const inputReportLogger = (e) => {
   mt_UI.LogData(`Input Report: ${e.Data}`);
+  
 };
 const errorLogger = (e) => {
   mt_UI.LogData(`Error: ${e.Source} ${e.Data}`);
@@ -226,12 +207,14 @@ const touchUpLogger = (e) => {
     mt_UI.LogData(`Touch Up: X: ${e.Data.Xpos} Y: ${e.Data.Ypos}`);
   }
 };
+
 const touchDownLogger = (e) => {
   var chk = document.getElementById("chk-AutoTouch");
   if (chk.checked) {
     mt_UI.LogData(`Touch Down: X: ${e.Data.Xpos} Y: ${e.Data.Ypos}`);
   }
 };
+
 const contactlessCardDetectedLogger = async (e) => {
   if (e.Data.toLowerCase() == "idle") mt_UI.LogData(`Contactless Card Detected`);
   var chk = document.getElementById("chk-AutoNFC");
@@ -246,8 +229,11 @@ const contactlessCardDetectedLogger = async (e) => {
       await mt_Utils.wait(_contactlessDelay);
     }
     if (!_contactSeated) {
+      _AwaitingContactEMV = false;
       // We didn't get a contact seated, do start the contactless transaction
-      SendCommand("AA008104010010018430100182010AA30981010082010083010184020003861A9C01009F02060000000001009F03060000000000005F2A020840");
+      mt_MMS.sendCommand(
+        "AA008104010010018430100182010AA30981010082010083010184020003861A9C01009F02060000000001009F03060000000000005F2A020840"
+      );      
     }
   }
 };
@@ -268,7 +254,9 @@ const contactCardInsertedLogger = (e) => {
     _AwaitingContactEMV = false;
     ClearAutoCheck();
     mt_UI.LogData(`Auto Starting EMV...`);
-    SendCommand("AA008104010010018430100182010AA30981010082010183010084020003861A9C01009F02060000000001009F03060000000000005F2A020840");
+    mt_MMS.sendCommand(
+      "AA008104010010018430100182010AA30981010082010183010084020003861A9C01009F02060000000001009F03060000000000005F2A020840"
+    );
   }
 };
 
@@ -284,13 +272,116 @@ const msrSwipeDetectedLogger = (e) => {
   if (_autoStart.checked & chk.checked & (e.Data.toLowerCase() == "idle")) {
     ClearAutoCheck();
     mt_UI.LogData(`Auto Starting MSR...`);
-    SendCommand("AA008104010010018430100182010AA30981010182010183010084020003861A9C01009F02060000000001009F03060000000000005F2A020840");
+    mt_MMS.sendCommand(
+      "AA008104010010018430100182010AA30981010182010183010084020003861A9C01009F02060000000001009F03060000000000005F2A020840"
+    );
   }
 };
 
 const userEventLogger = (e) => {
   mt_UI.LogData(`User Event Data: ${e.Name} ${e.Data}`);
 };
+
+const fileLogger = (e) => {
+  mt_UI.LogData(`File: ${e.Data.HexString}`);
+};
+
+
+
+function OpenMQTT(){
+
+  let options = {
+    clean: true,
+    connectTimeout: 4000,
+    clientId: `MagTekClient-${mt_Utils.makeid(6)}`,
+    username: userName,
+    password: password,
+    reconnectPeriod: 1000,
+    keepalive: 60,
+    will: {
+      topic:`MagTek/Server/${devPath}/Status`,
+      retain:true,
+      payload:"disconnected"
+    }
+  };
+  
+  client = mqtt.connect(url, options);
+  client.on('connect', onMQTTConnect);
+  client.on('message', onMQTTMessage);
+}
+
+function CloseMQTT(){
+  
+  if(client)
+  {
+    client.end();
+    client = null;      
+  }
+  EmitObject({Name:"OnDeviceClose", Device:client});
+}
+
+function onMQTTConnect() {  
+  
+  // Subscribe to a topic
+  client.publish(`MagTek/Server/${devPath}/Status`, 'connected');
+  client.subscribe(`MagTek/Client/${devPath}/#`, CheckMQTTError)
+};
+
+function CheckMQTTError (err) {
+  if (err) 
+  {
+    EmitObject({Name:"OnError",
+      Source: "MQTTError",
+      Data: err
+    });
+  }
+};
+
+function onMQTTMessage(topic, message) {
+
+    let data = message.toString();
+    let topicArray = topic.split('/');
+    if(topicArray.length == 5){
+      switch (topicArray[4]) {
+        case "Status":
+          // if( data.toLowerCase() == "connected")
+          // {
+          //   if(client)
+          //     {              
+          //     EmitObject({Name:"OnDeviceOpen", Device:client}); 
+          //     }
+          //   else
+          //     {
+          //     EmitObject({Name:"OnDeviceConnect", Device:null});
+          //     }              
+          // }
+          // else
+          // {
+          //   EmitObject({Name:"OnDeviceDisconnect", Device:null});
+          // }
+          break; 
+        case "MMSMessage":
+          //mt_MMS.ParseMMSMessage(mt_Utils.hexToBytes(data));
+           mt_MMS.sendCommand(data)
+
+          break;
+        case "V5Message":
+          //mt_MMS.ParseMMSMessage(mt_Utils.hexToBytes(data));
+          break;
+        default:
+          console.log(`${topic}: ${data}`);
+          break;
+      }
+    }
+};
+
+
+ 
+
+
+
+
+
 
 // Subscribe to  events
 EventEmitter.on("OnInputReport", inputReportLogger);
@@ -300,59 +391,62 @@ EventEmitter.on("OnDeviceDisconnect", deviceDisconnectLogger);
 EventEmitter.on("OnDeviceOpen", deviceOpenLogger);
 EventEmitter.on("OnDeviceClose", deviceCloseLogger);
 
-EventEmitter.on("OnBarcodeDetected", barcodeLogger);
-EventEmitter.on("OnBarcodeRead", dataLogger);
-EventEmitter.on("OnBarcodeUpdate", dataLogger);
+// EventEmitter.on("OnBarcodeDetected", barcodeLogger);
+// EventEmitter.on("OnBarcodeRead", dataLogger);
+// EventEmitter.on("OnBarcodeUpdate", dataLogger);
 
-EventEmitter.on("OnARQCData", arqcLogger);
-EventEmitter.on("OnBatchData", batchLogger);
+// EventEmitter.on("OnARQCData", arqcLogger);
+// EventEmitter.on("OnBatchData", batchLogger);
 
-EventEmitter.on("OnContactCardDetected", dataLogger);
-EventEmitter.on("OnContactPINBlockError", dataLogger);
-EventEmitter.on("OnContactPINPadError", dataLogger);
+// EventEmitter.on("OnContactCardDetected", dataLogger);
+// EventEmitter.on("OnContactPINBlockError", dataLogger);
+// EventEmitter.on("OnContactPINPadError", dataLogger);
 
-EventEmitter.on("OnContactlessCardCollision", dataLogger);
-EventEmitter.on("OnContactlessMifare1KCardDetected", dataLogger);
-EventEmitter.on("OnContactlessMifare4KCardDetected", dataLogger);
-EventEmitter.on("OnContactlessMifareUltralightCardDetected", dataLogger);
-EventEmitter.on("OnContactlessNFCUID", dataLogger);
-EventEmitter.on("OnContactlessPINBlockError", dataLogger);
-EventEmitter.on("OnContactlessPINPadError", dataLogger);
-EventEmitter.on("OnContactlessVASError", dataLogger);
+// EventEmitter.on("OnContactlessCardCollision", dataLogger);
+// EventEmitter.on("OnContactlessMifare1KCardDetected", dataLogger);
+// EventEmitter.on("OnContactlessMifare4KCardDetected", dataLogger);
+// EventEmitter.on("OnContactlessMifareUltralightCardDetected", dataLogger);
+// EventEmitter.on("OnContactlessNFCUID", dataLogger);
+// EventEmitter.on("OnContactlessPINBlockError", dataLogger);
+// EventEmitter.on("OnContactlessPINPadError", dataLogger);
+// EventEmitter.on("OnContactlessVASError", dataLogger);
 
-EventEmitter.on("OnFirmwareUpdateFailed", dataLogger);
-EventEmitter.on("OnFirmwareUpdateSuccessful", dataLogger);
-EventEmitter.on("OnFirmwareUptoDate", dataLogger);
+// EventEmitter.on("OnFirmwareUpdateFailed", dataLogger);
+// EventEmitter.on("OnFirmwareUpdateSuccessful", dataLogger);
+// EventEmitter.on("OnFirmwareUptoDate", dataLogger);
 
-EventEmitter.on("OnManualDataEntered", dataLogger);
+// EventEmitter.on("OnManualDataEntered", dataLogger);
 
-EventEmitter.on("OnMSRCardDetected", dataLogger);
-EventEmitter.on("OnMSRCardInserted", dataLogger);
-EventEmitter.on("OnMSRCardRemoved", dataLogger);
-EventEmitter.on("OnMSRCardSwiped", dataLogger);
+// EventEmitter.on("OnMSRCardDetected", dataLogger);
+// EventEmitter.on("OnMSRCardInserted", dataLogger);
+// EventEmitter.on("OnMSRCardRemoved", dataLogger);
+// EventEmitter.on("OnMSRCardSwiped", dataLogger);
 
-EventEmitter.on("OnPowerEvent", dataLogger);
+// EventEmitter.on("OnPowerEvent", dataLogger);
 
-EventEmitter.on("OnTransactionComplete", trxCompleteLogger);
-EventEmitter.on("OnTransactionHostAction", dataLogger);
+// EventEmitter.on("OnTransactionComplete", trxCompleteLogger);
+// EventEmitter.on("OnTransactionHostAction", dataLogger);
 
-EventEmitter.on("OnUIHostActionComplete", dataLogger);
-EventEmitter.on("OnUIHostActionRequest", dataLogger);
-EventEmitter.on("OnUIInformationUpdate", dataLogger);
+// EventEmitter.on("OnUIHostActionComplete", dataLogger);
+// EventEmitter.on("OnUIHostActionRequest", dataLogger);
+// EventEmitter.on("OnUIInformationUpdate", dataLogger);
 
-EventEmitter.on("OnUserEvent", userEventLogger);
+// EventEmitter.on("OnUserEvent", userEventLogger);
 
-EventEmitter.on("OnContactlessCardDetected", contactlessCardDetectedLogger);
-EventEmitter.on("OnContactlessCardRemoved", contactlessCardRemovedLogger);
-EventEmitter.on("OnContactCardInserted", contactCardInsertedLogger);
-EventEmitter.on("OnContactCardRemoved", contactCardRemovedLogger);
-EventEmitter.on("OnMSRSwipeDetected", msrSwipeDetectedLogger);
+// EventEmitter.on("OnContactlessCardDetected", contactlessCardDetectedLogger);
+// EventEmitter.on("OnContactlessCardRemoved", contactlessCardRemovedLogger);
+// EventEmitter.on("OnContactCardInserted", contactCardInsertedLogger);
+// EventEmitter.on("OnContactCardRemoved", contactCardRemovedLogger);
+// EventEmitter.on("OnMSRSwipeDetected", msrSwipeDetectedLogger);
 
-EventEmitter.on("OnDeviceResponse", fromDeviceLogger);
-EventEmitter.on("OnTouchDown", touchDownLogger);
-EventEmitter.on("OnTouchUp", touchUpLogger);
+// EventEmitter.on("OnDeviceResponse", fromDeviceLogger);
+// EventEmitter.on("OnTouchDown", touchDownLogger);
+// EventEmitter.on("OnTouchUp", touchUpLogger);
 
-EventEmitter.on("OnError", errorLogger);
-EventEmitter.on("OnPINComplete", PINLogger);
-EventEmitter.on("OnUIDisplayMessage", displayMessageLogger);
-EventEmitter.on("OnDebug", debugLogger);
+ EventEmitter.on("OnError", errorLogger);
+// EventEmitter.on("OnPINComplete", PINLogger);
+// EventEmitter.on("OnUIDisplayMessage", displayMessageLogger);
+// EventEmitter.on("OnDebug", debugLogger);
+
+// EventEmitter.on("OnFileFromHost", fileLogger);
+// EventEmitter.on("OnFileFromDevice", fileLogger);

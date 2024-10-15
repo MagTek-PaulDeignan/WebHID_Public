@@ -20,6 +20,7 @@ export var wasOpened = false;
 
 let mtDeviceType = "";
 
+let device_response = null;
 let data_buffer_response = [];
 
 function EmitObject(e_obj) {
@@ -27,7 +28,8 @@ function EmitObject(e_obj) {
 }
 
 export async function sendCommand(cmdToSend) {
-  let cmdLen = 0;
+  let cmdResp = "";
+  device_response = null;
   try {
     if (window._device == null) {
       EmitObject({
@@ -45,8 +47,8 @@ export async function sendCommand(cmdToSend) {
       });
       return 0;
     }
-    cmdLen = await sendMMSCommand(mt_Utils.removeSpaces(cmdToSend));
-    return cmdLen;
+    cmdResp = await sendMMSCommand(mt_Utils.removeSpaces(cmdToSend));
+    return cmdResp;
   } catch (error) {
     EmitObject({ Name: "OnError", Source: "SendCommand", Data: error });
     return error;
@@ -61,6 +63,20 @@ async function sendMMSCommand(cmdToSend) {
   commands.forEach(async (command) => {
     await window._device.sendReport(0, new Uint8Array(command));
   });
+  Response = await waitForDeviceResponse();
+  return Response;
+};
+
+function waitForDeviceResponse() {
+  function waitFor(result) {
+    if (result) {
+      return result;
+    }
+    return new Promise((resolve) => setTimeout(resolve, 50))
+      .then(() => Promise.resolve(device_response)) 
+      .then((res) => waitFor(res));
+  }
+  return waitFor();
 }
 
 export function parseMMSPacket(data) {
@@ -98,7 +114,8 @@ export function ParseMMSMessage(Msg) {
     MsgType: mt_Utils.makeHex(Msg[4], 2),
     RefNum: mt_Utils.makeHex(Msg[5], 2),
     RespID: mt_Utils.makeHex((Msg[6] << 8) | Msg[7], 4),
-    TLVData: mt_Utils.toHexString(Msg.slice(2 + 6, Msg.length)),
+    TLVData: mt_Utils.toHexString(Msg.slice(8, Msg.length)),
+    HexString: mt_Utils.toHexString(Msg)
   };
 
   if (LogMMStoConsole) {
@@ -109,6 +126,7 @@ export function ParseMMSMessage(Msg) {
     mt_Utils.debugLog("RefNum: " + MMSMessage.RefNum);
     mt_Utils.debugLog("RespID: " + MMSMessage.RespID);
     mt_Utils.debugLog("TLVData: " + MMSMessage.TLVData);
+    mt_Utils.debugLog("HexString: " + MMSMessage.HexString);
     mt_Utils.debugLog("++++++++++++++++++++++++++++++++++++++++++++++++++++");
   }
   if (LogMMStoEvent) {
@@ -128,6 +146,9 @@ export function ParseMMSMessage(Msg) {
     case "03":
       parseNotificationFromHost(MMSMessage);
       break;
+    case "04":
+      parseFileFromHost(MMSMessage);
+      break;
     case "81":
       parseRequestFromDevice(MMSMessage);
       break;
@@ -136,6 +157,9 @@ export function ParseMMSMessage(Msg) {
       break;
     case "83":
       parseNotificationFromDevice(MMSMessage);
+      break;
+    case "84":
+      parseFileFromDevice(MMSMessage);
       break;
     default:
       EmitObject({ Name: "OnError", Source: "MMSParseError", Data: Msg });
@@ -591,6 +615,7 @@ function parseRequestFromDevice(Msg) {
 function parseResponseFromDevice(Msg) {
   let NotifyDetail = Msg.TLVData;
   EmitObject({ Name: "OnDeviceResponse", Data: Msg });
+  device_response = Msg; 
 }
 function parseRequestFromHost(Msg) {
   let NotifyDetail = mt_Utils.getTagValue("82", "", Msg.TLVData, false);
@@ -600,6 +625,16 @@ function parseResponseFromHost(Msg) {
   let NotifyDetail = mt_Utils.getTagValue("82", "", Msg.TLVData, false);
   EmitObject({ Name: "OnHostResponse", Data: NotifyDetail });
 }
+
+function parseFileFromDevice(Msg) {
+  //let NotifyDetail = mt_Utils.getTagValue("82", "", Msg.TLVData, false);
+  EmitObject({ Name: "OnFileFromDevice", Data: Msg });
+}
+function parseFileFromHost(Msg) {
+  //let NotifyDetail = mt_Utils.getTagValue("82", "", Msg.TLVData, false);
+  EmitObject({ Name: "OnFileFromHost", Data: Msg });
+}
+
 
 function parseSinglePacket(packet) {
   //Entire message is in 1 packet no buufering required

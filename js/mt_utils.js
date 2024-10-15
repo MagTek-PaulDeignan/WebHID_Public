@@ -18,6 +18,12 @@ export function toHexString(byteArray) {
     .join("");
 }
 
+export function AsciiToHexPad(AsciiString, length) {
+  var hex = (AsciiToHex(AsciiString) + "0".repeat(length*2)).slice(0, length*2);
+  return hex;
+};
+
+
 export function wait(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -35,6 +41,28 @@ export function hexToASCII(hexString) {
   }
   return str;
 }
+
+export function AsciiToHex(str)
+{
+    var arr1 = [];
+    for (var n = 0, l = str.length; n < l; n++)
+    {
+        var hex = Number(str.charCodeAt(n)).toString(16).toUpperCase();
+        arr1.push(hex);
+    }
+    return arr1.join('');
+};
+
+export function hexToDecIPv4(hexString) {
+  var str = "";
+  for (var n = 0; n < hexString.length; n += 2) {
+    str += parseInt(hexString.substr(n, 2), 16).toString();
+    if (n < (hexString.length - 2)) str += ".";
+  }
+  return str;
+}
+
+
 export function hexToASCIInulltoNewLine(hexString) {
   var str = "";
   for (var n = 0; n < hexString.length; n += 2) {
@@ -47,6 +75,17 @@ export function hexToASCIInulltoNewLine(hexString) {
   }
   return str;
 }
+
+function hexToASCIIRemoveNull(hexString) {
+  var str = "";
+  for (var n = 0; n < hexString.length; n += 2) {
+    if(parseInt(hexString.substr(n, 2), 16)!=0)
+    {
+      str += String.fromCharCode(parseInt(hexString.substr(n, 2), 16));
+    }
+  }
+  return str;
+};
 
 
 export function tlvParser(hexdata) {
@@ -136,7 +175,7 @@ export function getTagValue(tagName, defaultTagValue, tlvData, asASCII) {
     var currtlv = TLVS.find((tlv) => tlv.tag === tagName);
     if (currtlv != null) {
       if (asASCII == true) {
-        return hexToASCII(currtlv.tagValue);
+        return hexToASCIIRemoveNull(currtlv.tagValue);
       } else {
         return currtlv.tagValue;
       }
@@ -170,6 +209,18 @@ export function getDefaultValue(key, defaultValue){
 
 export function saveDefaultValue(key, value){
   localStorage.setItem(key, value);    
+}
+
+export function makeid(length) {
+  let result = '';
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  const charactersLength = characters.length;
+  let counter = 0;
+  while (counter < length) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    counter += 1;
+  }
+  return result;
 }
 
 

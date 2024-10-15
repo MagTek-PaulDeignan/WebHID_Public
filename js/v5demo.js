@@ -19,7 +19,6 @@ import * as mt_RMS_API from "./mt_rms_api.js";
 import * as mt_UI from "./mt_ui.js";
 import "./mt_events.js";
 
-
 export var _openTimeDelay = 2000;
 
 // these will need to be changed and are here for testing
@@ -150,12 +149,12 @@ async function parseCommand(message) {
       mt_UI.LogData(cmd[1]);
       break;
     case "GETTAGVALUE":
-      var retval = mt_Utils.getTagValue(cmd[1], cmd[2], cmd[3]);
+      var retval = mt_Utils.getTagValue(cmd[1], cmd[2], cmd[3], Boolean(cmd[4]));
       mt_UI.LogData(`Get Tags for ${retval}`);      
       break;
     case "PARSETLV":
-      var retval = mt_Utils.tlvParser(mt_Utils.hexToBytes(cmd[1]));
-      broadcastJSON("PARSETLV", retval);
+      var retval = mt_Utils.tlvParser(cmd[1]);
+      mt_UI.LogData(JSON.stringify(retval));
       break;
     case "UPDATEDEVICE":
       mt_RMS_API.setURL(mt_Utils.getDefaultValue('baseURL',defaultRMSURL));
@@ -222,6 +221,10 @@ const deviceOpenLogger = (e) => {
 const dataLogger = (e) => {
   mt_UI.LogData(`Received Data: ${e.Name}: ${e.Data}`);
 };
+const PINLogger = (e) => {
+  mt_UI.LogData(`${e.Name}: EPB:${e.Data.EPB} KSN:${e.Data.KSN} Encryption Type:${e.Data.EncType} PIN Block Format: ${e.Data.PBF} TLV: ${e.Data.TLV}`);
+};
+
 const v5eventLogger = (e) => {
   mt_UI.LogData(`V5 Event: ${e.Name}: ${e.Data}`);
 };
@@ -391,7 +394,7 @@ EventEmitter.on("OnTouchDown", touchDownLogger);
 EventEmitter.on("OnTouchUp", touchUpLogger);
 
 EventEmitter.on("OnError", errorLogger);
-EventEmitter.on("OnPINComplete", dataLogger);
+EventEmitter.on("OnPINComplete", PINLogger);
 EventEmitter.on("OnUIDisplayMessage", displayMessageLogger);
 
 EventEmitter.on("OnV5Event", v5eventLogger);
