@@ -19,7 +19,7 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link rel="stylesheet" type="text/css" href="./css/site.css"/>
-    <script type="module" src="./js/mmsMQTT.js"></script>
+    <script type="module" src="./js/mmsMPPG.js"></script>
   </head>
   <body>
     <div class="container">
@@ -30,6 +30,47 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
     <div class="container">
       <h1>MQTT MMS Demo</h1>
     </div>
+    <hr>
+    <form>
+    <div class="container">
+      <div class="form-group row">
+        <div class="col-md-3">
+          <label for="saleAmount">Sale Amount</label>
+          <input type="text" class="form-control" name="saleAmount" id="saleAmount" value="">
+        </div>
+      </div>
+      <div class="form-group row">
+        <div class="col-md-3">
+          <label for="saleTax">Tax</label>
+          <input type="text" class="form-control" name="saleTax" id="saleTax" value="">
+        </div>
+      </div>
+      <div class="form-group row">
+        <div class="col-md-3">
+          <label for="saleTip">Tip</label>
+          <input type="text" class="form-control" name="saleTip" id="saleTip" value="">
+        </div>
+      </div>
+      <div class="form-group row">
+        <div class="col-md-3">
+          <label for="receiptEmail">Receipt Email</label>
+          <input autocomplete="on" type="email" class="form-control" name="receiptEmail" id="receiptEmail" value="">
+        </div>
+      </div>
+      <div class="form-group row">
+        <div class="col-md-3">
+          <label for="receiptSMS">Receipt SMS</label>
+          <input autocomplete="mobile sms" type="text" class="form-control" name="receiptSMS" id="receiptSMS" value="">
+        </div>
+      </div>
+    </form>
+      <div class="form-group row">
+        <div class="col-md-3">
+          <button type="button" class="btn btn-primary" id="ProcessSale">Process Sale</button>
+        </div>
+      </div>
+    </div>
+    
     <div class="container">
       <div id="DeviceDisplay">WELCOME</div>
       <textarea class="form-control" name="LogData" id="LogData" rows="12"></textarea>
@@ -37,28 +78,26 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
         <img id="USBStatus" src="./images/usb-disconnected.png"><span id="lblUSBStatus">Disconnected</span>
       </div>
       <div class="form-group" id="autoStartOptions">
-        <input type="checkbox" id="chk-AutoStart" name="AutoStart" value=""><label for="chk-AutoStart">Auto Start</label>
-         <br> 
-        <input type="checkbox" id="chk-AutoEMV" name="AutoEMV" value=""><label for="chk-AutoEMV">EMV</label>
-        <input type="checkbox" id="chk-AutoNFC" name="AutoNFC" value=""><label for="chk-AutoNFC">NFC</label>
-        <input type="checkbox" id="chk-AutoMSR" name="AutoMSR" value=""><label for="chk-AutoMSR">MSR</label>
-        <input type="checkbox" id="chk-AutoTouch" name="AutoTouch" value="" hidden="true"><label for="chk-AutoTouch" hidden="true">Touch</label>
+        <input hidden="true" type="checkbox" id="chk-AutoStart" name="AutoStart" value=""><label for="chk-AutoStart" hidden="true">Auto Start</label>
+        <input hidden="true"  type="checkbox" id="chk-AutoEMV" name="AutoEMV" value=""><label for="chk-AutoEMV" hidden="true">EMV</label>
+        <input hidden="true" type="checkbox" id="chk-AutoNFC" name="AutoNFC" value=""><label for="chk-AutoNFC" hidden="true">NFC</label>
+        <input hidden="true" type="checkbox" id="chk-AutoMSR" name="AutoMSR" value=""><label for="chk-AutoMSR" hidden="true">MSR</label>
+        <input hidden="true" type="checkbox" id="chk-AutoTouch" name="AutoTouch" value="" hidden="true"><label for="chk-AutoTouch" hidden="true">Touch</label>
         <hr>
         <div id="updDeviceContainer" class="container" style.visibility ='hidden'>      
-          <p></p> 
           <div id="progressContainer" class="progress" style.visibility ='hidden'>
             <div id="progressBar" style.visibility ='hidden' class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width:0%">
             </div>
           </div>
         </div>
-        <label for="sendData">Command Data</label>
-        <input type="text" class="form-control" name="sendData" id="sendData" aria-describedby="helpId"
+        <label for="sendData" hidden="true">Command Data</label>
+        <input hidden="true" type="text" class="form-control" name="sendData" id="sendData" aria-describedby="helpId"
           value="SENDCOMMAND,AA00810401001001842B100182013CA3098101018201018301018402000386159C01009F02060000000001009F0306000000000000">
-        <button class="btn btn-primary" id="sendCommand">Send Command</button>
+        <button class="btn btn-primary" id="sendCommand" hidden="true">Send Command</button>
       </div>
       <div class="form-group shadow-textarea">
         <label for="CommandList"></label>
-          <select class="form-control-3" name="CommandList" id="CommandList" >
+          <select class="form-control-3" name="CommandList" id="CommandList" hidden="true">
           <option value="SENDCOMMAND,AA00810401001001842B100182013CA3098101018201018301018402000386159C01009F02060000000001009F0306000000000000">
             START EMV</option>
           <option value="SENDCOMMAND,AA0081040113100884021008">CANCEL EMV</option>
@@ -100,21 +139,23 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
           <option value="SENDCOMMAND,AA0081040155D1118410D1118501018704020201018903CA0101">Set WebSocket Connections 1</option>          
           <option value="SENDCOMMAND,AA0081040155D1118410D1118501018704020201018903CA0104">Set WebSocket Connections 4</option>
         </select>       
-       
-      </div>
+     </div>
     </div>
-    <br>
-
+    
     <div id="device-links" class="container">
     </div>
 
     <div class="container">
-
-
-    <div class="container-left">
-      <button class="btn btn-primary" id="deviceOpen">Open</button>
-      <button class="btn btn-primary" id="deviceClose">Close</button>
-      <button class="btn btn-primary" id="clearCommand">Clear</button>
+      <button class="btn btn-primary" id="deviceOpen" hidden="true">Open</button>
+      <button class="btn btn-primary" id="deviceClose" hidden="true">Close</button>
+      <button class="btn btn-primary" id="clearCommand" hidden="true">Clear</button>
     </div>
+
+    <div class="form-group row"> 
+      <a href="configure_mppg.html" class="link-primary">Configure MPPG</a>				
+    </div>
+<br>
+<br>
+<br>
   </body>
 </html>

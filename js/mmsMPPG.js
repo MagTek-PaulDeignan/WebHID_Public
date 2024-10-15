@@ -13,6 +13,7 @@ DO NOT REMOVE THIS COPYRIGHT
 import * as mt_Utils from "./mt_utils.js";
 import * as mt_MMS from "./mt_mms.js";
 import * as mt_UI from "./mt_ui.js";
+import * as mt_MPPG from "./mt_mppg_api.js";
 import mqtt  from "./mqtt.esm.js";
 
 import "./mt_events.js";
@@ -54,6 +55,10 @@ let _AwaitingContactEMV = false;
 export let _contactlessDelay = parseInt(mt_Utils.getDefaultValue("ContactlessDelay", "500"));
 export let _openTimeDelay = 1500;
 
+ document
+   .querySelector("#ProcessSale")
+   .addEventListener("click", handleProcessSale);
+
 document
   .querySelector("#deviceOpen")
   .addEventListener("click", handleOpenButton);
@@ -79,6 +84,14 @@ function EmitObject(e_obj) {
 async function handleDOMLoaded() {
   mt_UI.LogData(`Configured Device: ${devPath}`);
   handleOpenButton();
+
+  mt_MPPG.setUsername(mt_Utils.getDefaultValue("MPPG_UserName", "TSYSPilotPROD"));
+  mt_MPPG.setPassword(mt_Utils.getDefaultValue("MPPG_Password", "Password#12345"));
+  mt_MPPG.setCustCode(mt_Utils.getDefaultValue("MPPG_CustCode", "KT44746264"));
+  mt_MPPG.setProcessorName(mt_Utils.getDefaultValue("MPPG_ProcessorName", "TSYS - PILOT"));
+  mt_UI.LogData(`Configured to use: ${mt_MPPG.ProcessorName}`);    
+
+
 }
 
 function SendCommand(cmdHexString) {
@@ -176,12 +189,59 @@ async function handleCloseButton() {
 async function handleClearButton() {
   mt_UI.ClearLog();
   mt_UI.DeviceDisplay("");
-
   window.ARQCData = null;
+  SetAutoCheck();
 }
+
+ async function handleProcessSale() {
+   if (window.ARQCData != null) {
+     
+    let amt = document.getElementById("saleAmount").value;
+    if (amt.length > 0)
+    {
+      if(confirm("Ready To Process Sale?"))
+        {
+          let Amount = {
+            SubTotal: 0,
+            Tax: 0,
+            Tip: 0,
+            CashBack:0
+          }
+    
+          
+          let tax = document.getElementById("saleTax").value;
+          let tip = document.getElementById("saleTip").value;      
+          
+          if(amt.length > 0) Amount.SubTotal = parseFloat(amt);
+          if(tax.length > 0) Amount.Tax = parseFloat(tax);
+          if(tip.length > 0) Amount.Tip = parseFloat(tip);
+    
+          let email = document.getElementById("receiptEmail").value;
+          let sms = document.getElementById("receiptSMS").value;
+          var saleResp = await mt_MPPG.ProcessSale(Amount, email, sms);
+          mt_UI.LogData(`Sale Response`);
+          mt_UI.LogData(JSON.stringify(saleResp.Details, null, 2));
+        }
+    }
+    else
+    {
+      mt_UI.LogData(`No Amount Entered`);
+    }
+   } 
+   else 
+   {
+     mt_UI.LogData(`No ARQC Available`);
+     if(confirm("Start Sale Transaction?"))
+     {
+      SendCommand("AA008104010010018430100182010AA30981010082010083010184020003861A9C01009F02060000000001009F03060000000000005F2A020840");
+     }
+   }
+ }
 
 async function handleOpenButton() {
   OpenMQTT();
+  SetAutoCheck();
+  SetTechnologies(true, true, true);
 }
 
 async function handleSendCommandButton() {
@@ -240,6 +300,18 @@ function ClearAutoCheck() {
   chk.checked = false;
 }
 
+function SetAutoCheck() {
+  var chk = document.getElementById("chk-AutoStart");
+  chk.checked = true;
+}
+
+function SetTechnologies(bEMV, bNFC, bMSR) {
+  
+  document.getElementById("chk-AutoEMV").checked = bEMV;
+  document.getElementById("chk-AutoNFC").checked = bNFC;
+  document.getElementById("chk-AutoMSR").checked = bMSR;
+  
+}
 const deviceConnectLogger = (e) => {
   mt_UI.setUSBConnected("Connected");
 };
@@ -264,7 +336,7 @@ const trxCompleteLogger = (e) => {
   mt_UI.LogData(`${e.Name}: ${e.Data}`);
 };
 const displayMessageLogger = (e) => {
-  mt_UI.LogData(`Display: ${e.Data}`);
+  //mt_UI.LogData(`Display: ${e.Data}`);
   mt_UI.DeviceDisplay(e.Data);
 };
 const barcodeLogger = (e) => {
@@ -274,6 +346,7 @@ const arqcLogger = (e) => {
   mt_UI.LogData(`${e.Source} ARQC Data:  ${e.Data}`);
   window.ARQCData = e.Data;
   window.ARQCType = e.Source;
+  handleProcessSale();
 };
 const batchLogger = (e) => {
   mt_UI.LogData(`${e.Source} Batch Data: ${e.Data}`);

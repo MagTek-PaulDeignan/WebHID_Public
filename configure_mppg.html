@@ -1,0 +1,72 @@
+<!doctype html>
+<!-- 
+Copyright 2022 Paul Deignan MagTek, Inc.
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), 
+to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
+and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, 
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+-->
+<html lang="en">
+	<head>
+
+		<title>MagTek Configure MPPG</title>
+		<!-- Required meta tags -->
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=yes">
+
+		<!-- Bootstrap CSS -->
+		<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+		<link rel="stylesheet" type="text/css" href="./css/site.css"/>
+        <script type="module" src="./js/configure_mppg.js"></script>
+	</head>
+
+	<body>
+		<div class="container">
+			<a href="index.html">
+			  <img src="./images/magtek_logo.png" alt="Logo" width="150">
+			</a>
+		</div>
+		  
+		<div class="container">
+		<h1>Configuration</h1>
+		</div>
+		<hr>
+		<h3>MPPG Options</h3>
+
+        <div class="container-left">
+            <div class="form-group row">
+                <div class="col-md-3">
+                  <label for="txProcessorName">Processor Name</label>
+                  <input class="form-control" id="txProcessorName" type="text" value="TSYS - PILOT">
+                </div>
+            </div>    
+
+            <div class="form-group row">
+                <div class="col-md-3">
+                  <label for="txUserName">Username</label>
+                  <input class="form-control" id="txUserName" type="text" value="TSYSPilotPROD">
+                </div>
+            </div>    
+            <div class="form-group row">
+                <div class="col-md-3">
+                    <label for="txPassword">Password</label>
+                    <input class="form-control" id="txPassword" type="password"value="Password#12345">
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="col-md-3">
+                    <label for="txCustCode">Customer Code</label>
+                    <input class="form-control" id="txCustCode" type="text" value="KT44746264">
+                </div>
+            </div>
+            <div>
+                <button class="btn btn-primary" id="btnBack">Back</button>
+                <button class="btn btn-primary" id="btnSave">Save</button><span id="status"></span>
+			</div>
+		</div>
+	</body>
+</html>
+

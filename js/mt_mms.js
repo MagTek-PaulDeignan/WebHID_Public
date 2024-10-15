@@ -174,6 +174,9 @@ function parseManualEntryDetail(Msg) {
       NotifyDetail = Msg.TLVData;
       EmitObject({ Name: "OnManualDataEntered", Data: NotifyDetail });
       break;
+    case "100101":
+      console.log(Msg.TLVData);
+      break;
     case "080202": //Manual Card Entry ARQC
       NotifyDetail = Msg.TLVData;
       EmitObject({
@@ -425,6 +428,8 @@ function parseNotificationFromDevice(Msg) {
       case "0101":
         let technology = NotifyDetail.substring(0, 2);
         switch (technology) {
+          case "00":
+            console.log(`Transaction started by Device:  ${Msg.HexString}`);
           case "07": //Manual Entry
             parseManualEntryDetail(Msg);
             break;
@@ -441,6 +446,7 @@ function parseNotificationFromDevice(Msg) {
             parseBarcodeDetail(Msg);
             break;
           default:
+            console.log(` Unknown Tech ${Msg.HexString}`);
             EmitObject({
               Name: "OnError",
               Source: "UnknownTechnology",
@@ -495,6 +501,8 @@ function parseNotificationFromDevice(Msg) {
           case "01": //User Event
             parseUserEventDetail(Msg);
             break;
+          case "02":
+
           case "03": //Key Mgmt
             parseKeyEventDetail(Msg);
             break;
@@ -747,8 +755,8 @@ export async function openDevice() {
         }
     }
     if (!device.opened) {
-      device.addEventListener("inputreport", handleInputReport);
       await device.open();
+      device.addEventListener("inputreport", handleInputReport);      
     }
     if (device.opened) {
       wasOpened = true;      
