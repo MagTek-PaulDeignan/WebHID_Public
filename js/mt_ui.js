@@ -120,9 +120,7 @@ export function FromListToText(event) {
     link.href = url;
     link.textContent = name;
     //link.target = "_blank"; // Opens link in a new tab
-    //link.style.display = "block"; // Makes each link appear on a new line    
     link.style.display = "inline-flex";
-    
     link.prepend(imgOnline);    
     link.prepend(img);    
     const existingLink  = document.getElementById(`dev-${name}`);

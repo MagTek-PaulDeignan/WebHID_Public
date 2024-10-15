@@ -13,7 +13,6 @@ DO NOT REMOVE THIS COPYRIGHT
 import * as mt_Utils from "./mt_utils.js";
 import * as mt_MMS from "./mt_mms.js";
 import * as mt_UI from "./mt_ui.js";
-import * as mt_MPPG from "./mt_mppg_api.js";
 import mqtt  from "./mqtt.esm.js";
 
 import "./mt_events.js";
@@ -54,10 +53,6 @@ let _AwaitingContactEMV = false;
 
 export let _contactlessDelay = parseInt(mt_Utils.getDefaultValue("ContactlessDelay", "500"));
 export let _openTimeDelay = 1500;
-
-// document
-//   .querySelector("#ProcessSale")
-//   .addEventListener("click", handleProcessSale);
 
 document
   .querySelector("#deviceOpen")
@@ -181,29 +176,9 @@ async function handleCloseButton() {
 async function handleClearButton() {
   mt_UI.ClearLog();
   mt_UI.DeviceDisplay("");
+
   window.ARQCData = null;
 }
-
-// async function handleProcessSale() {
-//   if (window.ARQCData != null) {
-//     mt_MPPG.setUsername(mt_Utils.getDefaultValue("MPPG_UserName", "TSYSPilotPROD"));
-//     mt_MPPG.setPassword(mt_Utils.getDefaultValue("MPPG_Password", "Password#12345"));
-//     mt_MPPG.setCustCode(mt_Utils.getDefaultValue("MPPG_CustCode", "KT44746264"));
-//     mt_MPPG.setProcessorName(mt_Utils.getDefaultValue("MPPG_ProcessorName", "TSYS - PILOT"));
-//     let amt = document.getElementById("saleAmount").value;
-//     let email = document.getElementById("receiptEmail").value;
-//     let sms = document.getElementById("receiptSMS").value;
-//     var saleResp = await mt_MPPG.ProcessSale(parseFloat(amt), email, sms);
-//     mt_UI.LogData(`${mt_MPPG.ProcessorName}`);    
-//     mt_UI.LogData(`Sale Response`);
-//     mt_UI.LogData(JSON.stringify(saleResp.Details, null, 2));
-//   } 
-//   else 
-//   {
-//     mt_UI.LogData(`No ARQC Available`);
-//   }
-// }
-
 
 async function handleOpenButton() {
   OpenMQTT();
@@ -289,7 +264,7 @@ const trxCompleteLogger = (e) => {
   mt_UI.LogData(`${e.Name}: ${e.Data}`);
 };
 const displayMessageLogger = (e) => {
-  //mt_UI.LogData(`Display: ${e.Data}`);
+  mt_UI.LogData(`Display: ${e.Data}`);
   mt_UI.DeviceDisplay(e.Data);
 };
 const barcodeLogger = (e) => {
@@ -299,8 +274,6 @@ const arqcLogger = (e) => {
   mt_UI.LogData(`${e.Source} ARQC Data:  ${e.Data}`);
   window.ARQCData = e.Data;
   window.ARQCType = e.Source;
-
-
 };
 const batchLogger = (e) => {
   mt_UI.LogData(`${e.Source} Batch Data: ${e.Data}`);
