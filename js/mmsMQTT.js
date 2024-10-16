@@ -55,10 +55,6 @@ let _AwaitingContactEMV = false;
 export let _contactlessDelay = parseInt(mt_Utils.getDefaultValue("ContactlessDelay", "500"));
 export let _openTimeDelay = 1500;
 
-// document
-//   .querySelector("#ProcessSale")
-//   .addEventListener("click", handleProcessSale);
-
 document
   .querySelector("#deviceOpen")
   .addEventListener("click", handleOpenButton);
@@ -75,6 +71,7 @@ document
   .querySelector("#CommandList")
   .addEventListener("change", mt_UI.FromListToText);
 
+  
 document.addEventListener("DOMContentLoaded", handleDOMLoaded);
 
 function EmitObject(e_obj) {
@@ -184,26 +181,6 @@ async function handleClearButton() {
   window.ARQCData = null;
 }
 
-// async function handleProcessSale() {
-//   if (window.ARQCData != null) {
-//     mt_MPPG.setUsername(mt_Utils.getDefaultValue("MPPG_UserName", "TSYSPilotPROD"));
-//     mt_MPPG.setPassword(mt_Utils.getDefaultValue("MPPG_Password", "Password#12345"));
-//     mt_MPPG.setCustCode(mt_Utils.getDefaultValue("MPPG_CustCode", "KT44746264"));
-//     mt_MPPG.setProcessorName(mt_Utils.getDefaultValue("MPPG_ProcessorName", "TSYS - PILOT"));
-//     let amt = document.getElementById("saleAmount").value;
-//     let email = document.getElementById("receiptEmail").value;
-//     let sms = document.getElementById("receiptSMS").value;
-//     var saleResp = await mt_MPPG.ProcessSale(parseFloat(amt), email, sms);
-//     mt_UI.LogData(`${mt_MPPG.ProcessorName}`);    
-//     mt_UI.LogData(`Sale Response`);
-//     mt_UI.LogData(JSON.stringify(saleResp.Details, null, 2));
-//   } 
-//   else 
-//   {
-//     mt_UI.LogData(`No ARQC Available`);
-//   }
-// }
-
 
 async function handleOpenButton() {
   OpenMQTT();
@@ -236,7 +213,7 @@ async function parseCommand(message) {
       CloseWS();
       break;
     case "WAIT":
-      wait(cmd[1]);
+      await wait(cmd[1]);
       break;
     case "DETECTDEVICE":
       //window._device = await mt_MMS.openDevice();      
@@ -252,11 +229,8 @@ async function parseCommand(message) {
     case "DISPLAYMESSAGE":
       mt_UI.LogData(cmd[1]);
       break;
-    case "PROCESS_SALE": 
-      handleProcessSale();
-      break;
     default:
-      mt_Utils.debugLog("Unknown Command");
+      mt_UI.LogData("Unknown Command");
   }
 };
 

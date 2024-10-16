@@ -58,7 +58,6 @@ export let _openTimeDelay = 1500;
  document
    .querySelector("#ProcessSale")
    .addEventListener("click", handleProcessSale);
-
 document
   .querySelector("#deviceOpen")
   .addEventListener("click", handleOpenButton);
@@ -74,6 +73,11 @@ document
 document
   .querySelector("#CommandList")
   .addEventListener("change", mt_UI.FromListToText);
+
+  document
+  .querySelector("#saleAmount")
+  .addEventListener("change", SetAutoCheck);
+
 
 document.addEventListener("DOMContentLoaded", handleDOMLoaded);
 
@@ -189,8 +193,7 @@ async function handleCloseButton() {
 async function handleClearButton() {
   mt_UI.ClearLog();
   mt_UI.DeviceDisplay("");
-  window.ARQCData = null;
-  SetAutoCheck();
+  window.ARQCData = null;  
 }
 
  async function handleProcessSale() {
@@ -221,6 +224,9 @@ async function handleClearButton() {
           var saleResp = await mt_MPPG.ProcessSale(Amount, email, sms);
           mt_UI.LogData(`Sale Response`);
           mt_UI.LogData(JSON.stringify(saleResp.Details, null, 2));
+          await mt_Utils.wait(1000);
+          mt_UI.LogData(`Clearing ARQC`);
+          window.ARQCData = null;
         }
     }
     else
@@ -240,7 +246,7 @@ async function handleClearButton() {
 
 async function handleOpenButton() {
   OpenMQTT();
-  SetAutoCheck();
+  //SetAutoCheck();
   SetTechnologies(true, true, true);
 }
 

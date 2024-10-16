@@ -84,6 +84,10 @@ export function parseMMSPacket(data) {
   switch (data[0]) {
     case 0x00:
       subdata = parseSinglePacket(data);
+      EmitObject({
+        Name: "OnMMSMessage",
+        Data: mt_Utils.toHexString(subdata)
+      });
       ParseMMSMessage(subdata);
       break;
     case 0x01:
@@ -94,7 +98,12 @@ export function parseMMSPacket(data) {
       break;
     case 0x03:
       subdata = parseTailPacket(data);
+      EmitObject({
+        Name: "OnMMSMessage",
+        Data: mt_Utils.toHexString(subdata)
+      });
       ParseMMSMessage(subdata);
+      
       break;
     case 0x04:
       parseCancelPacket(data);
