@@ -13,7 +13,6 @@ DO NOT REMOVE THIS COPYRIGHT
 import * as mt_Utils from "./mt_utils.js";
 import * as mt_MMS from "./mt_mms.js";
 import * as mt_UI from "./mt_ui.js";
-import * as mt_MPPG from "./mt_mppg_api.js";
 import mqtt  from "./mqtt.esm.js";
 
 import "./mt_events.js";
@@ -178,6 +177,7 @@ async function handleCloseButton() {
 async function handleClearButton() {
   mt_UI.ClearLog();
   mt_UI.DeviceDisplay("");
+
   window.ARQCData = null;
 }
 
@@ -263,7 +263,7 @@ const trxCompleteLogger = (e) => {
   mt_UI.LogData(`${e.Name}: ${e.Data}`);
 };
 const displayMessageLogger = (e) => {
-  //mt_UI.LogData(`Display: ${e.Data}`);
+  mt_UI.LogData(`Display: ${e.Data}`);
   mt_UI.DeviceDisplay(e.Data);
 };
 const barcodeLogger = (e) => {
@@ -273,8 +273,6 @@ const arqcLogger = (e) => {
   mt_UI.LogData(`${e.Source} ARQC Data:  ${e.Data}`);
   window.ARQCData = e.Data;
   window.ARQCType = e.Source;
-
-
 };
 const batchLogger = (e) => {
   mt_UI.LogData(`${e.Source} Batch Data: ${e.Data}`);
