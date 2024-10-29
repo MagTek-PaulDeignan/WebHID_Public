@@ -6,7 +6,7 @@ Prerequisites
     •	Access to the Magensa Reader Management System (RMS) for device management.
     •	A modern web browser that supports WebHID (e.g., Google Chrome).
     •	Basic understanding of JavaScript and the WebHID API.
-### Required Modules and Libraries
+## Required Modules and Libraries
 To utilize the sample code, include the following references in your HTML:
     1.	Bootstrap CSS: Used for styling.
     2.	JavaScript Module (mmsdemo.js): Contains the logic for device communication.
