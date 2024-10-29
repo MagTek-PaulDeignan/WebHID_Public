@@ -229,6 +229,7 @@ export function filterString(inputString) {
 };
 
 
+
 Array.prototype.zeroFill = function (len) {
   for (var i = this.length; i < len; i++) {
     this[i] = 0;

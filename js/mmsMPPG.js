@@ -340,6 +340,7 @@ const PINLogger = (e) => {
 
 const trxCompleteLogger = (e) => {
   mt_UI.LogData(`${e.Name}: ${e.Data}`);
+  handleProcessSale();
 };
 const displayMessageLogger = (e) => {
   //mt_UI.LogData(`Display: ${e.Data}`);
@@ -351,8 +352,7 @@ const barcodeLogger = (e) => {
 const arqcLogger = (e) => {
   mt_UI.LogData(`${e.Source} ARQC Data:  ${e.Data}`);
   window.ARQCData = e.Data;
-  window.ARQCType = e.Source;
-  handleProcessSale();
+  window.ARQCType = e.Source;  
 };
 const batchLogger = (e) => {
   mt_UI.LogData(`${e.Source} Batch Data: ${e.Data}`);

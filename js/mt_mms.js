@@ -752,7 +752,9 @@ export async function openDevice() {
     let reqDevice;
     let devices = await navigator.hid.getDevices();
     let device = devices.find((d) => d.vendorId === mt_HID.vendorId);
-    if (!device) {
+    
+      //if (!device || devices.length > 1) {
+      if (!device) {
       let vendorId = mt_HID.vendorId;
       reqDevice = await navigator.hid.requestDevice({filters: mt_HID.MMSfilters });
       if(reqDevice != null)

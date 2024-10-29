@@ -138,7 +138,8 @@ function onMQTTMessage(topic, message) {
     if(topicArray.length == 5){
       switch (topicArray[4]) {
         case "Status":
-        mt_UI.AddDeviceLink(topicArray[2], `${topicArray[3]}`,message, `${window.location.pathname}?devpath=${topicArray[2]}/${topicArray[3]}`);
+        //mt_UI.AddDeviceLink(topicArray[2], `${topicArray[3]}`,message, `${window.location.pathname}?devpath=${topicArray[2]}/${topicArray[3]}`);
+        mt_UI.AddDeviceLink(topicArray[2], `${topicArray[3]}`,data, `${window.location.pathname}?devpath=${topicArray[2]}/${topicArray[3]}`);
           if( `${topicArray[2]}/${topicArray[3]}` == devPath){
           if( data.toLowerCase() == "connected")
           {

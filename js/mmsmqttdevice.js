@@ -15,7 +15,6 @@ import * as mt_MMS from "./mt_mms.js";
 import * as mt_HID from "./mt_hid.js";
 import * as mt_UI from "./mt_ui.js";
 import mqtt  from "./mqtt.esm.js";
-
 import "./mt_events.js";
 
 let url = mt_Utils.getDefaultValue('MQTTURL','wss://hd513d49.ala.us-east-1.emqxsl.com:8084/mqtt');
@@ -24,7 +23,6 @@ let userName = mt_Utils.getDefaultValue('MQTTUser','testDevice1');
 let password = mt_Utils.getDefaultValue('MQTTPassword','t3stD3v1c1');
 
 let client = null;
-
 export let _openTimeDelay = 1500;
 
 document
@@ -110,7 +108,6 @@ const deviceCloseLogger = (e) => {
 const deviceOpenLogger = (e) => {
   mt_UI.setUSBConnected("Opened");
 };
-
 const fromDeviceLogger = (e) => {
   
 };
@@ -120,9 +117,6 @@ const inputReportLogger = (e) => {
 const errorLogger = (e) => {
   mt_UI.LogData(`Error: ${e.Source} ${e.Data}`);
 };
-
-
-
 const MMSMessageLogger = (e) => {
   if(client)
   {
@@ -199,4 +193,3 @@ EventEmitter.on("OnDeviceClose", deviceCloseLogger);
 EventEmitter.on("OnDeviceResponse", fromDeviceLogger);
 EventEmitter.on("OnError", errorLogger);
 EventEmitter.on("OnMMSMessage", MMSMessageLogger);
-
