@@ -74,11 +74,10 @@ document
   .querySelector("#CommandList")
   .addEventListener("change", mt_UI.FromListToText);
 
+
   document
   .querySelector("#saleAmount")
   .addEventListener("change", SetAutoCheck);
-
-
 document.addEventListener("DOMContentLoaded", handleDOMLoaded);
 
 function EmitObject(e_obj) {
@@ -194,6 +193,7 @@ async function handleClearButton() {
   mt_UI.ClearLog();
   mt_UI.DeviceDisplay("");
   window.ARQCData = null;  
+  SetAutoCheck();
 }
 
  async function handleProcessSale() {
@@ -353,6 +353,7 @@ const arqcLogger = (e) => {
   mt_UI.LogData(`${e.Source} ARQC Data:  ${e.Data}`);
   window.ARQCData = e.Data;
   window.ARQCType = e.Source;  
+  handleProcessSale();
 };
 const batchLogger = (e) => {
   mt_UI.LogData(`${e.Source} Batch Data: ${e.Data}`);
