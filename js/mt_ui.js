@@ -103,6 +103,7 @@ export function FromListToText(event) {
 
 
  export function AddDeviceLink(type, name, status, url ){
+    console.log(status);
     const imgOnline = document.createElement('img');
     imgOnline.setAttribute('src', `./images/${status}.png`);
     imgOnline.className = "thumbnail";
@@ -122,7 +123,14 @@ export function FromListToText(event) {
     //link.target = "_blank"; // Opens link in a new tab
     link.style.display = "inline-flex";
     link.prepend(imgOnline);    
-    link.prepend(img);    
+    link.prepend(img);
+    if (status == "disconnected"){
+      link.hidden = true;
+    }
+    else
+    {
+      link.hidden = false;
+    }
     const existingLink  = document.getElementById(`dev-${name}`);
     if (existingLink == null){
       document.getElementById('device-links').appendChild(link);

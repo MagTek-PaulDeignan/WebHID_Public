@@ -70,6 +70,7 @@ document
   .querySelector("#CommandList")
   .addEventListener("change", mt_UI.FromListToText);
 
+  
 document.addEventListener("DOMContentLoaded", handleDOMLoaded);
 
 function EmitObject(e_obj) {
@@ -137,7 +138,7 @@ function onMQTTMessage(topic, message) {
     if(topicArray.length == 5){
       switch (topicArray[4]) {
         case "Status":
-        mt_UI.AddDeviceLink(topicArray[2], `${topicArray[3]}`,message, `${window.location.pathname}?devpath=${topicArray[2]}/${topicArray[3]}`);
+        mt_UI.AddDeviceLink(topicArray[2], `${topicArray[3]}`,data, `${window.location.pathname}?devpath=${topicArray[2]}/${topicArray[3]}`);
           if( `${topicArray[2]}/${topicArray[3]}` == devPath){
           if( data.toLowerCase() == "connected")
           {
@@ -180,6 +181,7 @@ async function handleClearButton() {
   window.ARQCData = null;
 }
 
+
 async function handleOpenButton() {
   OpenMQTT();
 }
@@ -211,7 +213,7 @@ async function parseCommand(message) {
       CloseWS();
       break;
     case "WAIT":
-      wait(cmd[1]);
+      await wait(cmd[1]);
       break;
     case "DETECTDEVICE":
       //window._device = await mt_MMS.openDevice();      
@@ -231,7 +233,7 @@ async function parseCommand(message) {
       handleProcessSale();
       break;
     default:
-      mt_Utils.debugLog("Unknown Command");
+      mt_UI.LogData("Unknown Command");
   }
 };
 

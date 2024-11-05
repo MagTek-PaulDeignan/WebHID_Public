@@ -58,7 +58,6 @@ export let _openTimeDelay = 1500;
  document
    .querySelector("#ProcessSale")
    .addEventListener("click", handleProcessSale);
-
 document
   .querySelector("#deviceOpen")
   .addEventListener("click", handleOpenButton);
@@ -75,6 +74,10 @@ document
   .querySelector("#CommandList")
   .addEventListener("change", mt_UI.FromListToText);
 
+
+  document
+  .querySelector("#saleAmount")
+  .addEventListener("change", SetAutoCheck);
 document.addEventListener("DOMContentLoaded", handleDOMLoaded);
 
 function EmitObject(e_obj) {
@@ -189,7 +192,7 @@ async function handleCloseButton() {
 async function handleClearButton() {
   mt_UI.ClearLog();
   mt_UI.DeviceDisplay("");
-  window.ARQCData = null;
+  window.ARQCData = null;  
   SetAutoCheck();
 }
 
@@ -221,6 +224,9 @@ async function handleClearButton() {
           var saleResp = await mt_MPPG.ProcessSale(Amount, email, sms);
           mt_UI.LogData(`Sale Response`);
           mt_UI.LogData(JSON.stringify(saleResp.Details, null, 2));
+          await mt_Utils.wait(1000);
+          mt_UI.LogData(`Clearing ARQC`);
+          window.ARQCData = null;
         }
     }
     else
@@ -240,7 +246,7 @@ async function handleClearButton() {
 
 async function handleOpenButton() {
   OpenMQTT();
-  SetAutoCheck();
+  //SetAutoCheck();
   SetTechnologies(true, true, true);
 }
 
@@ -334,6 +340,7 @@ const PINLogger = (e) => {
 
 const trxCompleteLogger = (e) => {
   mt_UI.LogData(`${e.Name}: ${e.Data}`);
+  handleProcessSale();
 };
 const displayMessageLogger = (e) => {
   //mt_UI.LogData(`Display: ${e.Data}`);
@@ -345,7 +352,7 @@ const barcodeLogger = (e) => {
 const arqcLogger = (e) => {
   mt_UI.LogData(`${e.Source} ARQC Data:  ${e.Data}`);
   window.ARQCData = e.Data;
-  window.ARQCType = e.Source;
+  window.ARQCType = e.Source;  
   handleProcessSale();
 };
 const batchLogger = (e) => {

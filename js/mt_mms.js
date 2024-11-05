@@ -84,6 +84,10 @@ export function parseMMSPacket(data) {
   switch (data[0]) {
     case 0x00:
       subdata = parseSinglePacket(data);
+      EmitObject({
+        Name: "OnMMSMessage",
+        Data: mt_Utils.toHexString(subdata)
+      });
       ParseMMSMessage(subdata);
       break;
     case 0x01:
@@ -94,7 +98,12 @@ export function parseMMSPacket(data) {
       break;
     case 0x03:
       subdata = parseTailPacket(data);
+      EmitObject({
+        Name: "OnMMSMessage",
+        Data: mt_Utils.toHexString(subdata)
+      });
       ParseMMSMessage(subdata);
+      
       break;
     case 0x04:
       parseCancelPacket(data);
@@ -743,7 +752,9 @@ export async function openDevice() {
     let reqDevice;
     let devices = await navigator.hid.getDevices();
     let device = devices.find((d) => d.vendorId === mt_HID.vendorId);
-    if (!device) {
+    
+      //if (!device || devices.length > 1) {
+      if (!device) {
       let vendorId = mt_HID.vendorId;
       reqDevice = await navigator.hid.requestDevice({filters: mt_HID.MMSfilters });
       if(reqDevice != null)

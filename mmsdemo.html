@@ -47,7 +47,8 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
         <input type="checkbox" id="chk-AutoEMV" name="AutoEMV" value=""><label for="chk-AutoEMV">EMV</label>
         <input type="checkbox" id="chk-AutoNFC" name="AutoNFC" value=""><label for="chk-AutoNFC">NFC</label>
         <input type="checkbox" id="chk-AutoMSR" name="AutoMSR" value=""><label for="chk-AutoMSR">MSR</label>
-        <input type="checkbox" id="chk-AutoTouch" name="AutoTouch" value="" hidden="true"><label for="chk-AutoTouch" hidden="true">Touch</label>
+        <!-- <input type="checkbox" id="chk-AutoTouch" name="AutoTouch" value="" hidden="true"><label for="chk-AutoTouch" hidden="true">Touch</label> -->
+        <input type="checkbox" id="chk-AutoTouch" name="AutoTouch" value=""><label for="chk-AutoTouch">Touch</label>
         <hr>
         <div id="updDeviceContainer" class="container" style.visibility ='hidden'>      
           <p></p> 
@@ -97,11 +98,13 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
           <option value="SENDCOMMAND,AA008104012C182184081821810101830100">Display Screen 1</option>
           <option value="SENDCOMMAND,AA008104012C182184081821810102830100">Display Screen 2</option>
           <option value="SENDCOMMAND,AA008104017A2001841C200181013C82010083020804850100A10B81010C8206123456789012">Request PIN</option>
-          <option value="SENDCOMMAND,AA00810401002002841C200281011EA309810101820101830101A40A82010183020804850100">Request PIN with Card Read</option>
           <option value="SENDCOMMAND,AA008104017A2001841C200181013C8201FF83020804850100A10B81010C8206123456789012">PIN Entry Success</option>
-          <option value="SENDCOMMAND,AA008104017A2001841C200181013C8201FE83020804850100A10B81010C8206123456789012">PIN Entry Fail</option>
+          <option value="SENDCOMMAND,AA00810401322001841C200181013CA309810101820101830101A40A8201FE83020804850100">PIN Entry Fail</option>
           <option value="SENDCOMMAND,AA0081040100180284081802810100820100">User Selection 0</option>
           <option value="SENDCOMMAND,AA0081040100180284081802810100820101">User Selection 1</option>          
+          <option value="SENDCOMMAND,AA00810401002002841C200281011EA309810101820101830101A40A82010183020804850100">Request PIN with Card Read</option>
+          <option value="SENDCOMMAND,AA00810401322002841C200281013CA309810101820101830101A40A8201FF83020804850100">PIN Entry With Card Read Success</option>
+          <option value="SENDCOMMAND,AA00810401322002841C200281013CA309810101820101830101A40A8201FE83020804850100">PIN Entry With Card Read Fail</option>
         </select>
       </div>
     </div>

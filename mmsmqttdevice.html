@@ -13,7 +13,7 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
 <html lang="en">
 <html>
   <head>
-    <title>MagTek HID MMS Demo</title>
+    <title>HID MQTT Device Client</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <!-- Bootstrap CSS -->
@@ -28,11 +28,16 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
       </a>
     </div>
     <div class="container">
-      <h1>HID MMS Demo</h1>
+      <h1>HID MQTT Device Client</h1>
     </div>
     <div class="container">
-      <div id="DeviceDisplay">WELCOME</div>
-      <textarea class="form-control" name="LogData" id="LogData" rows="12"></textarea>
+      <div id="DeviceDisplay"></div>
+To establish an MQTT connection to your locally connected MagTek device (via USB), click the "Open" button below.<br><br>
+Important:<br>
+Do not close this page.<br>
+Do not open this page in multiple tabs or windows.<br>
+You can minimize this page without affecting the connection, but it must remain open to keep the device connected and available.<br>
+      <textarea class="form-control" name="LogData" id="LogData" rows="3"></textarea>
       <div class="form-group container-left">
         <img id="USBStatus" src="./images/usb-disconnected.png"><span id="lblUSBStatus">Disconnected</span>
       </div>
@@ -40,12 +45,12 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
       <button class="btn btn-primary" id="deviceClose">Close</button>
       <button class="btn btn-primary" id="clearCommand">Clear</button>
       <div class="form-group" id="autoStartOptions">
-        <input type="checkbox" id="chk-AutoStart" name="AutoStart" value=""><label for="chk-AutoStart">Auto Start</label>
+        <input hidden="true" type="checkbox" id="chk-AutoStart" name="AutoStart" value=""><label for="chk-AutoStart" hidden="true">Auto Start</label>
          <br> 
-        <input type="checkbox" id="chk-AutoEMV" name="AutoEMV" value=""><label for="chk-AutoEMV">EMV</label>
-        <input type="checkbox" id="chk-AutoNFC" name="AutoNFC" value=""><label for="chk-AutoNFC">NFC</label>
-        <input type="checkbox" id="chk-AutoMSR" name="AutoMSR" value=""><label for="chk-AutoMSR">MSR</label>
-        <input type="checkbox" id="chk-AutoTouch" name="AutoTouch" value="" hidden="true"><label for="chk-AutoTouch" hidden="true">Touch</label>
+        <input hidden="true" type="checkbox" id="chk-AutoEMV" name="AutoEMV" value=""><label for="chk-AutoEMV" hidden="true">EMV</label>
+        <input hidden="true" type="checkbox" id="chk-AutoNFC" name="AutoNFC" value=""><label for="chk-AutoNFC" hidden="true">NFC</label>
+        <input hidden="true" type="checkbox" id="chk-AutoMSR" name="AutoMSR" value=""><label for="chk-AutoMSR" hidden="true">MSR</label>
+        <input hidden="true" type="checkbox" id="chk-AutoTouch" name="AutoTouch" value="" hidden="true"><label for="chk-AutoTouch" hidden="true">Touch</label>
         <hr>
         <div id="updDeviceContainer" class="container" style.visibility ='hidden'>      
           <p></p> 
@@ -54,14 +59,14 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
             </div>
           </div>
         </div>
-        <label for="sendData">Command Data</label>
+        <label for="sendData" hidden="true">Command Data</label>
         <input type="text" class="form-control" name="sendData" id="sendData" aria-describedby="helpId"
-          value="SENDCOMMAND,AA00810401001001842B100182013CA3098101018201018301018402000386159C01009F02060000000001009F0306000000000000">
-        <button class="btn btn-primary" id="sendCommand">Send Command</button>
+          value="SENDCOMMAND,AA00810401001001842B100182013CA3098101018201018301018402000386159C01009F02060000000001009F0306000000000000"  hidden="true">
+        <button class="btn btn-primary" id="sendCommand"  hidden="true">Send Command</button>
       </div>
       <div class="form-group shadow-textarea">
         <label for="CommandList"></label>
-          <select class="form-control-3" name="CommandList" id="CommandList">
+          <select class="form-control-3" name="CommandList" id="CommandList" hidden="true">
           <option value="SENDCOMMAND,AA00810401001001842B100182013CA3098101018201018301018402000386159C01009F02060000000001009F0306000000000000">
             START EMV</option>
           <option value="SENDCOMMAND,AA0081040113100884021008">CANCEL EMV</option>

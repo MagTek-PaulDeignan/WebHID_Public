@@ -44,9 +44,10 @@ export function parseV5Packet(data) {
     case "02":
       var outString = parseExtendedReport(hex);
       if (outString.length > 0) {
-        processMsg(outString);
+        //processMsg(outString);
+        processMsgType(outString);
       }
-      break;
+      break;  
     default:
       EmitObject({
         Name: "OnError",
@@ -462,9 +463,9 @@ async function getDeviceResponse() {
   });
 }
 
-function processMsg(msg) {
-  processMsgType(msg);
-}
+// function processMsg(msg) {
+//   processMsgType(msg);
+// }
 
 function processMsgType(msg) {
   var msgType = "";

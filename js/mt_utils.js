@@ -223,6 +223,12 @@ export function makeid(length) {
   return result;
 }
 
+export function filterString(inputString) {
+	const filteredString = inputString.replace(/[^0-9A-Za-z]/g, '');
+	return filteredString;
+};
+
+
 
 Array.prototype.zeroFill = function (len) {
   for (var i = this.length; i < len; i++) {
