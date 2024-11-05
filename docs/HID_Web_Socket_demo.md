@@ -12,6 +12,7 @@ The demo uses the following modules and libraries:
 2.	JavaScript Module (mmsWebSocket.js): Manages the WebSocket communication with the MagTek card reader.
 Include these references in your HTML:
 
+````javascript
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -26,7 +27,7 @@ Include these references in your HTML:
     <!-- WebSocket MMS Demo content here -->
 </body>
 </html>
-
+````
 ### mmsWebSocket.js: This script handles the connection and communication between the web application and the card reader using WebSocket.
 ________________________________________
 ## Overview of the Sample Application
