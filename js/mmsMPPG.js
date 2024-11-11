@@ -14,6 +14,7 @@ import * as mt_Utils from "./mt_utils.js";
 import * as mt_MMS from "./mt_mms.js";
 import * as mt_UI from "./mt_ui.js";
 import * as mt_MPPG from "./mt_mppg_api.js";
+import * as mt_QMFA from "./qMFAAPI.js";
 import mqtt  from "./mqtt.esm.js";
 
 import "./mt_events.js";
@@ -55,7 +56,7 @@ let _AwaitingContactEMV = false;
 export let _contactlessDelay = parseInt(mt_Utils.getDefaultValue("ContactlessDelay", "500"));
 export let _openTimeDelay = 1500;
 
- document
+document
    .querySelector("#ProcessSale")
    .addEventListener("click", handleProcessSale);
 document
@@ -74,10 +75,10 @@ document
   .querySelector("#CommandList")
   .addEventListener("change", mt_UI.FromListToText);
 
-
-  document
+document
   .querySelector("#saleAmount")
   .addEventListener("change", SetAutoCheck);
+  
 document.addEventListener("DOMContentLoaded", handleDOMLoaded);
 
 function EmitObject(e_obj) {
@@ -92,9 +93,7 @@ async function handleDOMLoaded() {
   mt_MPPG.setPassword(mt_Utils.getDefaultValue("MPPG_Password", "Password#12345"));
   mt_MPPG.setCustCode(mt_Utils.getDefaultValue("MPPG_CustCode", "KT44746264"));
   mt_MPPG.setProcessorName(mt_Utils.getDefaultValue("MPPG_ProcessorName", "TSYS - PILOT"));
-  mt_UI.LogData(`Configured to use: ${mt_MPPG.ProcessorName}`);    
-
-
+  mt_UI.LogData(`Configured to use: ${mt_MPPG.ProcessorName}`);
 }
 
 function SendCommand(cmdHexString) {
@@ -221,9 +220,32 @@ async function handleClearButton() {
     
           let email = document.getElementById("receiptEmail").value;
           let sms = document.getElementById("receiptSMS").value;
+          
           var saleResp = await mt_MPPG.ProcessSale(Amount, email, sms);
-          mt_UI.LogData(`Sale Response`);
-          mt_UI.LogData(JSON.stringify(saleResp.Details, null, 2));
+
+          if(saleResp.Details.status == "PASS")
+          {
+            var claims = saleResp.Details;
+            claims.MagTranID = saleResp.MagTranID;
+
+            if(sms.length > 0 || email.length > 0 )
+            {
+              window.SaleResponse = saleResp;
+              mt_UI.LogData(`Sending Qwantum MultiFactor Auth Request`);
+              var mfaResponse = mt_QMFA.TransactionCreate(sms, email, claims)
+            }
+            else
+            {
+              window.SaleResponse = null;
+            }
+          }
+                   
+          if(sms.length == 0 && email.length == 0)
+          {
+            mt_UI.LogData(`Sale Response Details`);
+            mt_UI.LogData(JSON.stringify(saleResp.Details, null, 2));
+          }
+          
           await mt_Utils.wait(1000);
           mt_UI.LogData(`Clearing ARQC`);
           window.ARQCData = null;
@@ -339,27 +361,64 @@ const PINLogger = (e) => {
 };
 
 const trxCompleteLogger = (e) => {
-  mt_UI.LogData(`${e.Name}: ${e.Data}`);
+  //mt_UI.LogData(`${e.Name}: ${e.Data}`);
   handleProcessSale();
 };
 const displayMessageLogger = (e) => {
   //mt_UI.LogData(`Display: ${e.Data}`);
   mt_UI.DeviceDisplay(e.Data);
 };
-const barcodeLogger = (e) => {
-  mt_UI.LogData(`Barcode  Data: ${e.Data}`);
+const barcodeLogger = async (e) => {
+  var stringbc = mt_Utils.getTagValue("DF74", "", e.Data, true);
+  var bc = JSON.parse(stringbc);
+  if(bc.Header == "QMFAToken")
+  {
+    mt_UI.LogData("Redeeming Token");
+    
+    
+    var resp = await mt_QMFA.TransactionRedeem(bc.ID,bc.Status.toString(), bc.Reason);    
+  if(resp.status == 0 )
+  {
+    if(window.SaleResponse != null)
+      {
+        if (bc.Status == true)
+        {
+          let Outdata = window.SaleResponse.Details.customerReceipt.replace(/\\n/g, '\n');
+          mt_UI.LogData(`Receipt:`);
+          mt_UI.LogData(`${Outdata}`);
+          
+          mt_UI.LogData(`The transaction was authorized and it's transaction details were authenticated and verified by the customer.`);  
+        }
+        else
+        {
+          mt_UI.LogData(`The transaction was cancelled because the customer did not verify the authenticity of the transaction details.`);
+        }
+        
+      }
+  }
+  else
+  {
+      mt_UI.LogData(`Error: ${JSON.stringify(resp, null, 2)}`);
+  }
+
+
+  }
+  else
+  {
+    mt_UI.LogData(`Barcode  Data: ${stringbc}`);
+  }
 };
 const arqcLogger = (e) => {
-  mt_UI.LogData(`${e.Source} ARQC Data:  ${e.Data}`);
+  //mt_UI.LogData(`${e.Source} ARQC Data:  ${e.Data}`);
+
   window.ARQCData = e.Data;
   window.ARQCType = e.Source;  
-  handleProcessSale();
 };
 const batchLogger = (e) => {
-  mt_UI.LogData(`${e.Source} Batch Data: ${e.Data}`);
+  //mt_UI.LogData(`${e.Source} Batch Data: ${e.Data}`);
 };
 const fromDeviceLogger = (e) => {
-  mt_UI.LogData(`Device Response: ${e.Data.TLVData}`);
+  //mt_UI.LogData(`Device Response: ${e.Data.TLVData}`);
 };
 const inputReportLogger = (e) => {
   mt_UI.LogData(`Input Report: ${e.Data}`);

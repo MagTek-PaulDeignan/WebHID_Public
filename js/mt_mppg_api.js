@@ -84,18 +84,18 @@ export function setPassword(password) {
           }
         ],
         AdditionalRequestData: null,
-        SendReceiptTo:  
-        {
-          SMS: sms,
-          Email: 
-          {
-          To: email,
-          Subject: "Customer Receipt"
-          }
-        }
+        // SendReceiptTo:  
+        // {
+        //   SMS: sms,
+        //   Email: 
+        //   {
+        //   To: email,
+        //   Subject: "Customer Receipt"
+        //   }
+        // }
       }
   
-      var TransactionResponse = await PostProcessTransaction(req);
+    var TransactionResponse = await PostProcessTransaction(req);
      
       return TransactionResponse;
     } 

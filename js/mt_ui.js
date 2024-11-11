@@ -30,6 +30,9 @@ export function updateProgressBar(caption, progress) {
 };
 
 export function LogData(data) {
+
+  
+
   const log = document.getElementById("LogData");
   log.value += data + "\n";
   log.scrollTop = log.scrollHeight;
@@ -103,7 +106,7 @@ export function FromListToText(event) {
 
 
  export function AddDeviceLink(type, name, status, url ){
-    console.log(status);
+    //console.log(status);
     const imgOnline = document.createElement('img');
     imgOnline.setAttribute('src', `./images/${status}.png`);
     imgOnline.className = "thumbnail";
@@ -139,3 +142,10 @@ export function FromListToText(event) {
       existingLink.replaceWith(link);
     }
  }  
+
+ export function UpdateQRCode(qrcode)
+ {
+  const qr  = document.getElementById(`QRCode`);
+  qr.src = `https://paoli.magensa.net/Test/RenderImage/Home/QRCode?QRData=${qrcode}`;
+  }
+ 
