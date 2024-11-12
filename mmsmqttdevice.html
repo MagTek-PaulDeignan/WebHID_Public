@@ -41,72 +41,8 @@ You can minimize this page without affecting the connection, but it must remain 
         <img id="USBStatus" src="./images/usb-disconnected.png"><span id="lblUSBStatus">Disconnected</span>
       </div>
       <button class="btn btn-primary" id="deviceOpen">Open</button>
-      <button class="btn btn-primary" id="deviceClose">Close</button>
-      <button class="btn btn-primary" id="clearCommand">Clear</button>
-      <div class="form-group" id="autoStartOptions">
-        <input hidden="true" type="checkbox" id="chk-AutoStart" name="AutoStart" value=""><label for="chk-AutoStart" hidden="true">Auto Start</label>
-         <br> 
-        <input hidden="true" type="checkbox" id="chk-AutoEMV" name="AutoEMV" value=""><label for="chk-AutoEMV" hidden="true">EMV</label>
-        <input hidden="true" type="checkbox" id="chk-AutoNFC" name="AutoNFC" value=""><label for="chk-AutoNFC" hidden="true">NFC</label>
-        <input hidden="true" type="checkbox" id="chk-AutoMSR" name="AutoMSR" value=""><label for="chk-AutoMSR" hidden="true">MSR</label>
-        <input hidden="true" type="checkbox" id="chk-AutoTouch" name="AutoTouch" value="" hidden="true"><label for="chk-AutoTouch" hidden="true">Touch</label>
+      <button class="btn btn-primary" id="deviceClose">Close</button>      
         <hr>
-        <div id="updDeviceContainer" class="container" style.visibility ='hidden'>      
-          <p></p> 
-          <div id="progressContainer" class="progress" style.visibility ='hidden'>
-            <div id="progressBar" style.visibility ='hidden' class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width:0%">
-            </div>
-          </div>
-        </div>
-        <label for="sendData" hidden="true">Command Data</label>
-        <input type="text" class="form-control" name="sendData" id="sendData" aria-describedby="helpId"
-          value="SENDCOMMAND,AA00810401001001842B100182013CA3098101018201018301018402000386159C01009F02060000000001009F0306000000000000"  hidden="true">
-        <button class="btn btn-primary" id="sendCommand"  hidden="true">Send Command</button>
-      </div>
-      <div class="form-group shadow-textarea">
-        <label for="CommandList"></label>
-          <select class="form-control-3" name="CommandList" id="CommandList" hidden="true">
-          <option value="SENDCOMMAND,AA00810401001001842B100182013CA3098101018201018301018402000386159C01009F02060000000001009F0306000000000000">
-            START EMV</option>
-          <option value="SENDCOMMAND,AA0081040113100884021008">CANCEL EMV</option>
-          <option value="SENDCOMMAND,AA00810401121F0184021F01">Reset Device</option>
-          <option value="SENDCOMMAND,AA0081040155D101840FD1018501018704020701028902C100">Get User Notify</option>
-          <option value="SENDCOMMAND,AA0081040155D1118413D1118501018704020701028906C1049F000000">Set User Notify to All Events
-          </option>
-          <option value="SENDCOMMAND,AA0081040155D1118413D1118501018704020701028906C10483000000">Set DynaProx User Notify to
-            Contactless and Barcode</option>
-          <option
-            value="SENDCOMMAND,AA008104010010018430100182013CA30981010082010183010084020003861A9C01009F02060000000001009F03060000000000005F2A020840">
-            START CONTACT</option>
-          <option
-            value="SENDCOMMAND,AA008104010010018430100182013CA30981010082010083010184020003861A9C01009F02060000000001009F03060000000000005F2A020840">
-            START CONTACTLESS</option>
-          <option
-            value="SENDCOMMAND,AA008104010010018430100182013CA30981010182010083010084020003861A9C01009F02060000000001009F03060000000000005F2A020840">
-            START MSR</option>
-          <option value="SENDCOMMAND,AA00810401B5D1018418D10181072B06010401F6098501028704020101018902C100">Get SN</option>
-          <option value="SENDCOMMAND,AA00810401E0D101841AD10181072B06010401F609850102890AE208E106E104E102C200">Get Capabilities
-          </option>
-          <option
-            value="SENDCOMMAND,AA00810401031001843D1001820178A3098101008201008301038402020386279C01009F02060000000001009F03060000000000005F2A0208405F3601029F150200009F530100">
-            NFC</option>
-          <option value="SENDCOMMAND,AA00810401041100840C110081023000820100830100">NFC Mifare</option>
-          <option value="SENDCOMMAND,AA00810401051100840D110081033A047F8201008301FF">NFC Mifare 2</option>
-          <option value="SENDCOMMAND,AA0081040155180384081803810100820101">Display Amount</option>
-          <option value="SENDCOMMAND,AA0081040155180384081803810100820102">Display Amount OK?</option>
-          <option value="SENDCOMMAND,AA0081040155180384081803810100820103">Display Approved</option>
-          <option value="SENDCOMMAND,AA0081040155180384081803810100820114">Display Welcome</option>
-          <option value="SENDCOMMAND,AA008104012C182184081821810101830100">Display Screen 1</option>
-          <option value="SENDCOMMAND,AA008104012C182184081821810102830100">Display Screen 2</option>
-          <option value="SENDCOMMAND,AA008104017A2001841C200181013C82010083020804850100A10B81010C8206123456789012">Request PIN</option>
-          <option value="SENDCOMMAND,AA00810401002002841C200281011EA309810101820101830101A40A82010183020804850100">Request PIN with Card Read</option>
-          <option value="SENDCOMMAND,AA008104017A2001841C200181013C8201FF83020804850100A10B81010C8206123456789012">PIN Entry Success</option>
-          <option value="SENDCOMMAND,AA008104017A2001841C200181013C8201FE83020804850100A10B81010C8206123456789012">PIN Entry Fail</option>
-          <option value="SENDCOMMAND,AA0081040100180284081802810100820100">User Selection 0</option>
-          <option value="SENDCOMMAND,AA0081040100180284081802810100820101">User Selection 1</option>          
-        </select>
-      </div>
-    </div>
-    <br>
+    </div>    
   </body>
 </html>

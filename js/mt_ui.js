@@ -10,32 +10,45 @@ DO NOT REMOVE THIS COPYRIGHT
  WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 export function updateProgressBar(caption, progress) {
-  const updDeviceContainer = document.getElementById("updDeviceContainer");
-  const progressContainer = document.getElementById("progressContainer");
-  const progressBar = document.getElementById("progressBar");
-
-  if (progress < 0) {
-    updDeviceContainer.style.visibility = "hidden";
-    progressContainer.style.visibility = "hidden";
-    progressBar.style.visibility = "hidden";
-  } else {
-    updDeviceContainer.style.visibility = "visible";
-    progressContainer.style.visibility = "visible";
-    progressBar.style.visibility = "visible";
-    updDeviceContainer.getElementsByTagName("P")[0].textContent = caption;
-    progressBar.ariaValueNow = progress;
-    progressBar.style.width = `${progress}%`;
-    progressBar.textContent = `${caption} ${progress}%`;
+  try 
+  {
+    const updDeviceContainer = document.getElementById("updDeviceContainer");
+    const progressContainer = document.getElementById("progressContainer");
+    const progressBar = document.getElementById("progressBar");
+  
+    if (progress < 0) {
+      updDeviceContainer.style.visibility = "hidden";
+      progressContainer.style.visibility = "hidden";
+      progressBar.style.visibility = "hidden";
+    } 
+    else 
+    {
+      updDeviceContainer.style.visibility = "visible";
+      progressContainer.style.visibility = "visible";
+      progressBar.style.visibility = "visible";
+      updDeviceContainer.getElementsByTagName("P")[0].textContent = caption;
+      progressBar.ariaValueNow = progress;
+      progressBar.style.width = `${progress}%`;
+      progressBar.textContent = `${caption} ${progress}%`;
+    }  
+  } 
+  catch (error) 
+  {
+    
   }
+  
 };
 
 export function LogData(data) {
 
-  
+  try {
+    const log = document.getElementById("LogData");
+    log.value += data + "\n";
+    log.scrollTop = log.scrollHeight;    
+  } catch (error) {
+    
+  }
 
-  const log = document.getElementById("LogData");
-  log.value += data + "\n";
-  log.scrollTop = log.scrollHeight;
 };
 
 export function ClearLog() {
@@ -45,8 +58,11 @@ export function ClearLog() {
   }
   
 export function UpdateValue(id, value ) {
-    const element= document.getElementById(id);
-    element.value = value;    
+    try {
+      document.getElementById(id).value = value;
+    } catch (error) {
+      
+    }
   }
 
 export function GetValue(id ) {
@@ -145,7 +161,12 @@ export function FromListToText(event) {
 
  export function UpdateQRCode(qrcode)
  {
-  const qr  = document.getElementById(`QRCode`);
-  qr.src = `https://paoli.magensa.net/Test/RenderImage/Home/QRCode?QRData=${qrcode}`;
+  try 
+  {
+    document.getElementById(`QRCode`).src = `https://paoli.magensa.net/Test/RenderImage/Home/QRCode?QRData=${qrcode}`;    
+  } catch (error) 
+  {
+    
+  }
   }
  

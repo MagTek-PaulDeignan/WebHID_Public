@@ -32,9 +32,6 @@ document
   .querySelector("#deviceClose")
   .addEventListener("click", handleCloseButton);
 document
-  .querySelector("#clearCommand")
-  .addEventListener("click", handleClearButton);
-document
   .addEventListener("DOMContentLoaded", handleDOMLoaded);
 
 function EmitObject(e_obj) {
@@ -76,11 +73,14 @@ async function handleCloseButton() {
   mt_UI.ClearLog();
   CloseMQTT();
 }
-async function handleClearButton() {
-  mt_UI.ClearLog();
-}
+// async function handleClearButton() {
+//   mt_UI.ClearLog();
+// }
 
 async function handleOpenButton() {
+  mt_UI.ClearLog();
+  CloseMQTT();
+  mt_MMS.closeDevice();
   window._device = await mt_MMS.openDevice();
   let devSN = await GetDevSN();
   devPath = `${mt_Utils.filterString(window._device.productName)}/${mt_Utils.filterString(devSN)}`;
@@ -88,14 +88,18 @@ async function handleOpenButton() {
 }
 
 async function GetDevSN(){
-  let resp = await mt_MMS.sendCommand('AA00810401B5D1018418D10181072B06010401F6098501028704020101018902C100');
-  return mt_Utils.filterString(resp.TLVData.substring(68, 75));
+  try {
+    let resp = await mt_MMS.sendCommand('AA00810401B5D1018418D10181072B06010401F6098501028704020101018902C100');
+    return mt_Utils.filterString(resp.TLVData.substring(68, 75));
+  } catch (error) {
+    return null;
+  }
 }
 
-function ClearAutoCheck() {
-  var chk = document.getElementById("chk-AutoStart");
-  chk.checked = false;
-}
+// function ClearAutoCheck() {
+//   var chk = document.getElementById("chk-AutoStart");
+//   chk.checked = false;
+// }
 const deviceConnectLogger = (e) => {
   mt_UI.setUSBConnected("Connected");
 };
@@ -151,6 +155,12 @@ function OpenMQTT(){
 function CloseMQTT(){
   if(client)
   {
+    let options = 
+    {
+      retain: true
+    }
+    
+    client.publish(`MagTek/Server/${devPath}/Status`, 'disconnected', options);
     client.end();
     client = null;      
   }
