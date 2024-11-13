@@ -1,3 +1,5 @@
+[Home](./index.md)
+
 # MagTek Web Demo Project
 
 This project allows seamless communication with MagTek devices using custom commands and event-driven data processing. It integrates multiple modules to support device discovery, communication, logging, and parsing of responses. Key functionalities include handling MMS (MagTek Messaging Service) data packets, managing device states, sending extended commands, and parsing responses to trigger real-time events.
