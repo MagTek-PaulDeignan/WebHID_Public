@@ -1,5 +1,5 @@
-# Welcome to the Public GitHub for Magtek Web Demos.
+# Welcome to the Public GitHub for MagTek Web Demos.
 
-## Important links:
-- [MagTek Demo Project](./MagTek_Demo_Project.md)
-- 
+## Proejct links:
+
+- [MagTek Web Demo Project](./MagTek_Demo_Project)
