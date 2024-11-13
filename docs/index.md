@@ -2,4 +2,4 @@
 
 ## Project links:
 
-[MagTek Demo Project](./MagTek_Demo_Project)
+[MagTek Demo Project](././MagTek_Demo_Project.md)
