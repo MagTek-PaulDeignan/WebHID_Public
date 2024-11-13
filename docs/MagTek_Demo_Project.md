@@ -1,4 +1,3 @@
-```markdown
 # MagTek Device Integration Project
 
 This JavaScript project provides a comprehensive interface for interacting with MagTek devices—such as magnetic stripe readers (MSRs), EMV (chip card) readers, and contactless payment devices—via WebHID. It supports a wide range of MagTek device functionalities, secure transaction flows, and real-time data handling, making it ideal for web-based payment solutions.
@@ -43,5 +42,3 @@ The project allows seamless communication with MagTek devices using custom comma
 ## Summary
 
 This project enables developers to integrate MagTek device interactions into web environments. With a full suite of functions for secure transactions, device control, and event-driven data processing, the project serves as a solid foundation for applications needing reliable, real-time payment device integration.
-
-```
