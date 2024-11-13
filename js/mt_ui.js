@@ -52,9 +52,15 @@ export function LogData(data) {
 };
 
 export function ClearLog() {
-    const log = document.getElementById("LogData");
+try 
+{
+  const log = document.getElementById("LogData");
     log.value = "";
-    updateProgressBar("",-1);
+    updateProgressBar("",-1);  
+} catch (error) 
+{
+  
+}
   }
   
 export function UpdateValue(id, value ) {

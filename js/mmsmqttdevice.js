@@ -60,6 +60,11 @@ async function handleDOMLoaded() {
 
   //Add the hid event listener for disconnect/unplug
   navigator.hid.addEventListener("disconnect", ({ device }) => {
+    let options = {
+      retain: true
+    }
+    
+    client.publish(`MagTek/Server/${devPath}/Status`, 'disconnected', options);
     EmitObject({Name:"OnDeviceDisconnect", Device:device});
   });
 

@@ -66,15 +66,8 @@ document
   .querySelector("#deviceClose")
   .addEventListener("click", handleCloseButton);
 document
-  .querySelector("#sendCommand")
-  .addEventListener("click", handleSendCommandButton);
-document
   .querySelector("#clearCommand")
   .addEventListener("click", handleClearButton);
-document
-  .querySelector("#CommandList")
-  .addEventListener("change", mt_UI.FromListToText);
-
 document
   .querySelector("#saleAmount")
   .addEventListener("change", SetAutoCheck);
@@ -196,7 +189,9 @@ async function handleClearButton() {
 }
 
  async function handleProcessSale() {
-   if (window.ARQCData != null) {
+   
+  let QMFAChecked = document.getElementById("chk-UseQMFA").checked;
+  if (window.ARQCData != null) {
      
     let amt = document.getElementById("saleAmount").value;
     if (amt.length > 0)
@@ -218,36 +213,52 @@ async function handleClearButton() {
           if(tax.length > 0) Amount.Tax = parseFloat(tax);
           if(tip.length > 0) Amount.Tip = parseFloat(tip);
     
-          let email = document.getElementById("receiptEmail").value;
-          let sms = document.getElementById("receiptSMS").value;
+          var email;
+          var sms;
+
+          if(QMFAChecked)
+          {
+            email = ""; 
+            sms = "";  
+          }
+          else
+          {
+            email = document.getElementById("receiptEmail").value;
+            sms = document.getElementById("receiptSMS").value;
+          }
           
-          var saleResp = await mt_MPPG.ProcessSale(Amount, email, sms);
+          var saleResp = await mt_MPPG.ProcessSale(Amount, email, sms, 6, window.ARQCData);
 
           if(saleResp.Details.status == "PASS")
           {
             var claims = saleResp.Details;
             claims.MagTranID = saleResp.MagTranID;
-
-            if(sms.length > 0 || email.length > 0 )
+            
+            if(QMFAChecked)
             {
-              window.SaleResponse = saleResp;
-              mt_UI.LogData(`Sending Qwantum MultiFactor Auth Request`);
-              var mfaResponse = mt_QMFA.TransactionCreate(sms, email, claims)
-            }
-            else
-            {
-              window.SaleResponse = null;
+              email = document.getElementById("receiptEmail").value;
+              sms = document.getElementById("receiptSMS").value;
+  
+              if(sms.length > 0 || email.length > 0 )
+              {
+                window.SaleResponse = saleResp;
+                mt_UI.LogData(`Sending Qwantum MultiFactor Auth Request`);
+                var mfaResponse = mt_QMFA.TransactionCreate(sms, email, claims)
+              }
+              else
+              {
+                window.SaleResponse = null;
+              }
             }
           }
                    
-          if(sms.length == 0 && email.length == 0)
+          if (!QMFAChecked)
           {
             mt_UI.LogData(`Sale Response Details`);
             mt_UI.LogData(JSON.stringify(saleResp.Details, null, 2));
           }
-          
           await mt_Utils.wait(1000);
-          mt_UI.LogData(`Clearing ARQC`);
+          mt_UI.LogData(`Clearing ARQC`);          
           window.ARQCData = null;
         }
     }
