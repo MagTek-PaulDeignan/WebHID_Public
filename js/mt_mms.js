@@ -607,7 +607,7 @@ function parseUserEventDetail(Msg) {
       NotifyDetail = mt_Utils.getTagValue("84", "", Msg.TLVData, false);
       EmitObject({
         Name: "OnBarcodeDetected",
-        Data: NotifyDetail.substring(12 - 4),
+        Data: NotifyDetail.substring(12),
       });
       break;
     default:

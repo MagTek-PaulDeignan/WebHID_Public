@@ -138,7 +138,6 @@ function onMQTTMessage(topic, message) {
     if(topicArray.length == 5){
       switch (topicArray[4]) {
         case "Status":
-        //mt_UI.AddDeviceLink(topicArray[2], `${topicArray[3]}`,message, `${window.location.pathname}?devpath=${topicArray[2]}/${topicArray[3]}`);
         mt_UI.AddDeviceLink(topicArray[2], `${topicArray[3]}`,data, `${window.location.pathname}?devpath=${topicArray[2]}/${topicArray[3]}`);
           if( `${topicArray[2]}/${topicArray[3]}` == devPath){
           if( data.toLowerCase() == "connected")
@@ -230,6 +229,9 @@ async function parseCommand(message) {
     case "DISPLAYMESSAGE":
       mt_UI.LogData(cmd[1]);
       break;
+    case "PROCESS_SALE": 
+      handleProcessSale();
+      break;
     default:
       mt_UI.LogData("Unknown Command");
   }
@@ -268,7 +270,8 @@ const displayMessageLogger = (e) => {
   mt_UI.DeviceDisplay(e.Data);
 };
 const barcodeLogger = (e) => {
-  mt_UI.LogData(`Barcode  Data: ${e.Data}`);
+  //mt_UI.LogData(`Barcode  Data: ${e.Data}`);
+  mt_UI.LogData(`Barcode  Data: ${mt_Utils.getTagValue("DF74", "", e.Data, true)}`);
 };
 const arqcLogger = (e) => {
   mt_UI.LogData(`${e.Source} ARQC Data:  ${e.Data}`);
