@@ -10,7 +10,6 @@ This project allows seamless communication with MagTek devices using custom comm
 - [hid_mms_demo](./hid_mms_demo.md)
 - [hid_v5_demo](./hid_v5_demo.md)
 - [hid_web_socket_demo](./hid_web_socket_demo.md)
-- [index](./index.md)
 - [magtek_demo_project](./magtek_demo_project.md)
 - [mmsconfig_js](./mmsconfig_js.md)
 - [mmsdemo_js](./mmsdemo_js.md)
