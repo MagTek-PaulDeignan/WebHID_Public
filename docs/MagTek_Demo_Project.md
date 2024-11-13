@@ -1,4 +1,4 @@
-[Home](./index.md)
+[Home](./index.md) [Discussions](./discussions/12)
 
 # MagTek Web Demo Project
 
