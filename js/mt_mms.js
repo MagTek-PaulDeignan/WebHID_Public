@@ -479,12 +479,17 @@ function parseNotificationFromDevice(Msg) {
       case "0205":
         NotifyDetail = Msg.TLVData;
         
+        //let paul = mt_Utils.tlvParser(Msg.TLVData.substring(24));
+
+
         let data = mt_Utils.getTagValue("F5", "", Msg.TLVData.substring(24), false); 
 
         let PBF = mt_Utils.getTagValue("DF71", "", data, false);
         let EPB = mt_Utils.getTagValue("99", "", data, false);
         let KSN = mt_Utils.getTagValue("DFDF41", "", data, false);
         let EncType = mt_Utils.getTagValue("DFDF42", "", data, false);
+
+
 
 
         EmitObject({ Name: "OnPINComplete", Data: { PBF:PBF,EPB:EPB,KSN:KSN,EncType:EncType, TLV:Msg.TLVData }});
@@ -607,7 +612,7 @@ function parseUserEventDetail(Msg) {
       NotifyDetail = mt_Utils.getTagValue("84", "", Msg.TLVData, false);
       EmitObject({
         Name: "OnBarcodeDetected",
-        Data: NotifyDetail.substring(12 - 4),
+        Data: NotifyDetail.substring(12),
       });
       break;
     default:

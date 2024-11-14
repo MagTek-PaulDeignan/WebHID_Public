@@ -54,12 +54,13 @@ export function setPassword(password) {
   Password = password;
 }
 
-  export async function ProcessSale(amount, email, sms) {
+  export async function ProcessSale(amount, email, sms, dataCapType, aRQC) {
     try {
        
+      
       let req = {
         ProcessorName: ProcessorName,
-        TransactionNumber: "20220921104243",
+        TransactionNumber: Date.now().toString(),
         TransactionType: 1,
         Authentication: {
           CustomerCode: CustCode,
@@ -72,8 +73,8 @@ export function setPassword(password) {
           Tip: amount.Tip,
           CashBack: amount.CashBack
         },
-        DataCaptureType: 6,
-        ARQC: window.ARQCData,
+        DataCaptureType: dataCapType,
+        ARQC: aRQC,
         CardData: null,
         Token: null,
         ReferenceID: null,
@@ -84,18 +85,18 @@ export function setPassword(password) {
           }
         ],
         AdditionalRequestData: null,
-        SendReceiptTo:  
-        {
-          SMS: sms,
-          Email: 
-          {
-          To: email,
-          Subject: "Customer Receipt"
-          }
-        }
+         SendReceiptTo:  
+         {
+           SMS: sms,
+           Email: 
+           {
+           To: email,
+           Subject: "Customer Receipt"
+           }
+         }
       }
   
-      var TransactionResponse = await PostProcessTransaction(req);
+    var TransactionResponse = await PostProcessTransaction(req);
      
       return TransactionResponse;
     } 

@@ -200,7 +200,8 @@ const displayMessageLogger = (e) => {
   mt_UI.DeviceDisplay(e.Data);
 };
 const barcodeLogger = (e) => {
-  mt_UI.LogData(`Barcode  Data: ${e.Data}`);
+  //mt_UI.LogData(`Barcode  Data: ${e.Data}`);
+  mt_UI.LogData(`Barcode  Data: ${mt_Utils.getTagValue("DF74", "", e.Data, true)}`);
 };
 const arqcLogger = (e) => {
   mt_UI.LogData(`${e.Source} ARQC Data:  ${e.Data}`);
