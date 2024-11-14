@@ -1,4 +1,4 @@
-[Home](./MagTek_Demo_Project.md)
+[Home](./index.md) [MagTek Web Demo Project](./MagTek_Demo_Project.md)
 
 # MagTek HID MMS Demo Integration Guide
 This guide is designed to help developers integrate MagTek card readers into their web applications using the JavaScript code provided in the HID MMS Demo. It includes details on setting up the environment, using the WebHID API, and working with various device commands.

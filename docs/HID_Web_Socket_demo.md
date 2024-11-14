@@ -1,4 +1,4 @@
-[Home](./MagTek_Demo_Project.md)
+[Home](./index.md) [MagTek Web Demo Project](./MagTek_Demo_Project.md)
 
 # MagTek WebSocket MMS Demo Integration Guide
 This guide helps developers integrate MagTek card readers into their web applications using the JavaScript and WebSocket API, as demonstrated in the WebSocket MMS Demo.

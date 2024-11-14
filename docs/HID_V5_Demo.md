@@ -1,4 +1,4 @@
-[Home](./MagTek_Demo_Project.md)
+[Home](./index.md) [MagTek Web Demo Project](./MagTek_Demo_Project.md)
 
 # MagTek Card Reader Integration Guide
 This guide provides instructions for integrating MagTek card readers into your web applications using JavaScript and the WebHID API. It includes details about commands, their use cases, and code examples for implementing the integration.

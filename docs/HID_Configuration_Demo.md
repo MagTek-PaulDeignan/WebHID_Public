@@ -1,4 +1,4 @@
-[Home](./MagTek_Demo_Project.md)
+[Home](./index.md) [MagTek Web Demo Project](./MagTek_Demo_Project.md)
 
 # MagTek Configuration Demo Integration Guide
 This guide is designed for developers looking to integrate MagTek card readers into their web applications using the JavaScript code and WebSocket/MQTT setup provided in the Configuration Demo.
