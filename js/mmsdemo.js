@@ -155,6 +155,16 @@ const dataLogger = (e) => {
 };
 const PINLogger = (e) => {
   mt_UI.LogData(`${e.Name}: EPB:${e.Data.EPB} KSN:${e.Data.KSN} Encryption Type:${e.Data.EncType} PIN Block Format: ${e.Data.PBF} TLV: ${e.Data.TLV}`);
+  
+  let TLVs = mt_Utils.tlvParser(e.Data.TLV.substring(24));
+  mt_UI.LogData("TLVS---------------------------------");
+  
+  
+  TLVs.forEach(element => {
+    mt_UI.LogData(`${element.tag} : ${element.tagValue} `);    
+  });   
+  mt_UI.LogData("TLVS---------------------------------");
+
 };
 
 const trxCompleteLogger = (e) => {
