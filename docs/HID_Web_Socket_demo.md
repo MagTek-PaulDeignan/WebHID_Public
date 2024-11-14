@@ -1,3 +1,5 @@
+[Home](./index.md)
+
 # MagTek WebSocket MMS Demo Integration Guide
 This guide helps developers integrate MagTek card readers into their web applications using the JavaScript and WebSocket API, as demonstrated in the WebSocket MMS Demo.
 ## Prerequisites
