@@ -32,6 +32,9 @@ document
   .querySelector("#deviceClose")
   .addEventListener("click", handleCloseButton);
 document
+  .querySelector("#clearCommand")
+  .addEventListener("click", handleClearButton);
+document
   .addEventListener("DOMContentLoaded", handleDOMLoaded);
 
 function EmitObject(e_obj) {
@@ -78,9 +81,11 @@ async function handleCloseButton() {
   mt_UI.ClearLog();
   CloseMQTT();
 }
+
 // async function handleClearButton() {
 //   mt_UI.ClearLog();
 // }
+
 
 async function handleOpenButton() {
   mt_UI.ClearLog();
@@ -105,6 +110,7 @@ async function GetDevSN(){
 //   var chk = document.getElementById("chk-AutoStart");
 //   chk.checked = false;
 // }
+
 const deviceConnectLogger = (e) => {
   mt_UI.setUSBConnected("Connected");
 };
