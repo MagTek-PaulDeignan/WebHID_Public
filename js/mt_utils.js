@@ -170,20 +170,25 @@ export function tlvParser(hexdata) {
 }
 
 export function getTagValue(tagName, defaultTagValue, tlvData, asASCII) {
-  try {
+  try 
+  {
     var TLVS = tlvParser(tlvData);
     var currtlv = TLVS.find((tlv) => tlv.tag === tagName);
-    if (currtlv != null) {
+    if (currtlv == undefined) return defaultTagValue;
+    {
       if (asASCII == true) {
         return hexToASCIIRemoveNull(currtlv.tagValue);
-      } else {
+      } 
+      else 
+      {
         return currtlv.tagValue;
       }
     }
-  } catch (error) {
-    
+  } 
+  catch (error) {
     return defaultTagValue;
   }
+  
 }
 
 export function removeSpaces(str) {

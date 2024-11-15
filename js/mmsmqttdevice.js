@@ -19,6 +19,7 @@ import "./mt_events.js";
 
 let url = mt_Utils.getDefaultValue('MQTTURL','wss://hd513d49.ala.us-east-1.emqxsl.com:8084/mqtt');
 let devPath = mt_Utils.getDefaultValue('MQTTDevice','');
+let friendlyName = mt_Utils.getDefaultValue('MQTTDeviceFriendlyName','');
 let userName = mt_Utils.getDefaultValue('MQTTUser','testDevice1');
 let password = mt_Utils.getDefaultValue('MQTTPassword','t3stD3v1c1');
 
@@ -32,13 +33,21 @@ document
   .querySelector("#deviceClose")
   .addEventListener("click", handleCloseButton);
 document
+  .querySelector("#deviceNameSave")
+  .addEventListener("click", handleDeviceNameSave);
+
+document
   .addEventListener("DOMContentLoaded", handleDOMLoaded);
 
+  
 function EmitObject(e_obj) {
   EventEmitter.emit(e_obj.Name, e_obj);
 };
 
 async function handleDOMLoaded() {
+  
+  document.getElementById("txFriendlyName").value = friendlyName;
+
   let devices = await mt_HID.getDeviceList();
   mt_UI.LogData(`Devices currently attached and allowed:`);
   
@@ -87,8 +96,18 @@ async function handleOpenButton() {
   CloseMQTT();
   mt_MMS.closeDevice();
   window._device = await mt_MMS.openDevice();
+  
   let devSN = await GetDevSN();
-  devPath = `${mt_Utils.filterString(window._device.productName)}/${mt_Utils.filterString(devSN)}`;
+
+  if (friendlyName.length > 0 )
+  {
+    devPath = `${mt_Utils.filterString(window._device.productName)}/${mt_Utils.filterString(friendlyName)}-${mt_Utils.filterString(devSN)}`;
+  }
+  else
+  {
+    devPath = `${mt_Utils.filterString(window._device.productName)}/${mt_Utils.filterString(devSN)}`;
+  }
+  
   OpenMQTT();
 }
 
@@ -101,10 +120,13 @@ async function GetDevSN(){
   }
 }
 
-// function ClearAutoCheck() {
-//   var chk = document.getElementById("chk-AutoStart");
-//   chk.checked = false;
-// }
+async function handleDeviceNameSave(){
+  friendlyName = document.getElementById('txFriendlyName').value;
+  mt_Utils.saveDefaultValue('MQTTDeviceFriendlyName',friendlyName);
+  mt_UI.LogData (`Device name has been saved: ${friendlyName}`);
+}
+
+
 const deviceConnectLogger = (e) => {
   mt_UI.setUSBConnected("Connected");
 };

@@ -11,8 +11,7 @@ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTH
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 -->
 <html lang="en">
-<html>
-  <head>
+   <head>
     <title>HID MQTT Device Client</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -24,25 +23,35 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
   <body>
     <div class="container">
         <img src="./images/magtek_logo.png" alt="Logo" width="150">
-      
     </div>
     <div class="container">
       <h1>HID MQTT Device Client</h1>
     </div>
     <div class="container">
-      <div id="DeviceDisplay"></div>
+    <div id="DeviceDisplay"></div>
 To establish an MQTT connection to your locally connected MagTek device (via USB), click the "Open" button below.<br><br>
 Important:<br>
 Do not close this page.<br>
 Do not open this page in multiple tabs or windows.<br>
 You can minimize this page without affecting the connection, but it must remain open to keep the device connected and available.<br>
+<hr>
+
       <textarea class="form-control" name="LogData" id="LogData" rows="3"></textarea>
       <div class="form-group container-left">
         <img id="USBStatus" src="./images/usb-disconnected.png"><span id="lblUSBStatus">Disconnected</span>
       </div>
-      <button class="btn btn-primary" id="deviceOpen">Open</button>
-      <button class="btn btn-primary" id="deviceClose">Close</button>      
-        <hr>
-    </div>    
+        <button class="btn btn-primary" id="deviceOpen">Open</button>
+        <button class="btn btn-primary" id="deviceClose">Close</button>      
+
+      <hr>
+      <div class="container">
+        <div class="form-group row">
+          <div class="col-md-3">
+              <label for="txFriendlyName">Friendly Name</label>
+              <input class="form-control" id="txFriendlyName" type="text" value="">       
+              <button class="btn btn-primary" id="deviceNameSave">Save</button>      
+          </div>
+        </div>
+    </div>
   </body>
 </html>

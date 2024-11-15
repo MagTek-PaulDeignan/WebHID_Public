@@ -150,7 +150,8 @@ async function parseCommand(message) {
       mt_UI.LogData(cmd[1]);
       break;
     case "GETTAGVALUE":
-      var retval = mt_Utils.getTagValue(cmd[1], cmd[2], cmd[3], Boolean(cmd[4]));
+      let asAscii = (cmd[4] === 'true');
+      var retval = mt_Utils.getTagValue(cmd[1], cmd[2], cmd[3], asAscii);
       mt_UI.LogData(`Get Tags for ${retval}`);      
       break;
     case "PARSETLV":
@@ -261,6 +262,12 @@ const barcodeLogger = (e) => {
 
 const arqcLogger = (e) => {
   mt_UI.LogData(`${e.Source} ARQC Data:  ${e.Data}`);
+  let TLVs = mt_Utils.tlvParser(e.Data.substring(4));
+   mt_UI.LogData("TLVS---------------------------------");
+   TLVs.forEach(element => {
+     mt_UI.LogData(`${element.tag} : ${element.tagValue} `);    
+   });   
+   mt_UI.LogData("TLVS---------------------------------");  
 };
 const batchLogger = (e) => {
   mt_UI.LogData(`${e.Source} Batch Data: ${e.Data}`);
