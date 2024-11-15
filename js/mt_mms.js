@@ -479,6 +479,9 @@ function parseNotificationFromDevice(Msg) {
       case "0205":
         NotifyDetail = Msg.TLVData;
         
+        //let paul = mt_Utils.tlvParser(Msg.TLVData.substring(24));
+
+
         let data = mt_Utils.getTagValue("F5", "", Msg.TLVData.substring(24), false); 
 
         let PBF = mt_Utils.getTagValue("DF71", "", data, false);

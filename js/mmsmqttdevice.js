@@ -87,6 +87,7 @@ async function handleCloseButton() {
   mt_UI.ClearLog();
   CloseMQTT();
 }
+
 // async function handleClearButton() {
 //   mt_UI.ClearLog();
 // }
@@ -120,12 +121,12 @@ async function GetDevSN(){
   }
 }
 
+
 async function handleDeviceNameSave(){
   friendlyName = document.getElementById('txFriendlyName').value;
   mt_Utils.saveDefaultValue('MQTTDeviceFriendlyName',friendlyName);
   mt_UI.LogData (`Device name has been saved: ${friendlyName}`);
 }
-
 
 const deviceConnectLogger = (e) => {
   mt_UI.setUSBConnected("Connected");
