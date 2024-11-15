@@ -4,15 +4,15 @@
 
 This project allows seamless communication with MagTek devices using custom commands and event-driven data processing. It integrates multiple modules to support device discovery, communication, logging, and parsing of responses. Key functionalities include handling MMS (MagTek Messaging Service) data packets, managing device states, sending extended commands, and parsing responses to trigger real-time events.
 
-## Key Modules:
+## Demo Modules:
+- [hid_configuration_demo](./HID_Configuration_Demo.md)
+- [hid_mms_demo](./HID_MMS_Demo.md)
+- [hid_v5_demo](./HID_V5_Demo.md)
+- [hid_web_socket_demo](./HID_Web_Socket_demo.md)
 
+## Javascript Modules:
 - [configure_js](./configure_js.md)
 - [configure_mppg_js](./configure_mppg_js.md)
-- [hid_configuration_demo](./hid_configuration_demo.md)
-- [hid_mms_demo](./hid_mms_demo.md)
-- [hid_v5_demo](./hid_v5_demo.md)
-- [hid_web_socket_demo](./hid_web_socket_demo.md)
-- [magtek_demo_project](./magtek_demo_project.md)
 - [mmsconfig_js](./mmsconfig_js.md)
 - [mmsdemo_js](./mmsdemo_js.md)
 - [mmsmppg_js](./mmsmppg_js.md)
