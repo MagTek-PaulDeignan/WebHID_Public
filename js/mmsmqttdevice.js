@@ -204,6 +204,9 @@ function onMQTTConnect() {
   client.publish(`MagTek/Server/${devPath}/Status`, 'connected', options);
   client.subscribe(`MagTek/Device/${devPath}/#`, CheckMQTTError)
   mt_UI.LogData(`Connected to: MagTek/Device/${devPath}`);
+  var path = `https://rms.magensa.net/Test/HID/mmsMQTTDemo.html?devpath=${devPath}`
+  mt_UI.UpdateQRCode(path);
+
 };
 
 function CheckMQTTError (err) {

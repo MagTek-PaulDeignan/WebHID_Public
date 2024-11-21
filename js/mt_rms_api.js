@@ -11,8 +11,8 @@ DO NOT REMOVE THIS COPYRIGHT
 */
 
 "use strict";
-import * as mt_V5 from "./mt_v5.js";
-import * as mt_Utils from "./mt_utils.js";
+//import * as mt_V5 from "./mt_v5.js";
+//import * as mt_Utils from "./mt_utils.js";
 
 
 export let BaseURL = "";

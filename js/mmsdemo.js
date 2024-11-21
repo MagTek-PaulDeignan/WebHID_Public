@@ -14,7 +14,14 @@ import * as mt_Utils from "./mt_utils.js";
 import * as mt_MMS from "./mt_mms.js";
 import * as mt_HID from "./mt_hid.js";
 import * as mt_UI from "./mt_ui.js";
+import * as mt_RMS from "./mt_rms_mms.js";
+import * as mt_RMS_API from "./mt_rms_api.js";
 import "./mt_events.js";
+
+let defaultRMSURL = '';
+let defaultRMSAPIKey = '';
+let defaultRMSProfileName = '';
+
 
 let _contactSeated = false;
 let _AwaitingContactEMV = false;
@@ -37,6 +44,9 @@ document
   .querySelector("#CommandList")
   .addEventListener("change", mt_UI.FromListToText);
 document.addEventListener("DOMContentLoaded", handleDOMLoaded);
+
+document.getElementById('fileInput')
+  .addEventListener('change', handleFileUpload);
 
 function EmitObject(e_obj) {
   EventEmitter.emit(e_obj.Name, e_obj);
@@ -77,6 +87,7 @@ async function handleCloseButton() {
 async function handleClearButton() {
   mt_UI.ClearLog();
   mt_UI.DeviceDisplay("");
+  document.getElementById("fileInput").value = null;
 }
 
 async function handleOpenButton() {
@@ -100,7 +111,10 @@ async function parseCommand(message) {
       break;
     case "SENDCOMMAND":
       Response = await mt_MMS.sendCommand(cmd[1]);
-      //EmitObject({ Name: "OnDeviceResponse", Data: Response });
+      mt_UI.LogData(Response.HexString)
+      break;
+    case "PCIRESET":
+      Response = await mt_MMS.sendCommand("AA00810401121F0184021F01");      
       break;
     case "GETDEVICELIST":
       devices = getDeviceList();      
@@ -112,7 +126,9 @@ async function parseCommand(message) {
       await mt_MMS.closeDevice();
       break;
     case "WAIT":
-      wait(cmd[1]);
+      mt_UI.LogData(`Waiting ${cmd[1]/1000} seconds...`);
+      await mt_Utils.wait(cmd[1]);
+      //mt_UI.LogData(`Done Waiting`);
       break;
     case "DETECTDEVICE":
       window._device = await mt_MMS.openDevice();      
@@ -128,6 +144,30 @@ async function parseCommand(message) {
       break;
     case "DISPLAYMESSAGE":
       mt_UI.LogData(cmd[1]);
+      break;
+    case "GETDEVICESN":
+      var sn = await mt_MMS.GetDeviceSN();
+      mt_UI.LogData(sn);
+      break;
+    case "GETFIRMWAREID":
+      var fw = await mt_MMS.GetDeviceFWID();
+      mt_UI.LogData(fw);
+      break;
+    case "UPDATEDEVICE":
+      mt_RMS_API.setURL(mt_Utils.getDefaultValue('baseURL',defaultRMSURL));
+      mt_RMS_API.setAPIKey(mt_Utils.getDefaultValue('APIKey',defaultRMSAPIKey));
+      mt_RMS_API.setProfileName(mt_Utils.getDefaultValue('ProfileName',defaultRMSProfileName));
+      fw = await mt_MMS.GetDeviceFWID();
+      sn = await mt_MMS.GetDeviceSN();
+
+      mt_RMS.setFWID(fw);
+      mt_RMS.setDeviceSN(sn);
+
+      if(mt_RMS_API.BaseURL.length > 0 && mt_RMS_API.APIKey.length > 0 && mt_RMS_API.ProfileName.length > 0){
+        await mt_RMS.updateDevice();
+      }else{
+        mt_UI.LogData(`Please set APIKey and ProfileName`);      
+      }
       break;
     default:
       mt_Utils.debugLog("Unknown Command");
@@ -154,15 +194,24 @@ const deviceOpenLogger = (e) => {
 const dataLogger = (e) => {
   mt_UI.LogData(`Received Data: ${e.Name}: ${e.Data}`);
 };
+
+const NFCUIDLogger = (e) => {
+  mt_UI.LogData(`Received NFC UID : ${e.Name}: ${e.Data}`);
+  mt_MMS.sendCommand("AA00810401641100840B1100810160820100830100");
+  mt_MMS.sendCommand("AA00810401671100840D110081033A04278201008301FF");
+
+};
+
+
 const PINLogger = (e) => {
   mt_UI.LogData(`${e.Name}: EPB:${e.Data.EPB} KSN:${e.Data.KSN} Encryption Type:${e.Data.EncType} PIN Block Format: ${e.Data.PBF} TLV: ${e.Data.TLV}`);
   
   let TLVs = mt_Utils.tlvParser(e.Data.TLV.substring(24));
-  mt_UI.LogData("TLVS---------------------------------");
+  mt_UI.LogData("TLVs---------------------------------");
   TLVs.forEach(element => {
     mt_UI.LogData(`${element.tag} : ${element.tagValue} `);    
   });   
-  mt_UI.LogData("TLVS---------------------------------");
+  mt_UI.LogData("TLVs---------------------------------");
 
 };
 
@@ -180,17 +229,17 @@ const barcodeLogger = (e) => {
 const arqcLogger = (e) => {
   mt_UI.LogData(`${e.Source} ARQC Data:  ${e.Data}`);
    let TLVs = mt_Utils.tlvParser(e.Data.substring(4));
-   mt_UI.LogData("TLVS---------------------------------");
+   mt_UI.LogData("TLVs---------------------------------");
    TLVs.forEach(element => {
      mt_UI.LogData(`${element.tag} : ${element.tagValue} `);    
    });   
-   mt_UI.LogData("TLVS---------------------------------");
+   mt_UI.LogData("TLVs---------------------------------");
 };
 const batchLogger = (e) => {
   mt_UI.LogData(`${e.Source} Batch Data: ${e.Data}`);
 };
 const fromDeviceLogger = (e) => {
-  mt_UI.LogData(`Device Response: ${e.Data.HexString}`);
+  //mt_UI.LogData(`Device Response: ${e.Data.HexString}`);
 };
 const inputReportLogger = (e) => {
   mt_UI.LogData(`Input Report: ${e.Data}`);
@@ -231,9 +280,8 @@ const contactlessCardDetectedLogger = async (e) => {
     if (!_contactSeated) {
       _AwaitingContactEMV = false;
       // We didn't get a contact seated, do start the contactless transaction
-      mt_MMS.sendCommand(
-        "AA008104010010018430100182010AA30981010082010083010184020003861A9C01009F02060000000001009F03060000000000005F2A020840"
-      );      
+      //mt_MMS.sendCommand("AA008104010010018430100182010AA30981010082010083010184020003861A9C01009F02060000000001009F03060000000000005F2A020840");      
+      mt_MMS.sendCommand("AA00810401031001843D1001820178A3098101008201008301038402020386279C01009F02060000000001009F03060000000000005F2A0208405F3601029F150200009F530100");
     }
   }
 };
@@ -283,8 +331,43 @@ const userEventLogger = (e) => {
 };
 
 const fileLogger = (e) => {
-  mt_UI.LogData(`File: ${e.Data.HexString}`);
+  //mt_UI.LogData(`File: ${e.Data.HexString}`);
 };
+
+
+async function handleFileUpload(event) {
+  if( event.target.files.length ==1 )
+  {
+    const file = event.target.files[0];
+
+    const reader = new FileReader();
+  
+    reader.onload = async function(e) {
+      const lines = e.target.result.split('\n');
+      for (const line of lines) 
+        {
+        // Process each line here
+        await parseCommand(line);
+        
+        }
+    };
+  reader.readAsText(file); 
+};
+}
+
+
+const displayRMSLogger = (e) => {
+  mt_UI.LogData(`RMS Display: ${e.Data}`);
+};
+
+const displayRMSProgressLogger = (e) => {  
+  mt_UI.updateProgressBar(e.Data.Caption, e.Data.Progress)
+};
+
+const displayFirmwareLoadStatusLogger = (e) => {  
+  mt_UI.LogData(`RMS Firmware Load Status: ${e.Data}`);
+};
+
 
 
 // Subscribe to  events
@@ -310,7 +393,7 @@ EventEmitter.on("OnContactlessCardCollision", dataLogger);
 EventEmitter.on("OnContactlessMifare1KCardDetected", dataLogger);
 EventEmitter.on("OnContactlessMifare4KCardDetected", dataLogger);
 EventEmitter.on("OnContactlessMifareUltralightCardDetected", dataLogger);
-EventEmitter.on("OnContactlessNFCUID", dataLogger);
+EventEmitter.on("OnContactlessNFCUID", NFCUIDLogger);
 EventEmitter.on("OnContactlessPINBlockError", dataLogger);
 EventEmitter.on("OnContactlessPINPadError", dataLogger);
 EventEmitter.on("OnContactlessVASError", dataLogger);
@@ -354,3 +437,7 @@ EventEmitter.on("OnDebug", debugLogger);
 
 EventEmitter.on("OnFileFromHost", fileLogger);
 EventEmitter.on("OnFileFromDevice", fileLogger);
+
+EventEmitter.on("OnRMSLogData", displayRMSLogger);
+EventEmitter.on("OnRMSProgress", displayRMSProgressLogger);
+EventEmitter.on("OnFirmwareLoadStatus", displayFirmwareLoadStatusLogger);

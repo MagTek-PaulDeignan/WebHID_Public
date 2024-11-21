@@ -9,6 +9,8 @@ DO NOT REMOVE THIS COPYRIGHT
  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, 
  WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
+import * as mt_Utils from "./mt_utils.js";
+
 export function updateProgressBar(caption, progress) {
   try 
   {
@@ -128,6 +130,11 @@ export function FromListToText(event) {
 
 
  export function AddDeviceLink(type, name, status, url ){
+    var bShowOffline = false;
+    
+    let isChecked = mt_Utils.getDefaultValue("ShowOffline", "false");
+   (isChecked === "true" ? bShowOffline = true: bShowOffline = false);
+  
     //console.log(status);
     const imgOnline = document.createElement('img');
     imgOnline.setAttribute('src', `./images/${status}.png`);
@@ -150,7 +157,8 @@ export function FromListToText(event) {
     link.prepend(imgOnline);    
     link.prepend(img);
     if (status == "disconnected"){
-      link.hidden = true;
+      //link.hidden = true;
+      link.hidden = !bShowOffline;
     }
     else
     {

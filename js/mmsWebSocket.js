@@ -136,6 +136,9 @@ async function parseCommand(message) {
     case "SENDCOMMAND":
       SendCommand(cmd[1]);
       break;
+    case "PCIRESET":
+      SendCommand("AA00810401121F0184021F01");      
+      break;
     case "GETDEVICELIST":
       devices = getDeviceList();      
       break;
@@ -207,11 +210,11 @@ const barcodeLogger = (e) => {
 const arqcLogger = (e) => {
   mt_UI.LogData(`${e.Source} ARQC Data:  ${e.Data}`);
   let TLVs = mt_Utils.tlvParser(e.Data.substring(4));
-   mt_UI.LogData("TLVS---------------------------------");
+   mt_UI.LogData("TLVs---------------------------------");
    TLVs.forEach(element => {
      mt_UI.LogData(`${element.tag} : ${element.tagValue} `);    
    });   
-   mt_UI.LogData("TLVS---------------------------------");
+   mt_UI.LogData("TLVs---------------------------------");
 };
 const batchLogger = (e) => {
   mt_UI.LogData(`${e.Source} Batch Data: ${e.Data}`);

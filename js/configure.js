@@ -16,6 +16,7 @@ import * as mt_Utils from "./mt_utils.js";
 document.addEventListener("DOMContentLoaded", handleDOMLoaded);
 document.querySelector("#btnSave").addEventListener("click", handleSaveButton);
 document.querySelector("#btnBack").addEventListener("click", handleBackButton);
+let ShowOffline = "false";
 
 async function handleDOMLoaded() {
   let item = document.getElementById("txAPIKey");
@@ -26,6 +27,9 @@ async function handleDOMLoaded() {
 
   item = document.getElementById("txURL");
   item.value = mt_Utils.getDefaultValue("baseURL", "https://rms.magensa.net/ReaderSupport/FirmwareUpdate-v2/api");
+
+  item = document.getElementById("txVersion");
+  item.value = mt_Utils.getDefaultValue("RMSVersion", "");
 
   item = document.getElementById("txWSAddress");
   item.value = mt_Utils.getDefaultValue("WSAddress", "ws://192.168.1.200");
@@ -45,6 +49,10 @@ async function handleDOMLoaded() {
   item = document.getElementById("txContactlessDelay");
   item.value = mt_Utils.getDefaultValue("ContactlessDelay", "500");
   
+  ShowOffline = mt_Utils.getDefaultValue("ShowOffline", "false");
+  item = document.getElementById("chk-ShowOffline");
+  (ShowOffline === "true" ? item.checked = true : item.checked = false);
+  
 }
 
 async function handleBackButton() {
@@ -60,6 +68,9 @@ async function handleSaveButton() {
 
   item = document.getElementById("txURL");
   mt_Utils.saveDefaultValue("baseURL", item.value);
+  
+  item = document.getElementById("txVersion");
+  mt_Utils.saveDefaultValue("RMSVersion", item.value);
 
   item = document.getElementById("txWSAddress");
   mt_Utils.saveDefaultValue("WSAddress", item.value);
@@ -78,6 +89,10 @@ async function handleSaveButton() {
 
   item = document.getElementById("txContactlessDelay");
   mt_Utils.saveDefaultValue("ContactlessDelay", item.value);
+
+  item = document.getElementById("chk-ShowOffline");
+  item.checked ? ShowOffline = "true" : ShowOffline = "false";
+  mt_Utils.saveDefaultValue("ShowOffline", ShowOffline );
 
   item = document.getElementById("status");
   item.innerText = " :Saved"  

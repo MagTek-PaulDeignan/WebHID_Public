@@ -136,9 +136,9 @@ async function parseCommand(message) {
       await mt_V5.closeDevice();        
       break;
     case "WAIT":
-      mt_UI.LogData(`Waitng ${cmd[1]/1000} seconds...`);
+      mt_UI.LogData(`Waiting ${cmd[1]/1000} seconds...`);
       await mt_Utils.wait(cmd[1]);
-      mt_UI.LogData(`Done Waitng`);
+      mt_UI.LogData(`Done Waiting`);
       break;
     case "DETECTDEVICE":
       await mt_V5.closeDevice();
@@ -262,11 +262,11 @@ const barcodeLogger = (e) => {
 const arqcLogger = (e) => {
   mt_UI.LogData(`${e.Source} ARQC Data:  ${e.Data}`);
   let TLVs = mt_Utils.tlvParser(e.Data.substring(4));
-   mt_UI.LogData("TLVS---------------------------------");
+   mt_UI.LogData("TLVs---------------------------------");
    TLVs.forEach(element => {
      mt_UI.LogData(`${element.tag} : ${element.tagValue} `);    
    });   
-   mt_UI.LogData("TLVS---------------------------------");
+   mt_UI.LogData("TLVs---------------------------------");
 };
 const batchLogger = (e) => {
   mt_UI.LogData(`${e.Source} Batch Data: ${e.Data}`);

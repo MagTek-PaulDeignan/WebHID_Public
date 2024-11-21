@@ -20,7 +20,7 @@ export var wasOpened = false;
 
 let mtDeviceType = "";
 
-let device_response = null;
+//let device_response = null;
 let data_buffer_response = [];
 
 function EmitObject(e_obj) {
@@ -29,7 +29,7 @@ function EmitObject(e_obj) {
 
 export async function sendCommand(cmdToSend) {
   let cmdResp = "";
-  device_response = null;
+  window.device_response = null;
   try {
     if (window._device == null) {
       EmitObject({
@@ -55,14 +55,16 @@ export async function sendCommand(cmdToSend) {
   }
 }
 
+
 async function sendMMSCommand(cmdToSend) {
   let commands = buildCmdsArray(
     cmdToSend,
     window._device.collections[0].outputReports[0].items[0].reportCount
   );
-  commands.forEach(async (command) => {
-    await window._device.sendReport(0, new Uint8Array(command));
-  });
+  for (let index = 0; index < commands.length; index++) {
+    await window._device.sendReport(0, new Uint8Array(commands[index]));
+  }
+ 
   Response = await waitForDeviceResponse();
   return Response;
 };
@@ -73,10 +75,26 @@ function waitForDeviceResponse() {
       return result;
     }
     return new Promise((resolve) => setTimeout(resolve, 50))
-      .then(() => Promise.resolve(device_response)) 
+      .then(() => Promise.resolve(window.device_response)) 
       .then((res) => waitFor(res));
   }
   return waitFor();
+}
+
+export async function GetDeviceSN(){
+  let resp = await sendCommand("AA0081040100D101841AD10181072B06010401F609850102890AE208E106E104E102C100");
+  let str = resp.TLVData.substring(24);  
+  let tag89 = mt_Utils.getTagValue("89","",str, false) ;
+  let data = mt_Utils.getTagValue("C1","",tag89, false);
+  return data.substring(0,7);
+}
+
+export async function GetDeviceFWID(){
+  let resp = await sendCommand("AA0081040102D101841AD10181072B06010401F609850102890AE108E206E204E202C200");
+  let str = resp.TLVData.substring(24);  
+  let tag89 = mt_Utils.getTagValue("89","",str, false);
+  let data = mt_Utils.getTagValue("C2","",tag89, true);
+  return data;
 }
 
 export function parseMMSPacket(data) {
@@ -478,12 +496,7 @@ function parseNotificationFromDevice(Msg) {
         break;
       case "0205":
         NotifyDetail = Msg.TLVData;
-        
-        //let paul = mt_Utils.tlvParser(Msg.TLVData.substring(24));
-
-
         let data = mt_Utils.getTagValue("F5", "", Msg.TLVData.substring(24), false); 
-
         let PBF = mt_Utils.getTagValue("DF71", "", data, false);
         let EPB = mt_Utils.getTagValue("99", "", data, false);
         let KSN = mt_Utils.getTagValue("DFDF41", "", data, false);
@@ -636,8 +649,8 @@ function parseRequestFromDevice(Msg) {
 }
 function parseResponseFromDevice(Msg) {
   let NotifyDetail = Msg.TLVData;
-  EmitObject({ Name: "OnDeviceResponse", Data: Msg });
-  device_response = Msg; 
+  window.device_response = Msg; 
+  EmitObject({ Name: "OnDeviceResponse", Data: Msg });  
 }
 function parseRequestFromHost(Msg) {
   let NotifyDetail = mt_Utils.getTagValue("82", "", Msg.TLVData, false);
