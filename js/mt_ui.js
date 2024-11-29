@@ -132,7 +132,7 @@ export function FromListToText(event) {
  export function AddDeviceLink(type, name, status, url ){
     var bShowOffline = false;
     
-    let isChecked = mt_Utils.getDefaultValue("ShowOffline", "false");
+    let isChecked = mt_Utils.getEncodedValue("ShowOffline", "ZmFsc2U=");
    (isChecked === "true" ? bShowOffline = true: bShowOffline = false);
   
     //console.log(status);

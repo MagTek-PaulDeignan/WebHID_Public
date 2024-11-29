@@ -15,14 +15,15 @@ import * as mt_MMS from "./mt_mms.js";
 import * as mt_UI from "./mt_ui.js";
 import * as mt_MPPG from "./mt_mppg_api.js";
 import * as mt_QMFA from "./qMFAAPI.js";
+import * as mt_AppSettings from "./appsettings.js";
 import mqtt  from "./mqtt.esm.js";
 
 import "./mt_events.js";
 
-let url = mt_Utils.getDefaultValue('MQTTURL','wss://hd513d49.ala.us-east-1.emqxsl.com:8084/mqtt');
-let devPath = mt_Utils.getDefaultValue('MQTTDevice','');
-let userName = mt_Utils.getDefaultValue('MQTTUser','testDevice1');
-let password = mt_Utils.getDefaultValue('MQTTPassword','t3stD3v1c1');
+let url = mt_Utils.getEncodedValue('MQTTURL','d3NzOi8vZGV2ZWxvcGVyLmRlaWduYW4uY29tOjgwODQvbXF0dA==');
+let devPath = mt_Utils.getEncodedValue('MQTTDevice','');
+let userName = mt_Utils.getEncodedValue('MQTTUser','RGVtb0NsaWVudA==');
+let password = mt_Utils.getEncodedValue('MQTTPassword','ZDNtMENMdjFjMQ==');
 let client = null;
 
 
@@ -53,7 +54,7 @@ const options = {
 let _contactSeated = false;
 let _AwaitingContactEMV = false;
 
-export let _contactlessDelay = parseInt(mt_Utils.getDefaultValue("ContactlessDelay", "500"));
+export let _contactlessDelay = parseInt(mt_Utils.getEncodedValue("ContactlessDelay", "NTAw"));
 export let _openTimeDelay = 1500;
 
 document
@@ -82,15 +83,15 @@ async function handleDOMLoaded() {
   mt_UI.LogData(`Configured Device: ${devPath}`);
   handleOpenButton();
 
-  mt_MPPG.setUsername(mt_Utils.getDefaultValue("MPPG_UserName", "TSYSPilotPROD"));
-  mt_MPPG.setPassword(mt_Utils.getDefaultValue("MPPG_Password", "Password#12345"));
-  mt_MPPG.setCustCode(mt_Utils.getDefaultValue("MPPG_CustCode", "KT44746264"));
-  mt_MPPG.setProcessorName(mt_Utils.getDefaultValue("MPPG_ProcessorName", "TSYS - PILOT"));
+  mt_MPPG.setUsername(mt_Utils.getEncodedValue("MPPG_UserName", "VFNZU1BpbG90UFJPRA=="));
+  mt_MPPG.setPassword(mt_Utils.getEncodedValue("MPPG_Password", "UGFzc3dvcmQjMTIzNDU="));
+  mt_MPPG.setCustCode(mt_Utils.getEncodedValue("MPPG_CustCode", "S1Q0NDc0NjI2NA=="));
+  mt_MPPG.setProcessorName(mt_Utils.getEncodedValue("MPPG_ProcessorName", "VFNZUyAtIFBJTE9U"));
   mt_UI.LogData(`Configured to use: ${mt_MPPG.ProcessorName}`);
 }
 
 function SendCommand(cmdHexString) {
-    client.publish(`MagTek/Device/${devPath}`, cmdHexString);
+    client.publish(`${mt_AppSettings.MQTT.Base_Sub}${devPath}`, cmdHexString);
 };
 
 function OpenMQTT(){
@@ -121,11 +122,12 @@ async function onMQTTConnect(connack) {
   //console.log(`conack: ${JSON.stringify(connack)}`);
   if(client != null){
   // Subscribe to a topic
-  await client.unsubscribe(`MagTek/Server/${devPath}/MMSMessage`, CheckMQTTError);
-  await client.unsubscribe(`MagTek/Server/+/+/Status`, CheckMQTTError);
+  await client.unsubscribe(`${mt_AppSettings.MQTT.Base_Pub}${devPath}/MMSMessage`, CheckMQTTError);
+  await client.unsubscribe(`${mt_AppSettings.MQTT.DeviceList}`, CheckMQTTError);
   
-  await client.subscribe(`MagTek/Server/${devPath}/MMSMessage`, CheckMQTTError);
-  await client.subscribe(`MagTek/Server/+/+/Status`, CheckMQTTError);
+  await client.subscribe(`${mt_AppSettings.MQTT.Base_Pub}${devPath}/MMSMessage`, CheckMQTTError);
+  await client.subscribe(`${mt_AppSettings.MQTT.DeviceList}`, CheckMQTTError);
+  client.publish(`${mt_AppSettings.MQTT.Base_Pub}${devPath}/Status`, 'connected');
 }
 };
 
@@ -184,14 +186,14 @@ async function handleCloseButton() {
 async function handleClearButton() {
   mt_UI.ClearLog();
   mt_UI.DeviceDisplay("");
-  window.ARQCData = null;  
+  window.mt_device_ARQCData = null;  
   SetAutoCheck();
 }
 
  async function handleProcessSale() {
    
   let QMFAChecked = document.getElementById("chk-UseQMFA").checked;
-  if (window.ARQCData != null) {
+  if (window.mt_device_ARQCData != null) {
      
     let amt = document.getElementById("saleAmount").value;
     if (amt.length > 0)
@@ -227,7 +229,7 @@ async function handleClearButton() {
             sms = document.getElementById("receiptSMS").value;
           }
           
-          var saleResp = await mt_MPPG.ProcessSale(Amount, email, sms, 6, window.ARQCData);
+          var saleResp = await mt_MPPG.ProcessSale(Amount, email, sms, 6, window.mt_device_ARQCData);
 
           if(saleResp.Details.status == "PASS")
           {
@@ -241,13 +243,13 @@ async function handleClearButton() {
   
               if(sms.length > 0 || email.length > 0 )
               {
-                window.SaleResponse = saleResp;
+                window.mt_device_SaleResponse = saleResp;
                 mt_UI.LogData(`Sending Qwantum MultiFactor Auth Request`);
                 var mfaResponse = mt_QMFA.TransactionCreate(sms, email, claims)
               }
               else
               {
-                window.SaleResponse = null;
+                window.mt_device_SaleResponse = null;
               }
             }
           }
@@ -259,7 +261,7 @@ async function handleClearButton() {
           }
           await mt_Utils.wait(1000);
           mt_UI.LogData(`Clearing ARQC`);          
-          window.ARQCData = null;
+          window.mt_devicc.ARQCData = null;
         }
     }
     else
@@ -391,11 +393,11 @@ const barcodeLogger = async (e) => {
     var resp = await mt_QMFA.TransactionRedeem(bc.ID,bc.Status.toString(), bc.Reason);    
   if(resp.status == 0 )
   {
-    if(window.SaleResponse != null)
+    if(window.mt_device_SaleResponse != null)
       {
         if (bc.Status == true)
         {
-          let Outdata = window.SaleResponse.Details.customerReceipt.replace(/\\n/g, '\n');
+          let Outdata = window.mt_device_SaleResponse.Details.customerReceipt.replace(/\\n/g, '\n');
           mt_UI.LogData(`Receipt:`);
           mt_UI.LogData(`${Outdata}`);
           
@@ -423,8 +425,8 @@ const barcodeLogger = async (e) => {
 const arqcLogger = (e) => {
   //mt_UI.LogData(`${e.Source} ARQC Data:  ${e.Data}`);
 
-  window.ARQCData = e.Data;
-  window.ARQCType = e.Source;  
+  window.mt_device_ARQCData = e.Data;
+  window.mt_device_ARQCType = e.Source;  
 };
 const batchLogger = (e) => {
   //mt_UI.LogData(`${e.Source} Batch Data: ${e.Data}`);

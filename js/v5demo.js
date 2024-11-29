@@ -57,7 +57,7 @@ async function handleDOMLoaded() {
 
   navigator.hid.addEventListener("connect", async ({ device }) => {
     EmitObject({Name:"OnDeviceConnect", Device:device});
-    if (mt_V5.wasOpened) {
+    if (window.mt_device_WasOpened) {
       await mt_Utils.wait(_openTimeDelay);
       await handleOpenButton();
     }
@@ -78,11 +78,11 @@ async function handleClearButton() {
 }
 
 async function handleOpenButton() {
-  window._device = await mt_V5.openDevice();
-  mt_Utils.debugLog(`PID: ${window._device.productId}`)
+  window.mt_device_hid = await mt_V5.openDevice();
+  mt_Utils.debugLog(`PID: ${window.mt_device_hid.productId}`)
   
   //dont set date or USB output if in Bootloader '0x5357'
-  if(window._device.productId != 0x5357){
+  if(window.mt_device_hid.productId != 0x5357){
     let Response = await mt_V5.sendCommand(mt_V5.calcDateTime());  //Set Date and Time
     if (Response != "0A06000000000000") mt_UI.LogData(`Error Setting Date: ${Response}`);
     Response = await mt_V5.sendCommand("480100");   //SET USB Output Channel
@@ -130,10 +130,10 @@ async function parseCommand(message) {
       devices = getDeviceList();
       break;
     case "OPENDEVICE":
-      window._device = await mt_V5.openDevice();
+      window.mt_device_hid = await mt_V5.openDevice();
       break;
     case "CLOSEDEVICE":
-      await mt_V5.closeDevice();        
+      window.mt_device_hid = await mt_V5.closeDevice();        
       break;
     case "WAIT":
       mt_UI.LogData(`Waiting ${cmd[1]/1000} seconds...`);
@@ -142,11 +142,11 @@ async function parseCommand(message) {
       break;
     case "DETECTDEVICE":
       await mt_V5.closeDevice();
-      window._device = await mt_V5.openDevice();      
+      window.mt_device_hid = await mt_V5.openDevice();      
       await mt_Utils.wait(_openTimeDelay);
       break;
     case "DISPLAYMESSAGE":
-      mt_UI.LogData(cmd[1]);
+      mt_UI.LogData(cmd[1]);mt
       break;
     case "GETTAGVALUE":
       let asAscii = (cmd[4] === 'true');
@@ -158,9 +158,9 @@ async function parseCommand(message) {
       mt_UI.LogData(JSON.stringify(retval));
       break;
     case "UPDATEDEVICE":
-      mt_RMS_API.setURL(mt_Utils.getDefaultValue('baseURL',defaultRMSURL));
-      mt_RMS_API.setAPIKey(mt_Utils.getDefaultValue('APIKey',defaultRMSAPIKey));
-      mt_RMS_API.setProfileName(mt_Utils.getDefaultValue('ProfileName',defaultRMSProfileName));
+      mt_RMS_API.setURL(mt_Utils.getEncodedValue('baseURL',defaultRMSURL));
+      mt_RMS_API.setAPIKey(mt_Utils.getEncodedValue('APIKey',defaultRMSAPIKey));
+      mt_RMS_API.setProfileName(mt_Utils.getEncodedValue('ProfileName',defaultRMSProfileName));
       if(mt_RMS_API.BaseURL.length > 0 && mt_RMS_API.APIKey.length > 0 && mt_RMS_API.ProfileName.length > 0){
         await mt_RMS.updateDevice();
       }else{
@@ -168,7 +168,7 @@ async function parseCommand(message) {
       }
       break;
     case "TESTBOOTLOADER":
-      if(window._device.productId != 0x5357)
+      if(window.mt_device_hid.productId != 0x5357)
         {
           mt_UI.LogData(`Switching to Bootloader... `);      
           await mt_V5.sendCommand("6800");

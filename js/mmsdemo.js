@@ -67,7 +67,7 @@ async function handleDOMLoaded() {
   //Add the hid event listener for connect/plug in
   navigator.hid.addEventListener("connect", async ({ device }) => {
     EmitObject({Name:"OnDeviceConnect", Device:device});
-    if (mt_MMS.wasOpened) {
+    if (window.mt_device_WasOpened) {
       await mt_Utils.wait(_openTimeDelay);
       await handleOpenButton();
     }
@@ -80,7 +80,7 @@ async function handleDOMLoaded() {
 }
 
 async function handleCloseButton() {
-  mt_MMS.closeDevice();
+  mt_HID.closeDevice();
   mt_UI.ClearLog();
   mt_UI.DeviceDisplay("");
 }
@@ -91,7 +91,7 @@ async function handleClearButton() {
 }
 
 async function handleOpenButton() {
-  window._device = await mt_MMS.openDevice();
+  window.mt_device_hid = await mt_HID.openDevice();
 }
 
 async function handleSendCommandButton() {
@@ -120,10 +120,10 @@ async function parseCommand(message) {
       devices = getDeviceList();      
       break;
     case "OPENDEVICE":
-      window._device = await mt_MMS.openDevice();      
+      window.mt_device_hid = await mt_HID.openDevice();      
       break;
     case "CLOSEDEVICE":
-      await mt_MMS.closeDevice();
+      window.mt_device_hid = await mt_HID.closeDevice();
       break;
     case "WAIT":
       mt_UI.LogData(`Waiting ${cmd[1]/1000} seconds...`);
@@ -131,7 +131,7 @@ async function parseCommand(message) {
       //mt_UI.LogData(`Done Waiting`);
       break;
     case "DETECTDEVICE":
-      window._device = await mt_MMS.openDevice();      
+      window.mt_device_hid = await mt_HID.openDevice();      
       break;
     case "GETTAGVALUE":
       let asAscii = (cmd[4] === 'true');
@@ -142,6 +142,11 @@ async function parseCommand(message) {
       var retval = mt_Utils.tlvParser(cmd[1]);
       mt_UI.LogData(JSON.stringify(retval));
       break;
+    case "PARSEMMS":
+      var retval = mt_Utils.MMSParser(cmd[1]);
+      mt_UI.LogData(JSON.stringify(retval));
+      break;
+    
     case "DISPLAYMESSAGE":
       mt_UI.LogData(cmd[1]);
       break;
@@ -154,9 +159,9 @@ async function parseCommand(message) {
       mt_UI.LogData(fw);
       break;
     case "UPDATEDEVICE":
-      mt_RMS_API.setURL(mt_Utils.getDefaultValue('baseURL',defaultRMSURL));
-      mt_RMS_API.setAPIKey(mt_Utils.getDefaultValue('APIKey',defaultRMSAPIKey));
-      mt_RMS_API.setProfileName(mt_Utils.getDefaultValue('ProfileName',defaultRMSProfileName));
+      mt_RMS_API.setURL(mt_Utils.getEncodedValue('baseURL',defaultRMSURL));
+      mt_RMS_API.setAPIKey(mt_Utils.getEncodedValue('APIKey',defaultRMSAPIKey));
+      mt_RMS_API.setProfileName(mt_Utils.getEncodedValue('ProfileName',defaultRMSProfileName));
       fw = await mt_MMS.GetDeviceFWID();
       sn = await mt_MMS.GetDeviceSN();
 

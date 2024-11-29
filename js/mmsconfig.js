@@ -18,7 +18,7 @@ import "./mt_events.js";
 
 let _contactSeated = false;
 let _AwaitingContactEMV = false;
-export let _contactlessDelay = parseInt(mt_Utils.getDefaultValue("ContactlessDelay", "500"));
+export let _contactlessDelay = parseInt(mt_Utils.getEncodedValue("ContactlessDelay", "500"));
 export let _openTimeDelay = 1500;
 
 
@@ -219,7 +219,7 @@ async function handleDOMLoaded() {
   //Add the hid event listener for connect/plug in
   navigator.hid.addEventListener("connect", async ({ device }) => {
     EmitObject({Name:"OnDeviceConnect", Device:device});
-    if (mt_MMS.wasOpened) {
+    if (window.mt_device_WasOpened) {
       await mt_Utils.wait(_openTimeDelay);
       await handleOpenButton();
     }
@@ -247,7 +247,7 @@ async function handleClearButton() {
 }
 
 async function handleOpenButton() {
-  window._device = await mt_MMS.openDevice();
+  window.mt_device_hid = await mt_HID.openDevice();
 }
 
 async function handleSendCommandButton() {
@@ -273,16 +273,16 @@ async function parseCommand(message) {
       devices = getDeviceList();      
       break;
     case "OPENDEVICE":
-      window._device = await mt_MMS.openDevice();      
+      window.mt_device_hid = await mt_HID.openDevice();      
       break;
     case "CLOSEDEVICE":
-      await mt_MMS.closeDevice();
+      window.mt_device_hid = await mt_HID.closeDevice();
       break;
     case "WAIT":
       wait(cmd[1]);
       break;
     case "DETECTDEVICE":
-      window._device = await mt_MMS.openDevice();      
+      window.mt_device_hid = await mt_HID.openDevice();      
       break;
     case "GETTAGVALUE":
       let asAscii = (cmd[4] === 'true');

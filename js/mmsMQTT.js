@@ -15,6 +15,7 @@ import * as mt_MMS from "./mt_mms.js";
 import * as mt_UI from "./mt_ui.js";
 import * as mt_RMS from "./mt_rms_mms.js";
 import * as mt_RMS_API from "./mt_rms_api.js";
+import * as mt_AppSettings from "./appsettings.js";
 import mqtt  from "./mqtt.esm.js";
 
 import "./mt_events.js";
@@ -24,10 +25,10 @@ let defaultRMSAPIKey = '';
 let defaultRMSProfileName = '';
 
 
-let url = mt_Utils.getDefaultValue('MQTTURL','wss://hd513d49.ala.us-east-1.emqxsl.com:8084/mqtt');
-let devPath = mt_Utils.getDefaultValue('MQTTDevice','');
-let userName = mt_Utils.getDefaultValue('MQTTUser','testDevice1');
-let password = mt_Utils.getDefaultValue('MQTTPassword','t3stD3v1c1');
+let url = mt_Utils.getEncodedValue('MQTTURL','d3NzOi8vZGV2ZWxvcGVyLmRlaWduYW4uY29tOjgwODQvbXF0dA==');
+let devPath = mt_Utils.getEncodedValue('MQTTDevice','');
+let userName = mt_Utils.getEncodedValue('MQTTUser','RGVtb0NsaWVudA==');
+let password = mt_Utils.getEncodedValue('MQTTPassword','ZDNtMENMdjFjMQ==');
 let client = null;
 
 
@@ -58,7 +59,7 @@ const options = {
 let _contactSeated = false;
 let _AwaitingContactEMV = false;
 
-export let _contactlessDelay = parseInt(mt_Utils.getDefaultValue("ContactlessDelay", "500"));
+export let _contactlessDelay = parseInt(mt_Utils.getEncodedValue("ContactlessDelay", "NTAw"));
 export let _openTimeDelay = 1500;
 
 document
@@ -92,8 +93,8 @@ async function handleDOMLoaded() {
 }
 
 async function SendCommand(cmdHexString) {
-    window.device_response = null
-    client.publish(`MagTek/Device/${devPath}`, cmdHexString);
+    window.mt_device_response = null
+    client.publish(`${mt_AppSettings.MQTT.Base_Sub}${devPath}`, cmdHexString);
     var Resp = await waitForDeviceResponse();
     return Resp;
 };
@@ -104,7 +105,7 @@ function waitForDeviceResponse() {
       return result;
     }
     return new Promise((resolve) => setTimeout(resolve, 50))
-      .then(() => Promise.resolve(window.device_response)) 
+      .then(() => Promise.resolve(window.mt_device_response)) 
       .then((res) => waitFor(res));
   }
   return waitFor();
@@ -137,11 +138,12 @@ async function CloseMQTT(){
 async function onMQTTConnect(connack) {    
   if(client != null){
   // Subscribe to a topic
-  await client.unsubscribe(`MagTek/Server/${devPath}/MMSMessage`, CheckMQTTError);
-  await client.unsubscribe(`MagTek/Server/+/+/Status`, CheckMQTTError);
+  await client.unsubscribe(`${mt_AppSettings.MQTT.Base_Pub}${devPath}/MMSMessage`, CheckMQTTError);
+  await client.unsubscribe(`${mt_AppSettings.MQTT.DeviceList}`, CheckMQTTError);
   
-  await client.subscribe(`MagTek/Server/${devPath}/MMSMessage`, CheckMQTTError);
-  await client.subscribe(`MagTek/Server/+/+/Status`, CheckMQTTError);
+  await client.subscribe(`${mt_AppSettings.MQTT.Base_Pub}${devPath}/MMSMessage`, CheckMQTTError);
+  await client.subscribe(`${mt_AppSettings.MQTT.DeviceList}`, CheckMQTTError);
+  client.publish(`${mt_AppSettings.MQTT.Base_Pub}${devPath}/Status`, 'connected');
 }
 };
 
@@ -200,7 +202,7 @@ async function handleCloseButton() {
 async function handleClearButton() {
   mt_UI.ClearLog();
   mt_UI.DeviceDisplay("");
-  window.ARQCData = null;
+  window.mt_device_ARQCData = null;
   document.getElementById("fileInput").value = null;
 }
 
@@ -271,9 +273,9 @@ async function parseCommand(message) {
       break;
     case "UPDATEDEVICE":
 
-      mt_RMS_API.setURL(mt_Utils.getDefaultValue('baseURL',defaultRMSURL));
-      mt_RMS_API.setAPIKey(mt_Utils.getDefaultValue('APIKey',defaultRMSAPIKey));
-      mt_RMS_API.setProfileName(mt_Utils.getDefaultValue('ProfileName',defaultRMSProfileName));
+      mt_RMS_API.setURL(mt_Utils.getEncodedValue('baseURL',defaultRMSURL));
+      mt_RMS_API.setAPIKey(mt_Utils.getEncodedValue('APIKey',defaultRMSAPIKey));
+      mt_RMS_API.setProfileName(mt_Utils.getEncodedValue('ProfileName',defaultRMSProfileName));
       
       fw = await mt_MMS.GetDeviceFWID();
       sn = await mt_MMS.GetDeviceSN();
@@ -315,8 +317,8 @@ const dataLogger = (e) => {
 
 const NFCUIDLogger = (e) => {
   mt_UI.LogData(`Received NFC UID : ${e.Name}: ${e.Data}`);
-  mt_MMS.sendCommand("AA00810401641100840B1100810160820100830100");
-  mt_MMS.sendCommand("AA00810401671100840D110081033A04278201008301FF");
+  SendCommand("AA00810401641100840B1100810160820100830100");
+  SendCommand("AA00810401671100840D110081033A04278201008301FF");
 };
 
 
@@ -345,8 +347,8 @@ const barcodeLogger = (e) => {
 };
 const arqcLogger = (e) => {
   mt_UI.LogData(`${e.Source} ARQC Data:  ${e.Data}`);
-  window.ARQCData = e.Data;
-  window.ARQCType = e.Source;
+  window.mt_device_ARQCData = e.Data;
+  window.mt_device_ARQCType = e.Source;
   let TLVs = mt_Utils.tlvParser(e.Data.substring(4));
    mt_UI.LogData("TLVs---------------------------------");
    TLVs.forEach(element => {

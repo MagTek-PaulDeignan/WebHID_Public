@@ -20,36 +20,40 @@ let ShowOffline = "false";
 
 async function handleDOMLoaded() {
   let item = document.getElementById("txAPIKey");
-  item.value = mt_Utils.getDefaultValue("APIKey", "MTPublic-AEECD44A-8755-4AA0-AD58-53C33FBBB4A8");
+  item.value = mt_Utils.getEncodedValue("APIKey", "TVRQdWJsaWMtQUVFQ0Q0NEEtODc1NS00QUEwLUFENTgtNTNDMzNGQkJCNEE4");
+  
 
   item = document.getElementById("txProfileName");
-  item.value = mt_Utils.getDefaultValue("ProfileName", "MagTek_Production");
+  item.value = mt_Utils.getEncodedValue("ProfileName", "TWFnVGVrX1Byb2R1Y3Rpb24=");
+  
 
   item = document.getElementById("txURL");
-  item.value = mt_Utils.getDefaultValue("baseURL", "https://rms.magensa.net/ReaderSupport/FirmwareUpdate-v2/api");
+  item.value = mt_Utils.getEncodedValue("baseURL", "aHR0cHM6Ly9ybXMubWFnZW5zYS5uZXQvUmVhZGVyU3VwcG9ydC9GaXJtd2FyZVVwZGF0ZS12Mi9hcGk=");
 
   item = document.getElementById("txVersion");
-  item.value = mt_Utils.getDefaultValue("RMSVersion", "");
+  item.value = mt_Utils.getEncodedValue("RMSVersion", "");
+
 
   item = document.getElementById("txWSAddress");
-  item.value = mt_Utils.getDefaultValue("WSAddress", "ws://192.168.1.200");
-
+  item.value = mt_Utils.getEncodedValue("WSAddress", "d3M6Ly8xOTIuMTY4LjEuMjAw");
+  
   item = document.getElementById("txMQTTURL");
-  item.value = mt_Utils.getDefaultValue("MQTTURL", "wss://hd513d49.ala.us-east-1.emqxsl.com:8084/mqtt");
+  item.value = mt_Utils.getEncodedValue("MQTTURL", "d3NzOi8vZGV2ZWxvcGVyLmRlaWduYW4uY29tOjgwODQvbXF0dA==");
 
   item = document.getElementById("txMQTTDevice");
-  item.value = mt_Utils.getDefaultValue("MQTTDevice", "DynaFlex/B55F78E");
+  item.value = mt_Utils.getEncodedValue("MQTTDevice", "");
 
   item = document.getElementById("txMQTTUser");
-  item.value = mt_Utils.getDefaultValue("MQTTUser", "testDevice1");
-
+  item.value = mt_Utils.getEncodedValue("MQTTUser", "RGVtb0NsaWVudA==");
+  
   item = document.getElementById("txMQTTPassword");
-  item.value = mt_Utils.getDefaultValue("MQTTPassword", "t3stD3v1c1");
+  item.value = mt_Utils.getEncodedValue("MQTTPassword", "ZDNtMENMdjFjMQ==");
 
   item = document.getElementById("txContactlessDelay");
-  item.value = mt_Utils.getDefaultValue("ContactlessDelay", "500");
+  item.value = mt_Utils.getEncodedValue("ContactlessDelay", "NTAw");
   
-  ShowOffline = mt_Utils.getDefaultValue("ShowOffline", "false");
+  
+  ShowOffline = mt_Utils.getEncodedValue("ShowOffline", "ZmFsc2U=");
   item = document.getElementById("chk-ShowOffline");
   (ShowOffline === "true" ? item.checked = true : item.checked = false);
   
@@ -60,41 +64,41 @@ async function handleBackButton() {
 }
 
 async function handleSaveButton() {
-  let item = document.getElementById("txAPIKey");
-  mt_Utils.saveDefaultValue("APIKey", item.value);
+  let item = document.getElementById("txAPIKey");  
+  mt_Utils.saveEncodedValue("APIKey", item.value);
 
   item = document.getElementById("txProfileName");
-  mt_Utils.saveDefaultValue("ProfileName", item.value);
+  mt_Utils.saveEncodedValue("ProfileName", item.value);
 
   item = document.getElementById("txURL");
-  mt_Utils.saveDefaultValue("baseURL", item.value);
+  mt_Utils.saveEncodedValue("baseURL", item.value);
   
   item = document.getElementById("txVersion");
-  mt_Utils.saveDefaultValue("RMSVersion", item.value);
+  mt_Utils.saveEncodedValue("RMSVersion", item.value);
 
   item = document.getElementById("txWSAddress");
-  mt_Utils.saveDefaultValue("WSAddress", item.value);
+  mt_Utils.saveEncodedValue("WSAddress", item.value);
 
   item = document.getElementById("txMQTTURL");
-  mt_Utils.saveDefaultValue("MQTTURL", item.value);
+  mt_Utils.saveEncodedValue("MQTTURL", item.value);
 
   item = document.getElementById("txMQTTDevice");
-  mt_Utils.saveDefaultValue("MQTTDevice", item.value);
+  mt_Utils.saveEncodedValue("MQTTDevice", item.value);
 
   item = document.getElementById("txMQTTUser");
-  mt_Utils.saveDefaultValue("MQTTUser", item.value);
+  mt_Utils.saveEncodedValue("MQTTUser", item.value);
 
   item = document.getElementById("txMQTTPassword");
-  mt_Utils.saveDefaultValue("MQTTPassword", item.value);
+  mt_Utils.saveEncodedValue("MQTTPassword", item.value);
 
   item = document.getElementById("txContactlessDelay");
-  mt_Utils.saveDefaultValue("ContactlessDelay", item.value);
+  mt_Utils.saveEncodedValue("ContactlessDelay", item.value);
 
   item = document.getElementById("chk-ShowOffline");
   item.checked ? ShowOffline = "true" : ShowOffline = "false";
-  mt_Utils.saveDefaultValue("ShowOffline", ShowOffline );
+  mt_Utils.saveEncodedValue("ShowOffline", ShowOffline );
 
   item = document.getElementById("status");
-  item.innerText = " :Saved"  
+  item.innerText = " : Saved"  
   window.location.href = "index.html";
 }

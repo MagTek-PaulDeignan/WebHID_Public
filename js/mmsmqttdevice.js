@@ -14,14 +14,16 @@ import * as mt_Utils from "./mt_utils.js";
 import * as mt_MMS from "./mt_mms.js";
 import * as mt_HID from "./mt_hid.js";
 import * as mt_UI from "./mt_ui.js";
+import * as mt_AppSettings from "./appsettings.js";
+
 import mqtt  from "./mqtt.esm.js";
 import "./mt_events.js";
 
-let url = mt_Utils.getDefaultValue('MQTTURL','wss://hd513d49.ala.us-east-1.emqxsl.com:8084/mqtt');
-let devPath = mt_Utils.getDefaultValue('MQTTDevice','');
-let friendlyName = mt_Utils.getDefaultValue('MQTTDeviceFriendlyName','');
-let userName = mt_Utils.getDefaultValue('MQTTUser','testDevice1');
-let password = mt_Utils.getDefaultValue('MQTTPassword','t3stD3v1c1');
+let url = mt_Utils.getEncodedValue('MQTTURL','d3NzOi8vZGV2ZWxvcGVyLmRlaWduYW4uY29tOjgwODQvbXF0dA==');
+let devPath = mt_Utils.getEncodedValue('MQTTDevice','');
+let friendlyName = mt_Utils.getEncodedValue('MQTTDeviceFriendlyName','');
+let userName = mt_Utils.getEncodedValue('MQTTUser','RGVtb0NsaWVudA==');
+let password = mt_Utils.getEncodedValue('MQTTPassword','ZDNtMENMdjFjMQ==');
 
 let client = null;
 export let _openTimeDelay = 1500;
@@ -39,7 +41,6 @@ document
 document
   .addEventListener("DOMContentLoaded", handleDOMLoaded);
 
-  
 function EmitObject(e_obj) {
   EventEmitter.emit(e_obj.Name, e_obj);
 };
@@ -61,7 +62,7 @@ async function handleDOMLoaded() {
   //Add the hid event listener for connect/plug in
   navigator.hid.addEventListener("connect", async ({ device }) => {
     EmitObject({Name:"OnDeviceConnect", Device:device});
-    if (mt_MMS.wasOpened) {
+    if (window.mt_device_WasOpened) {
       await mt_Utils.wait(_openTimeDelay);
       await handleOpenButton();
     }
@@ -73,7 +74,7 @@ async function handleDOMLoaded() {
       retain: true
     }
     
-    client.publish(`MagTek/Server/${devPath}/Status`, 'disconnected', options);
+    client.publish(`${mt_AppSettings.MQTT.Base_Pub}${devPath}/Status`, 'disconnected', options);
     EmitObject({Name:"OnDeviceDisconnect", Device:device});
   });
 
@@ -95,18 +96,18 @@ async function handleCloseButton() {
 async function handleOpenButton() {
   mt_UI.ClearLog();
   CloseMQTT();
-  mt_MMS.closeDevice();
-  window._device = await mt_MMS.openDevice();
+  mt_HID.closeDevice();
+  window.mt_device_hid = await mt_HID.openDevice();
   
   let devSN = await GetDevSN();
 
   if (friendlyName.length > 0 )
   {
-    devPath = `${mt_Utils.filterString(window._device.productName)}/${mt_Utils.filterString(friendlyName)}-${mt_Utils.filterString(devSN)}`;
+    devPath = `${mt_Utils.filterString(window.mt_device_hid.productName)}/${mt_Utils.filterString(friendlyName)}-${mt_Utils.filterString(devSN)}`;
   }
   else
   {
-    devPath = `${mt_Utils.filterString(window._device.productName)}/${mt_Utils.filterString(devSN)}`;
+    devPath = `${mt_Utils.filterString(window.mt_device_hid.productName)}/${mt_Utils.filterString(devSN)}`;
   }
   
   OpenMQTT();
@@ -124,7 +125,7 @@ async function GetDevSN(){
 
 async function handleDeviceNameSave(){
   friendlyName = document.getElementById('txFriendlyName').value;
-  mt_Utils.saveDefaultValue('MQTTDeviceFriendlyName',friendlyName);
+  mt_Utils.saveEncodedValue('MQTTDeviceFriendlyName',friendlyName);
   mt_UI.LogData (`Device name has been saved: ${friendlyName}`);
 }
 
@@ -155,7 +156,7 @@ const MMSMessageLogger = (e) => {
     let options = {
       retain: false
     }
-    client.publish(`MagTek/Server/${devPath}/MMSMessage`, e.Data, options);
+    client.publish(`${mt_AppSettings.MQTT.Base_Pub}${devPath}/MMSMessage`, e.Data, options);
   }
 };
 
@@ -169,7 +170,7 @@ function OpenMQTT(){
     reconnectPeriod: 1000,
     keepalive: 60,
     will: {
-      topic:`MagTek/Server/${devPath}/Status`,
+      topic:`${mt_AppSettings.MQTT.Base_Pub}${devPath}/Status`,
       retain: true,
       payload:"disconnected"
     }
@@ -188,7 +189,7 @@ function CloseMQTT(){
       retain: true
     }
     
-    client.publish(`MagTek/Server/${devPath}/Status`, 'disconnected', options);
+    client.publish(`${mt_AppSettings.MQTT.Base_Pub}${devPath}/Status`, 'disconnected', options);
     client.end();
     client = null;      
   }
@@ -200,10 +201,10 @@ function onMQTTConnect() {
   let options = {
     retain: true
   }
-  client.unsubscribe(`MagTek/Device/${devPath}/#`, CheckMQTTError)
-  client.publish(`MagTek/Server/${devPath}/Status`, 'connected', options);
-  client.subscribe(`MagTek/Device/${devPath}/#`, CheckMQTTError)
-  mt_UI.LogData(`Connected to: MagTek/Device/${devPath}`);
+  client.unsubscribe(`${mt_AppSettings.MQTT.Base_Sub}${devPath}/#`, CheckMQTTError)
+  client.publish(`${mt_AppSettings.MQTT.Base_Pub}${devPath}/Status`, 'connected', options);
+  client.subscribe(`${mt_AppSettings.MQTT.Base_Sub}${devPath}/#`, CheckMQTTError)
+  mt_UI.LogData(`Connected to: ${mt_AppSettings.MQTT.Base_Sub}${devPath}`);
   var path = `https://rms.magensa.net/Test/HID/mmsMQTTDemo.html?devpath=${devPath}`
   mt_UI.UpdateQRCode(path);
 

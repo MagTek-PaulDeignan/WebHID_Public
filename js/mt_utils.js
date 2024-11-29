@@ -87,6 +87,20 @@ function hexToASCIIRemoveNull(hexString) {
   return str;
 };
 
+export function MMSParser(hexdata) {
+  var Msg = hexToBytes(hexdata);
+  const MMSMessage = {
+    MsgHeader: makeHex(Msg[0], 2),
+    MsgVersion: makeHex(Msg[1], 2),
+    MsgType: makeHex(Msg[4], 2),
+    RefNum: makeHex(Msg[5], 2),
+    RespID: makeHex((Msg[6] << 8) | Msg[7], 4),
+    TLVData: toHexString(Msg.slice(8, Msg.length)),
+    HexString: toHexString(Msg)
+}
+return MMSMessage;
+}
+
 
 export function tlvParser(hexdata) {
   var data = hexToBytes(hexdata);
@@ -209,6 +223,7 @@ export function debugLog(data) {
 export function getDefaultValue(key, defaultValue){
   var keyVal = localStorage.getItem(key);
   if (keyVal == null) keyVal = defaultValue;
+ 
   return keyVal;
 }
 
@@ -216,6 +231,18 @@ export function saveDefaultValue(key, value){
   localStorage.setItem(key, value);    
 }
 
+export function getEncodedValue(key, defaultValue){
+  var keyVal = localStorage.getItem(window.btoa(key));
+  if (keyVal == null) keyVal = defaultValue;
+  return window.atob(keyVal);
+}
+
+export function saveEncodedValue(key, value){
+  localStorage.setItem(window.btoa(key), window.btoa(value));
+}
+export function EncodeValue(value){
+  return window.btoa(value);
+}
 export function makeid(length) {
   let result = '';
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';

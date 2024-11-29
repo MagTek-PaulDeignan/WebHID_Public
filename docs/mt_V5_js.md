@@ -83,9 +83,9 @@ Closes the device and resets state.
 ```javascript
 export async function closeDevice() {
   wasOpened = false;
-  if (window._device) {
-    await window._device.close();
-    EmitObject({ Name: "OnDeviceClose", Device: window._device });
+  if (window.mt_device_hid) {
+    await window.mt_device_hid.close();
+    EmitObject({ Name: "OnDeviceClose", Device: window.mt_device_hid });
   }
 }
 ```
@@ -157,7 +157,7 @@ Sends a basic command to the device, returning a response.
 
 ```javascript
 export async function sendCommand(cmdToSend) {
-  if (!window._device || !window._device.opened) {
+  if (!window.mt_device_hid || !window.mt_device_hid.opened) {
     EmitObject({ Name: "OnError", Source: "SendCommand", Data: "Device is not open" });
     return 0;
   }

@@ -71,42 +71,42 @@ async function updateAllTags() {
 async function getDeviceInfo() {
   let resp;
   //if in bootlaoder
-  if (window._device.productId == 0x5357)
+  if (window.mt_device_hid.productId == 0x5357)
   {
     LogData(`In Bootloader... `);
-    _KSN = mt_Utils.getDefaultValue("KSN","")
-    _UIK = mt_Utils.getDefaultValue("UIK","")
-    _FWID = mt_Utils.getDefaultValue("FWID","")
-    _BLEFWID = mt_Utils.getDefaultValue("BLEFWID","")
-    _MUT = mt_Utils.getDefaultValue("FWID","")
+    _KSN = mt_Utils.getEncodedValue("KSN","")
+    _UIK = mt_Utils.getEncodedValue("UIK","")
+    _FWID = mt_Utils.getEncodedValue("FWID","")
+    _BLEFWID = mt_Utils.getEncodedValue("BLEFWID","")
+    _MUT = mt_Utils.getEncodedValue("FWID","")
   }
   else
   {
     resp = await mt_V5.sendCommand("0900");
     if (resp.substring(0,2) == "00"){
       _KSN = resp;
-      mt_Utils.saveDefaultValue("KSN",_KSN);
+      mt_Utils.saveEncodedValue("KSN",_KSN);
       
     } 
     resp = await mt_V5.sendCommand("2100");
     if (resp.substring(0,2) == "00"){
       _UIK = resp;
-      mt_Utils.saveDefaultValue("UIK",_UIK);      
+      mt_Utils.saveEncodedValue("UIK",_UIK);      
     } 
     resp = await mt_V5.sendCommand("00013A");
     if (resp.substring(0,2) == "00"){
       _FWID = resp;
-      mt_Utils.saveDefaultValue("FWID",_FWID);      
+      mt_Utils.saveEncodedValue("FWID",_FWID);      
     } 
     resp = await mt_V5.getBLEFWID();
     if (resp.substring(0,2) == "00"){
       _BLEFWID = resp;
-      mt_Utils.saveDefaultValue("BLEFWID",_BLEFWID);      
+      mt_Utils.saveEncodedValue("BLEFWID",_BLEFWID);      
     } 
     resp = await mt_V5.sendCommand("1900");
     if (resp.substring(0,2) == "00"){
       _MUT = resp;
-      mt_Utils.saveDefaultValue("MUT",_MUT);      
+      mt_Utils.saveEncodedValue("MUT",_MUT);      
     } 
   }
   return true;
@@ -344,7 +344,7 @@ async function parseRMSCommand(message) {
       await mt_V5.closeDevice();
       await mt_V5.openDevice();
       await mt_Utils.wait(_openTimeDelay);
-      if (window._device.opened) _DeviceDetected = true;
+      if (window.mt_device_hid.opened) _DeviceDetected = true;
       break;
     case "APPENDLOG":
       break;

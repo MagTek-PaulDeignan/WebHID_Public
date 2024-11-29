@@ -15,13 +15,13 @@ import * as mt_MMS from "./mt_mms.js";
 import * as mt_UI from "./mt_ui.js";
 import "./mt_events.js";
 
-const wsAddress = mt_Utils.getDefaultValue('WSAddress','');
+const wsAddress = mt_Utils.getEncodedValue('WSAddress','');
 var MTWebSocket = undefined;
   
 
 let _contactSeated = false;
 let _AwaitingContactEMV = false;
-export let _contactlessDelay = parseInt(mt_Utils.getDefaultValue("ContactlessDelay", "500"));
+export let _contactlessDelay = parseInt(mt_Utils.getEncodedValue("ContactlessDelay", "NTAw"));
 export let _openTimeDelay = 1500;
 
 document

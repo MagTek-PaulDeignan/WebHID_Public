@@ -125,7 +125,7 @@ async function parseRMSCommands(description, messageArray) {
 async function updateMMSTags(command) {
   try {
     let ver = null;
-      let strVersion = mt_Utils.getDefaultValue("RMSVersion","");
+      let strVersion = mt_Utils.getEncodedValue("RMSVersion","");
       strVersion.length > 0 ? ver = parseInt(strVersion) : ver = null;
 
 
@@ -138,8 +138,8 @@ async function updateMMSTags(command) {
         Version: ver,
         UIK: null,
         TerminalConfiguration: cmdResp.HexString,
-        BillingLabel: mt_Utils.getDefaultValue("RMSBillingLabel","WEB Demo Test"),
-        InterfaceType: mt_Utils.getDefaultValue("RMSInterface","USB"),
+        BillingLabel: mt_Utils.getEncodedValue("RMSBillingLabel","V0VCIERlbW8gVGVzdA=="),
+        InterfaceType: mt_Utils.getEncodedValue("RMSInterface","VVNC"),
         DownloadPayload: true,
         FirmwareID: _FWID,
         DeviceSerialNumber: _DeviceSN
@@ -192,7 +192,7 @@ async function updateAllConfigs() {
 async function updateConfig(configname) {
   try {
       let ver = null;
-      let strVersion = mt_Utils.getDefaultValue("RMSVersion","");
+      let strVersion = mt_Utils.getEncodedValue("RMSVersion","");
       strVersion.length > 0 ? ver = parseInt(strVersion) : ver = null;
 
       let req = {
@@ -200,12 +200,12 @@ async function updateConfig(configname) {
         ProfileName: mt_RMS_API.ProfileName,
         ConfigurationName: configname,
         TerminalConfiguration: null,
-        BillingLabel: mt_Utils.getDefaultValue("RMSBillingLabel","WEB Demo Test"),
+        BillingLabel: mt_Utils.getEncodedValue("RMSBillingLabel","V0VCIERlbW8gVGVzdA=="),
         Version: ver,
         UIK: _UIK,
         MUT: _MUT,
         KSN: _KSN,
-        InterfaceType: mt_Utils.getDefaultValue("RMSInterface","USB"),
+        InterfaceType: mt_Utils.getEncodedValue("RMSInterface","VVNC"),
         DownloadPayload: true,
       };
       var configResp = await mt_RMS_API.GetConfig(req);      
@@ -356,7 +356,7 @@ async function parseRMSCommand(message) {
       await mt_mms.closeDevice();
       await mt_mms.openDevice();
       await mt_Utils.wait(_openTimeDelay);
-      if (window._device.opened) _DeviceDetected = true;
+      if (window.mt_device_hid.opened) _DeviceDetected = true;
       break;
     case "APPENDLOG":
       break;

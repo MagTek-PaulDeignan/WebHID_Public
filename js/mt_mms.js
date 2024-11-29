@@ -11,14 +11,13 @@ DO NOT REMOVE THIS COPYRIGHT
 */
 
 import * as mt_Utils from "./mt_utils.js";
-import * as mt_HID from "./mt_hid.js";
+//import * as mt_HID from "./mt_hid.js";
 import "./mt_events.js";
 
 export var LogMMStoConsole = false;
 export var LogMMStoEvent = false;
-export var wasOpened = false;
 
-let mtDeviceType = "";
+
 
 //let device_response = null;
 let data_buffer_response = [];
@@ -29,9 +28,9 @@ function EmitObject(e_obj) {
 
 export async function sendCommand(cmdToSend) {
   let cmdResp = "";
-  window.device_response = null;
+  window.mt_device_response = null;
   try {
-    if (window._device == null) {
+    if (window.mt_device_hid == null) {
       EmitObject({
         Name: "OnError",
         Source: "SendCommand",
@@ -39,7 +38,7 @@ export async function sendCommand(cmdToSend) {
       });
       return 0;
     }
-    if (!window._device.opened) {
+    if (!window.mt_device_hid.opened) {
       EmitObject({
         Name: "OnError",
         Source: "SendCommand",
@@ -59,10 +58,10 @@ export async function sendCommand(cmdToSend) {
 async function sendMMSCommand(cmdToSend) {
   let commands = buildCmdsArray(
     cmdToSend,
-    window._device.collections[0].outputReports[0].items[0].reportCount
+    window.mt_device_hid.collections[0].outputReports[0].items[0].reportCount
   );
   for (let index = 0; index < commands.length; index++) {
-    await window._device.sendReport(0, new Uint8Array(commands[index]));
+    await window.mt_device_hid.sendReport(0, new Uint8Array(commands[index]));
   }
  
   Response = await waitForDeviceResponse();
@@ -75,7 +74,7 @@ function waitForDeviceResponse() {
       return result;
     }
     return new Promise((resolve) => setTimeout(resolve, 50))
-      .then(() => Promise.resolve(window.device_response)) 
+      .then(() => Promise.resolve(window.mt_device_response)) 
       .then((res) => waitFor(res));
   }
   return waitFor();
@@ -649,7 +648,7 @@ function parseRequestFromDevice(Msg) {
 }
 function parseResponseFromDevice(Msg) {
   let NotifyDetail = Msg.TLVData;
-  window.device_response = Msg; 
+  window.mt_device_response = Msg; 
   EmitObject({ Name: "OnDeviceResponse", Data: Msg });  
 }
 function parseRequestFromHost(Msg) {
@@ -765,89 +764,7 @@ export function buildCmdsArray(commandstring, reportLen) {
 
 
 
-export async function openDevice() {
-  try {
-    let reqDevice;
-    let devices = await navigator.hid.getDevices();
-    let device = devices.find((d) => d.vendorId === mt_HID.vendorId);
-    
-      //if (!device || devices.length > 1) {
-      if (!device) {
-      let vendorId = mt_HID.vendorId;
-      reqDevice = await navigator.hid.requestDevice({filters: mt_HID.MMSfilters });
-      if(reqDevice != null)
-        {
-          if (reqDevice.length > 0)
-          {
-            device = reqDevice[0];
-          }
-        }
-    }
-    if (!device.opened) {
-      await device.open();
-      device.addEventListener("inputreport", handleInputReport);      
-    }
-    if (device.opened) {
-      wasOpened = true;      
-      let _devinfo = mt_HID.getDeviceInfo(device.productId);
-      mtDeviceType = _devinfo.DeviceType;
 
-      switch (mtDeviceType) {
-        case "MMS":
-          EmitObject({Name:"OnDeviceOpen", Device:device});
-          break;
-        default:
-          EmitObject({Name:"OnError",
-            Source: "Bad DeviceType",
-            Data: `Use the ${mtDeviceType} Parser`
-          });
-          break;
-      }      
-    }
-    return device;
-  } catch (error) {
-    EmitObject({Name:"OnError",
-      Source: "OpenDevice",
-      Data: "Error opening device",
-    });
-  }
-};
-
-export async function closeDevice(){
-  wasOpened = false;
-  if (window._device != null) {
-    await window._device.close();
-    EmitObject({Name:"OnDeviceClose", Device:window._device});
-  }
-};
-
-function handleInputReport(e) {
-  let dataArray = new Uint8Array(e.data.buffer);
-  switch (mtDeviceType) {
-    case "CMF":
-      EmitObject({Name:"OnError",
-        Source: "DeviceType",
-        Data: "Not Implemented"
-      });
-      break;
-    case "MMS":      
-      parseMMSPacket(dataArray);
-      break;
-    case "V5":
-      //mt_V5.parseV5Packet(dataArray)
-      EmitObject({Name:"OnError",
-        Source: "DeviceType",
-        Data: "Use the V5 Parser"
-      });
-      break;
-    default:
-      EmitObject({Name:"OnError",
-        Source: "DeviceType",
-        Data: "Unknown Device Type",
-      });
-      break;
-  }
-};
 
 Array.prototype.zeroFill = function (len) {
   for (let i = this.length; i < len; i++) {

@@ -12,7 +12,6 @@ DO NOT REMOVE THIS COPYRIGHT
 "use strict";
 import * as mt_Utils from "./mt_utils.js";
 import * as mt_HID from "./mt_hid.js";
-export let wasOpened = false;
 
 let mtDeviceType = "";
 let data_Buffer_Report = "";
@@ -386,7 +385,7 @@ export async function getBLEFWID() {
 }
 export async function sendCommand(cmdToSend) {
   try {
-    if (window._device == null) {
+    if (window.mt_device_hid == null) {
       EmitObject({
         Name: "OnError",
         Source: "SendCommand",
@@ -394,7 +393,7 @@ export async function sendCommand(cmdToSend) {
       });
       return 0;
     }
-    if (!window._device.opened) {
+    if (!window.mt_device_hid.opened) {
       EmitObject({
         Name: "OnError",
         Source: "SendCommand",
@@ -427,11 +426,11 @@ function parseV5ReturnInfo(packet) {
 async function sendDeviceCommand(cmdToSend) {
   return new Promise(async (resolve, reject) => {
     try {
-      let _devinfo = mt_HID.getDeviceInfo(window._device.productId);
+      let _devinfo = mt_HID.getDeviceInfo(window.mt_device_hid.productId);
       let reportLen = _devinfo.ReportLen;
       var cmdInput = buildCmdArray(cmdToSend, reportLen);
       mt_Utils.debugLog(`sendCommand: ${mt_Utils.toHexString(cmdInput)}`);
-      var numBytes = await window._device.sendFeatureReport(1, cmdInput);
+      var numBytes = await window.mt_device_hid.sendFeatureReport(1, cmdInput);
       let dv = await getDeviceResponse();
       mt_Utils.debugLog(`sendResponse: ${dv}`);
       resolve(dv);
@@ -445,7 +444,7 @@ async function getDeviceResponse() {
   return new Promise((resolve, reject) => {
     setTimeout(async function () {
       try {
-        var DataView = await window._device.receiveFeatureReport(1);
+        var DataView = await window.mt_device_hid.receiveFeatureReport(1);
         var FP = new Uint8Array(DataView.buffer);
         var RT = FP.slice(1, FP[2] + 3);
         resolve(mt_Utils.toHexString(RT));
@@ -486,19 +485,6 @@ function processMsgType(msg) {
       msgType = "Device Extended Response";
       processDeviceExtendedResponseMsg(msgType, msg);
       break;
-    // case "40": //Append Log
-    //   AppendLogData(msg.substring(2) + "\n");
-    //   break;
-    // case "41": //Display Message
-    //   TextArea = document.getElementById("Display");
-    //   TextArea.innerHTML = msg.substring(2);
-    //   break;
-    // case "42": //Get TLV Tag Value
-    //   AppendLogData(msg.substring(2) + "\n");
-    //   break;
-    // case "43": //Get JSON
-    //   AppendLogData(msg.substring(2) + "\n");
-    //   break;
     default: //Unknown
       msgType = "Unknown";
       processUnknownMsg(msgType, msg);
@@ -890,7 +876,7 @@ function ParseInputReportBytes(input) {
         await device.open();
       }
       if (device.opened) {
-        wasOpened = true;        
+        window.mt_device_WasOpened = true;        
         let _devinfo = mt_HID.getDeviceInfo(device.productId);
         mtDeviceType = _devinfo.DeviceType;
   
@@ -919,10 +905,10 @@ function ParseInputReportBytes(input) {
     }
   };
   export async function closeDevice(){
-    wasOpened = false;
-  if (window._device != null) {
-    await window._device.close();
-    EmitObject({Name: "OnDeviceClose", Device: window._device});
+    window.mt_device_WasOpened = false;
+  if (window.mt_device_hid != null) {
+    await window.mt_device_hid.close();
+    EmitObject({Name: "OnDeviceClose", Device: window.mt_device_hid});
   }
   };
 
@@ -960,4 +946,3 @@ function ParseInputReportBytes(input) {
         break;
     }
   }
-  
