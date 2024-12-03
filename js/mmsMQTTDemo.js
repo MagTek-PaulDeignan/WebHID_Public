@@ -11,11 +11,11 @@ DO NOT REMOVE THIS COPYRIGHT
 */
 
 import * as mt_Utils from "./mt_utils.js";
-import * as mt_MMS from "./mt_mms.js";
+import * as mt_MMS from "./API_mmsHID.js";
 import * as mt_UI from "./mt_ui.js";
 import * as mt_RMS from "./mt_rms_mms.js";
-import * as mt_RMS_API from "./mt_rms_api.js";
-import * as mt_MMSMQTT_API from "./mmsMQTT_API.js";
+import * as mt_RMS_API from "./API_rms.js";
+import * as mt_MMSMQTT_API from "./API_mmsMQTT.js";
 import "./mt_events.js";
 
 let defaultRMSURL = '';

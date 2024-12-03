@@ -23,7 +23,7 @@ Ensure the following modules are available in your project directory:
 - `mt_v5.js`
 - `mt_hid.js`
 - `mt_rms_v5.js`
-- `mt_rms_api.js`
+- `API_rms.js`
 - `mt_ui.js`
 - `mt_events.js`
 

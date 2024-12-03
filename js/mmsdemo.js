@@ -11,11 +11,11 @@ DO NOT REMOVE THIS COPYRIGHT
 */
 
 import * as mt_Utils from "./mt_utils.js";
-import * as mt_MMS from "./mt_mms.js";
+import * as mt_MMS from "./API_mmsHID.js";
 import * as mt_HID from "./mt_hid.js";
 import * as mt_UI from "./mt_ui.js";
 import * as mt_RMS from "./mt_rms_mms.js";
-import * as mt_RMS_API from "./mt_rms_api.js";
+import * as mt_RMS_API from "./API_rms.js";
 import "./mt_events.js";
 
 let defaultRMSURL = '';
@@ -53,7 +53,7 @@ function EmitObject(e_obj) {
 };
 
 async function handleDOMLoaded() {
-  let devices = await mt_HID.getDeviceList();
+  let devices = await mt_MMS.getDeviceList();
   mt_UI.LogData(`Devices currently attached and allowed:`);
   
   if (devices.length == 0) mt_UI.setUSBConnected("Connect a device");
@@ -80,7 +80,7 @@ async function handleDOMLoaded() {
 }
 
 async function handleCloseButton() {
-  mt_HID.closeDevice();
+  mt_MMS.closeDevice();
   mt_UI.ClearLog();
   mt_UI.DeviceDisplay("");
 }
@@ -91,7 +91,7 @@ async function handleClearButton() {
 }
 
 async function handleOpenButton() {
-  window.mt_device_hid = await mt_HID.openDevice();
+  window.mt_device_hid = await mt_MMS.openDevice();
 }
 
 async function handleSendCommandButton() {
@@ -120,10 +120,10 @@ async function parseCommand(message) {
       devices = getDeviceList();      
       break;
     case "OPENDEVICE":
-      window.mt_device_hid = await mt_HID.openDevice();      
+      window.mt_device_hid = await mt_MMS.openDevice();      
       break;
     case "CLOSEDEVICE":
-      window.mt_device_hid = await mt_HID.closeDevice();
+      window.mt_device_hid = await mt_MMS.closeDevice();
       break;
     case "WAIT":
       mt_UI.LogData(`Waiting ${cmd[1]/1000} seconds...`);
@@ -131,7 +131,7 @@ async function parseCommand(message) {
       //mt_UI.LogData(`Done Waiting`);
       break;
     case "DETECTDEVICE":
-      window.mt_device_hid = await mt_HID.openDevice();      
+      window.mt_device_hid = await mt_MMS.openDevice();      
       break;
     case "GETTAGVALUE":
       let asAscii = (cmd[4] === 'true');

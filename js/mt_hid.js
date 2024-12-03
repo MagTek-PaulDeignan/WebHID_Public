@@ -11,7 +11,6 @@ DO NOT REMOVE THIS COPYRIGHT
 */
 
 
-import * as mt_MMS from "./mt_mms.js";
 export let _device;
 //export let _deviceType = "MMS";
 export let _reportLen = 0;
@@ -23,11 +22,6 @@ let mtDeviceType = "";
 
 function EmitObject(e_obj) {
   EventEmitter.emit(e_obj.Name, e_obj);
-}
-
-export async function getDeviceList() {
-  let devices = await navigator.hid.getDevices();
-  return devices;
 }
 
 export function getDeviceInfo(pid) {
@@ -158,87 +152,3 @@ export const ID5G3filters = [
     productId: 0x2024, //  DynaProx II Go
   }
 ];
-
-
-export async function openDevice() {
-  try {
-    let reqDevice;
-    let devices = await navigator.hid.getDevices();
-    let device = devices.find((d) => d.vendorId === vendorId);
-    
-      //if (!device || devices.length > 1) {
-      if (!device) {
-      let vendorId = vendorId;
-      reqDevice = await navigator.hid.requestDevice({filters: MMSfilters });
-      if(reqDevice != null)
-        {
-          if (reqDevice.length > 0)
-          {
-            device = reqDevice[0];
-          }
-        }
-    }
-    if (!device.opened) {
-      await device.open();
-      device.addEventListener("inputreport", handleInputReport);      
-    }
-    if (device.opened) {
-      window.mt_device_WasOpened = true;      
-      let _devinfo = getDeviceInfo(device.productId);
-      mtDeviceType = _devinfo.DeviceType;
-
-      switch (mtDeviceType) {
-        case "MMS":
-          EmitObject({Name:"OnDeviceOpen", Device:device});
-          break;
-        case "V5":
-          EmitObject({Name:"OnDeviceOpen", Device:device});
-          break;
-        default:
-          EmitObject({Name:"OnError",
-            Source: "Bad DeviceType",
-            Data: `Use the ${mtDeviceType} Parser`
-          });
-          break;
-      }      
-    }
-    return device;
-  } catch (error) {
-    EmitObject({Name:"OnError",
-      Source: "OpenDevice",
-      Data: "Error opening device",
-    });
-  }
-};
-
-export async function closeDevice(){
-  window.mt_device_WasOpened = false;
-  if (window.mt_device_hid != null) {
-    await window.mt_device_hid.close();
-    EmitObject({Name:"OnDeviceClose", Device:window.mt_device_hid});
-  }
-};
-
-function handleInputReport(e) {
-  let dataArray = new Uint8Array(e.data.buffer);
-  switch (mtDeviceType) {
-    case "CMF":
-      EmitObject({Name:"OnError",
-        Source: "DeviceType",
-        Data: "Not Implemented"
-      });
-      break;
-    case "MMS":      
-      mt_MMS.parseMMSPacket(dataArray);
-      break;
-    case "V5":
-      mt_V5.parseV5Packet(dataArray);
-      break;
-    default:
-      EmitObject({Name:"OnError",
-        Source: "DeviceType",
-        Data: "Unknown Device Type",
-      });
-      break;
-  }
-};

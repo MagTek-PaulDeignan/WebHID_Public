@@ -1,6 +1,6 @@
 This JavaScript module facilitates API requests for firmware, tags, and configuration data by managing the URL, API key, and profile name settings. It includes methods for setting API credentials and functions for sending requests to the MagTek API endpoints.
 
-# MagTek RMS API Interface - `mt_rms_api.js`
+# MagTek RMS API Interface - `API_rms.js`
 
 ## Table of Contents
 1. [Overview](#overview)
@@ -139,4 +139,4 @@ Copyright 2020-2024 MagTek, Inc.
 
 ---
 
-This documentation provides an overview of the functions in `mt_rms_api.js` for configuring and sending requests to the RMS API, ensuring streamlined firmware and configuration updates for MagTek devices.
+This documentation provides an overview of the functions in `API_rms.js` for configuring and sending requests to the RMS API, ensuring streamlined firmware and configuration updates for MagTek devices.

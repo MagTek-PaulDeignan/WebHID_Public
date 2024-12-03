@@ -232,15 +232,16 @@ export function saveDefaultValue(key, value){
 }
 
 export function getEncodedValue(key, defaultValue){
-  var keyVal = localStorage.getItem(window.btoa(key));
+  var keyVal = localStorage.getItem(`enc-${window.btoa(key)}`);
   if (keyVal == null) keyVal = defaultValue;
   return window.atob(keyVal);
 }
 
 export function saveEncodedValue(key, value){
-  localStorage.setItem(window.btoa(key), window.btoa(value));
+  localStorage.setItem(`enc-${window.btoa(key)}`, window.btoa(value));
 }
-export function EncodeValue(value){
+export function EncodeValue(value)
+{
   return window.btoa(value);
 }
 export function makeid(length) {

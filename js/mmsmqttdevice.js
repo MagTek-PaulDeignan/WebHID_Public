@@ -11,11 +11,10 @@ DO NOT REMOVE THIS COPYRIGHT
 */
 
 import * as mt_Utils from "./mt_utils.js";
-import * as mt_MMS from "./mt_mms.js";
-import * as mt_HID from "./mt_hid.js";
+import * as mt_MMS from "./API_mmsHID.js";
+//import * as mt_HID from "./mt_hid.js";
 import * as mt_UI from "./mt_ui.js";
 import * as mt_AppSettings from "./appsettings.js";
-
 import mqtt  from "./mqtt.esm.js";
 import "./mt_events.js";
 
@@ -49,7 +48,7 @@ async function handleDOMLoaded() {
   
   document.getElementById("txFriendlyName").value = friendlyName;
 
-  let devices = await mt_HID.getDeviceList();
+  let devices = await mt_MMS.getDeviceList();
   mt_UI.LogData(`Devices currently attached and allowed:`);
   
   if (devices.length == 0) mt_UI.setUSBConnected("Connect a device");
@@ -84,7 +83,7 @@ async function handleDOMLoaded() {
 }
 
 async function handleCloseButton() {
-  mt_HID.closeDevice();
+  mt_MMS.closeDevice();
   mt_UI.ClearLog();
   CloseMQTT();
 }
@@ -96,8 +95,8 @@ async function handleCloseButton() {
 async function handleOpenButton() {
   mt_UI.ClearLog();
   CloseMQTT();
-  mt_HID.closeDevice();
-  window.mt_device_hid = await mt_HID.openDevice();
+  mt_MMS.closeDevice();
+  window.mt_device_hid = await mt_MMS.openDevice();
   
   let devSN = await GetDevSN();
 
@@ -205,7 +204,7 @@ function onMQTTConnect() {
   client.publish(`${mt_AppSettings.MQTT.Base_Pub}${devPath}/Status`, 'connected', options);
   client.subscribe(`${mt_AppSettings.MQTT.Base_Sub}${devPath}/#`, CheckMQTTError)
   mt_UI.LogData(`Connected to: ${mt_AppSettings.MQTT.Base_Sub}${devPath}`);
-  var path = `https://rms.magensa.net/Test/HID/mmsMQTTDemo.html?devpath=${devPath}`
+  let path = `https://rms.magensa.net/Test/HID/mmsMQTTDemo.html?devpath=${devPath}`
   mt_UI.UpdateQRCode(path);
 
 };

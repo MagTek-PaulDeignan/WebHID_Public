@@ -11,9 +11,9 @@ DO NOT REMOVE THIS COPYRIGHT
 */
 
 "use strict";
-import * as mt_mms from "./mt_mms.js";
+import * as mt_mms from "./API_mmsHID.js";
 import * as mt_Utils from "./mt_utils.js";
-import * as mt_RMS_API from "./mt_rms_api.js";
+import * as mt_RMS_API from "./API_rms.js";
 
 let _KSN = "";
 let _UIK = "";

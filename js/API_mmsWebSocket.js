@@ -11,13 +11,11 @@ DO NOT REMOVE THIS COPYRIGHT
 */
 
 import * as mt_Utils from "./mt_utils.js";
-import * as mt_MMS from "./mt_mms.js";
-//import * as mt_UI from "./mt_ui.js";
+import * as mt_MMSParse from "./API_mmsParse.js";
 import "./mt_events.js";
 
 let _wsAddress = "";
 let MTWebSocket = null;
- 
 
 /**
  * @param {string} URL
@@ -111,55 +109,9 @@ function ws_onclose(e) {
 
   
 function processMsg(msg) {
-    mt_MMS.ParseMMSMessage(msg);
+    mt_MMSParse.ParseMMSMessage(msg);
   };
 
 
-// async function parseCommand(message) {
-//   let cmd = message.split(",");
-//   switch (cmd[0].toUpperCase()) {
-//     case "GETAPPVERSION":
-//       mt_Utils.debugLog("GETAPPVERSION " + appOptions.version);      
-//       break;
-//     case "GETDEVINFO":
-//       mt_Utils.debugLog("GETDEVINFO " + getDeviceInfo());      
-//       break;
-//     case "SENDCOMMAND":
-//       SendCommand(cmd[1]);
-//       break;
-//     case "PCIRESET":
-//       SendCommand("AA00810401121F0184021F01");      
-//       break;
-//     case "GETDEVICELIST":
-//       devices = getDeviceList();      
-//       break;
-//     case "OPENDEVICE":      
-//       OpenWS(_wsAddress);     
-//       break;
-//     case "CLOSEDEVICE":      
-//       CloseWS();
-//       break;
-//     case "WAIT":
-//       wait(cmd[1]);
-//       break;
-//     case "DETECTDEVICE":
-//       //window._device = await mt_MMS.openDevice();      
-//       break;
-//     case "GETTAGVALUE":
-//       let asAscii = (cmd[4] === 'true');
-//       var retval = mt_Utils.getTagValue(cmd[1], cmd[2], cmd[3], asAscii);
-//       mt_UI.LogData(retval);
-//       break;
-//     case "PARSETLV":
-//       var retval = mt_Utils.tlvParser(cmd[1]);
-//       mt_UI.LogData(JSON.stringify(retval));
-//       break;
-//     case "DISPLAYMESSAGE":
-//       mt_UI.LogData(cmd[1]);
-//       break;
-//     default:
-//       mt_Utils.debugLog("Unknown Command");
-//   }
-// };
 
 

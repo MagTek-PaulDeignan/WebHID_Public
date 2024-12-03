@@ -11,9 +11,10 @@ DO NOT REMOVE THIS COPYRIGHT
 */
 
 import * as mt_Utils from "./mt_utils.js";
-import * as mt_MMS from "./mt_mms.js";
+import * as mt_MMS from "./API_mmsHID.js";
+import * as mt_MQTT from "./API_mmsMQTT.js";
 import * as mt_UI from "./mt_ui.js";
-import * as mt_MPPG from "./mt_mppg_api.js";
+import * as mt_MPPG from "./API_mppg.js";
 import * as mt_QMFA from "./qMFAAPI.js";
 import * as mt_AppSettings from "./appsettings.js";
 import mqtt  from "./mqtt.esm.js";
@@ -42,14 +43,14 @@ if (value != null) {
 if (userName.length == 0 ) userName = null;
 if (password.length == 0 ) password = null;
 
-// Create an MQTT client instance
-const options = {
-  clean: true,
-  connectTimeout: 4000,
-  clientId: `MagTekClient-${mt_Utils.makeid(6)}`,
-  username: userName,
-  password: password  
-};
+// // Create an MQTT client instance
+// const options = {
+//   clean: true,
+//   connectTimeout: 4000,
+//   clientId: `MagTekClient-${mt_Utils.makeid(6)}`,
+//   username: userName,
+//   password: password  
+// };
 
 let _contactSeated = false;
 let _AwaitingContactEMV = false;
@@ -90,97 +91,97 @@ async function handleDOMLoaded() {
   mt_UI.LogData(`Configured to use: ${mt_MPPG.ProcessorName}`);
 }
 
-function SendCommand(cmdHexString) {
-    client.publish(`${mt_AppSettings.MQTT.Base_Sub}${devPath}`, cmdHexString);
-};
+// function SendCommand(cmdHexString) {
+//     client.publish(`${mt_AppSettings.MQTT.Base_Sub}${devPath}`, cmdHexString);
+// };
 
-function OpenMQTT(){
-  mt_UI.ClearLog();
-  mt_UI.LogData(`Configured Device: ${devPath}`);
+// function OpenMQTT(){
+//   mt_UI.ClearLog();
+//   mt_UI.LogData(`Configured Device: ${devPath}`);
   
-  if(client == null)
-  {
-    client = mqtt.connect(url, options);
-    client.on('connect', ()=>{});
-    client.on('connect', onMQTTConnect);
+//   if(client == null)
+//   {
+//     client = mqtt.connect(url, options);
+//     client.on('connect', ()=>{});
+//     client.on('connect', onMQTTConnect);
     
-    client.on('message', ()=>{});
-    client.on('message', onMQTTMessage);
-  }
-}
+//     client.on('message', ()=>{});
+//     client.on('message', onMQTTMessage);
+//   }
+// }
 
-async function CloseMQTT(){
-  if(client)
-  {
-    await client.end();
-    client = null;      
-  }
-  EmitObject({Name:"OnDeviceClose", Device:client});
-}
+// async function CloseMQTT(){
+//   if(client)
+//   {
+//     await client.end();
+//     client = null;      
+//   }
+//   EmitObject({Name:"OnDeviceClose", Device:client});
+// }
 
-async function onMQTTConnect(connack) {  
-  //console.log(`conack: ${JSON.stringify(connack)}`);
-  if(client != null){
-  // Subscribe to a topic
-  await client.unsubscribe(`${mt_AppSettings.MQTT.Base_Pub}${devPath}/MMSMessage`, CheckMQTTError);
-  await client.unsubscribe(`${mt_AppSettings.MQTT.DeviceList}`, CheckMQTTError);
+// async function onMQTTConnect(connack) {  
+//   //console.log(`conack: ${JSON.stringify(connack)}`);
+//   if(client != null){
+//   // Subscribe to a topic
+//   await client.unsubscribe(`${mt_AppSettings.MQTT.Base_Pub}${devPath}/MMSMessage`, CheckMQTTError);
+//   await client.unsubscribe(`${mt_AppSettings.MQTT.DeviceList}`, CheckMQTTError);
   
-  await client.subscribe(`${mt_AppSettings.MQTT.Base_Pub}${devPath}/MMSMessage`, CheckMQTTError);
-  await client.subscribe(`${mt_AppSettings.MQTT.DeviceList}`, CheckMQTTError);
-  client.publish(`${mt_AppSettings.MQTT.Base_Pub}${devPath}/Status`, 'connected');
-}
-};
+//   await client.subscribe(`${mt_AppSettings.MQTT.Base_Pub}${devPath}/MMSMessage`, CheckMQTTError);
+//   await client.subscribe(`${mt_AppSettings.MQTT.DeviceList}`, CheckMQTTError);
+//   client.publish(`${mt_AppSettings.MQTT.Base_Pub}${devPath}/Status`, 'connected');
+// }
+// };
 
-function CheckMQTTError (err) {
-  if (err) 
-  {
-    EmitObject({Name:"OnError",
-      Source: "MQTTError",
-      Data: err
-    });
-  }
-};
+// function CheckMQTTError (err) {
+//   if (err) 
+//   {
+//     EmitObject({Name:"OnError",
+//       Source: "MQTTError",
+//       Data: err
+//     });
+//   }
+// };
 
-function onMQTTMessage(topic, message) {
-    let data = message.toString();
-    let topicArray = topic.split('/');
-    if(topicArray.length == 5){
-      switch (topicArray[4]) {
-        case "Status":
-        mt_UI.AddDeviceLink(topicArray[2], `${topicArray[3]}`,message, `${window.location.pathname}?devpath=${topicArray[2]}/${topicArray[3]}`);
-          if( `${topicArray[2]}/${topicArray[3]}` == devPath){
-          if( data.toLowerCase() == "connected")
-          {
-            if(client)
-              {              
-              EmitObject({Name:"OnDeviceOpen", Device:client}); 
-              }
-            else
-              {
-              EmitObject({Name:"OnDeviceConnect", Device:null});
-              }              
-          }
-          else
-          {
-            EmitObject({Name:"OnDeviceDisconnect", Device:null});
-          }
-          }
-          break; 
-        case "MMSMessage":
-          mt_MMS.ParseMMSMessage(mt_Utils.hexToBytes(data));
-          break;
-        case "V5Message":
-          //mt_MMS.ParseMMSMessage(mt_Utils.hexToBytes(data));
-          break;
-        default:
-          console.log(`${topic}: ${data}`);
-          break;
-      }
-    }
-};
+// function onMQTTMessage(topic, message) {
+//     let data = message.toString();
+//     let topicArray = topic.split('/');
+//     if(topicArray.length == 5){
+//       switch (topicArray[4]) {
+//         case "Status":
+//         mt_UI.AddDeviceLink(topicArray[2], `${topicArray[3]}`,message, `${window.location.pathname}?devpath=${topicArray[2]}/${topicArray[3]}`);
+//           if( `${topicArray[2]}/${topicArray[3]}` == devPath){
+//           if( data.toLowerCase() == "connected")
+//           {
+//             if(client)
+//               {              
+//               EmitObject({Name:"OnDeviceOpen", Device:client}); 
+//               }
+//             else
+//               {
+//               EmitObject({Name:"OnDeviceConnect", Device:null});
+//               }              
+//           }
+//           else
+//           {
+//             EmitObject({Name:"OnDeviceDisconnect", Device:null});
+//           }
+//           }
+//           break; 
+//         case "MMSMessage":
+//           mt_MMS.ParseMMSMessage(mt_Utils.hexToBytes(data));
+//           break;
+//         case "V5Message":
+//           //mt_MMS.ParseMMSMessage(mt_Utils.hexToBytes(data));
+//           break;
+//         default:
+//           console.log(`${topic}: ${data}`);
+//           break;
+//       }
+//     }
+// };
 
 async function handleCloseButton() {
-  await CloseMQTT();
+  await mt_MQTT.CloseMQTT();
   mt_UI.ClearLog();
 }
 async function handleClearButton() {
@@ -274,13 +275,18 @@ async function handleClearButton() {
      mt_UI.LogData(`No ARQC Available`);
      if(confirm("Start Sale Transaction?"))
      {
-      SendCommand("AA008104010010018430100182010AA30981010082010083010184020003861A9C01009F02060000000001009F03060000000000005F2A020840");
+      mt_MQTT.SendCommand("AA008104010010018430100182010AA30981010082010083010184020003861A9C01009F02060000000001009F03060000000000005F2A020840");
      }
    }
  }
 
 async function handleOpenButton() {
-  OpenMQTT();
+  
+  mt_MQTT.setURL(url);
+  mt_MQTT.setUserName(userName);
+  mt_MQTT.setPassword(password);
+  mt_MQTT.setPath(devPath);  
+  mt_MQTT.OpenMQTT();
   //SetAutoCheck();
   SetTechnologies(true, true, true);
 }
@@ -300,19 +306,19 @@ async function parseCommand(message) {
       mt_Utils.debugLog("GETDEVINFO " + getDeviceInfo());      
       break;
     case "SENDCOMMAND":
-      SendCommand(cmd[1]);
+      mt_MQTT.SendCommand(cmd[1]);
       break;
     case "GETDEVICELIST":
       devices = getDeviceList();      
       break;
     case "OPENDEVICE":      
-      OpenWS(wsAddress);     
+      mt_MQTT.OpenMQTT();      
       break;
     case "CLOSEDEVICE":      
-      CloseWS();
+      mt_MQTT.CloseMQTT();
       break;
     case "WAIT":
-      wait(cmd[1]);
+      await mt_Utils.wait(cmd[1]);
       break;
     case "DETECTDEVICE":
       //window._device = await mt_MMS.openDevice();      
@@ -470,7 +476,7 @@ const contactlessCardDetectedLogger = async (e) => {
     }
     if (!_contactSeated) {
       // We didn't get a contact seated, do start the contactless transaction
-      SendCommand("AA008104010010018430100182010AA30981010082010083010184020003861A9C01009F02060000000001009F03060000000000005F2A020840");
+      mt_MQTT.SendCommand("AA008104010010018430100182010AA30981010082010083010184020003861A9C01009F02060000000001009F03060000000000005F2A020840");
     }
   }
 };
@@ -491,7 +497,7 @@ const contactCardInsertedLogger = (e) => {
     _AwaitingContactEMV = false;
     ClearAutoCheck();
     mt_UI.LogData(`Auto Starting EMV...`);
-    SendCommand("AA008104010010018430100182010AA30981010082010183010084020003861A9C01009F02060000000001009F03060000000000005F2A020840");
+    mt_MQTT.SendCommand("AA008104010010018430100182010AA30981010082010183010084020003861A9C01009F02060000000001009F03060000000000005F2A020840");
   }
 };
 
@@ -507,13 +513,20 @@ const msrSwipeDetectedLogger = (e) => {
   if (_autoStart.checked & chk.checked & (e.Data.toLowerCase() == "idle")) {
     ClearAutoCheck();
     mt_UI.LogData(`Auto Starting MSR...`);
-    SendCommand("AA008104010010018430100182010AA30981010182010183010084020003861A9C01009F02060000000001009F03060000000000005F2A020840");
+    mt_MQTT.SendCommand("AA008104010010018430100182010AA30981010182010183010084020003861A9C01009F02060000000001009F03060000000000005F2A020840");
   }
 };
 
 const userEventLogger = (e) => {
   mt_UI.LogData(`User Event Data: ${e.Name} ${e.Data}`);
 };
+
+const mqttStatus = e => {
+  let topicArray = e.Data.Topic.split('/');
+  let data = e.Data.Message;
+  mt_UI.AddDeviceLink(topicArray[topicArray.length-3], `${topicArray[topicArray.length-2]}`,data, `${window.location.pathname}?devpath=${topicArray[topicArray.length-3]}/${topicArray[topicArray.length-2]}`);
+}
+
 
 // Subscribe to  events
 EventEmitter.on("OnInputReport", inputReportLogger);
@@ -579,3 +592,4 @@ EventEmitter.on("OnError", errorLogger);
 EventEmitter.on("OnPINComplete", PINLogger);
 EventEmitter.on("OnUIDisplayMessage", displayMessageLogger);
 EventEmitter.on("OnDebug", debugLogger);
+EventEmitter.on("OnMQTTStatus", mqttStatus);

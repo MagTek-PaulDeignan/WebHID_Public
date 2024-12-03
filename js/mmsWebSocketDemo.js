@@ -13,7 +13,7 @@ DO NOT REMOVE THIS COPYRIGHT
 import * as mt_Utils from "./mt_utils.js";
 //import * as mt_MMS from "./mt_mms.js";
 import * as mt_UI from "./mt_ui.js";
-import * as mt_WSS from "./mmsWebSocket_API.js";
+import * as mt_WSS from "./API_mmsWebSocket.js";
 import "./mt_events.js";
 
 var wsAddress = mt_Utils.getEncodedValue('WSAddress','');

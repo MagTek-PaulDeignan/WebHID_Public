@@ -11,7 +11,7 @@ DO NOT REMOVE THIS COPYRIGHT
 */
 
 import * as mt_Utils from "./mt_utils.js";
-import * as mt_MMS from "./mt_mms.js";
+import * as mt_MMS from "./API_mmsParse.js";
 import * as mt_AppSettings from "./appsettings.js";
 import mqtt  from "./mqtt.esm.js";
 import "./mt_events.js";
@@ -52,8 +52,6 @@ export function setPassword(Password) {
   _password = Password;
   if (Password.length == 0 ) _password = null;
 };
-
-
 
 function EmitObject(e_obj) {
   EventEmitter.emit(e_obj.Name, e_obj);
@@ -102,6 +100,8 @@ export function OpenMQTT(){
 export async function CloseMQTT(){
   if(_client)
   {
+    _client.on('connect', ()=>{});
+    _client.on('message', ()=>{});
     await _client.end();
     _client = null;      
   }
