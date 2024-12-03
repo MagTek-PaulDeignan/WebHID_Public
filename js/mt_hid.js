@@ -13,11 +13,10 @@ DO NOT REMOVE THIS COPYRIGHT
 
 import * as mt_MMS from "./mt_mms.js";
 export let _device;
-export let _deviceType = "MMS";
+//export let _deviceType = "MMS";
 export let _reportLen = 0;
 export let vendorId = 0x0801;
 export let _productId = 0;
-//export var wasOpened = false;
 
 
 let mtDeviceType = "";
@@ -160,6 +159,7 @@ export const ID5G3filters = [
   }
 ];
 
+
 export async function openDevice() {
   try {
     let reqDevice;
@@ -189,6 +189,9 @@ export async function openDevice() {
 
       switch (mtDeviceType) {
         case "MMS":
+          EmitObject({Name:"OnDeviceOpen", Device:device});
+          break;
+        case "V5":
           EmitObject({Name:"OnDeviceOpen", Device:device});
           break;
         default:

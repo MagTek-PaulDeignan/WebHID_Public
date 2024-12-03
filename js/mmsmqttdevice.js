@@ -84,7 +84,7 @@ async function handleDOMLoaded() {
 }
 
 async function handleCloseButton() {
-  mt_MMS.closeDevice();
+  mt_HID.closeDevice();
   mt_UI.ClearLog();
   CloseMQTT();
 }

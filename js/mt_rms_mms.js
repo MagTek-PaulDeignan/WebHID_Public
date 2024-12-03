@@ -144,7 +144,7 @@ async function updateMMSTags(command) {
         FirmwareID: _FWID,
         DeviceSerialNumber: _DeviceSN
     };
-
+      console.log(JSON.stringify(req));
       var tagsResp = await mt_RMS_API.GetTags(req);      
     }
 

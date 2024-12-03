@@ -268,3 +268,72 @@ Array.prototype.zeroFill = function (len) {
   }
   return this;
 };
+   
+   export async function waitForEvents(eventTarget, eventNames, strict) {
+    
+        // Default to document if no eventTarget is provided
+        eventTarget = eventTarget || document;
+    
+        // Convert eventNames to an array if it's not already
+        if (!Array.isArray(eventNames)) {
+            eventNames = String(eventNames).split(',');
+        }
+    
+        // Trim whitespace from event names
+        eventNames = eventNames.map(function(eventName) {
+            return String(eventName).trim();
+        });
+    
+        // Throw an error if no valid event names are provided
+        if (eventNames.length <= 0) {
+            throw new Error('Invalid eventNames');
+        }
+    
+        // Initialize an empty object to store the event objects
+        var eventObjects = {};
+    
+        // Store the index of the last event that was fired
+        var lastEventIndex = -1;
+    
+        // Create an array of promises, one for each event
+        var listeners = eventNames.map(function(eventName, index) {
+    
+            // Return a promise that resolves once event fired
+            return new Promise(function(resolve) {
+    
+                // Define event handler inside promise
+                function waitForEventHandler(e) {
+    
+                    // In strict mode, only resolve the promise when events are fired in order
+                    if (strict && index !== lastEventIndex + 1) {
+                        // If not in order, store the event but don't resolve the promise
+                        eventObjects[e.type] = e;
+                    } else {
+                        // Remove the event listener once the event has fired
+                        eventTarget.removeEventListener(eventName, waitForEventHandler);
+    
+                        // Store the event object in the eventObjects
+                        eventObjects[e.type] = e;
+    
+                        // Update the index of the last fired event
+                        lastEventIndex = index;
+    
+                        // Resolve the promise
+                        resolve();
+                    }
+                }
+    
+                // Add the event listener
+                eventTarget.addEventListener(eventName, waitForEventHandler, false);
+            });
+        });
+    
+        // Return a promise that resolves when all events have fired
+        return Promise.all(listeners).then(function() {
+    
+            // Return event objects in the order they were added
+            return eventNames.map(function(name) {
+                return eventObjects[name];
+            });
+        });
+    }
