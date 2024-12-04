@@ -76,6 +76,23 @@ function waitForDeviceResponse() {
   return waitFor();
 }
 
+export async function GetDeviceSN(){
+  let resp = await SendCommand("AA0081040100D101841AD10181072B06010401F609850102890AE208E106E104E102C100");
+  let str = resp.TLVData.substring(24);  
+  let tag89 = mt_Utils.getTagValue("89","",str, false) ;
+  let data = mt_Utils.getTagValue("C1","",tag89, false);
+  return data.substring(0,7);
+}
+
+export async function GetDeviceFWID(){
+  let resp = await SendCommand("AA0081040102D101841AD10181072B06010401F609850102890AE108E206E204E202C200");
+  let str = resp.TLVData.substring(24);  
+  let tag89 = mt_Utils.getTagValue("89","",str, false);
+  let data = mt_Utils.getTagValue("C2","",tag89, true);
+  return data;
+}
+
+
 export function OpenMQTT(){
   
   if(_client == null)
@@ -116,7 +133,7 @@ async function onMQTTConnect(connack) {
   
   await _client.subscribe(`${mt_AppSettings.MQTT.Base_Pub}${_devPath}/MMSMessage`, CheckMQTTError);
   await _client.subscribe(`${mt_AppSettings.MQTT.DeviceList}`, CheckMQTTError);
-  _client.publish(`${mt_AppSettings.MQTT.Base_Pub}${_devPath}/Status`, 'connected');
+  //_client.publish(`${mt_AppSettings.MQTT.Base_Pub}${_devPath}/Status`, 'connected');
 }
 };
 

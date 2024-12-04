@@ -177,7 +177,17 @@ export function FromListToText(event) {
  {
   try 
   {
-    document.getElementById(`QRCode`).src = `https://paoli.magensa.net/Test/RenderImage/Home/QRCode?QRData=${qrcode}`;    
+    document.getElementById(`QRCode`).src = `https://paoli.magensa.net/Test/RenderImage/Home/QRCode?QRData=${qrcode}`;
   } catch (error) { }
   }
+ 
+  export function UpdateQRCodewithLink(qrcode)
+  {
+   try 
+   {
+     document.getElementById(`QRCode`).src = `https://paoli.magensa.net/Test/RenderImage/Home/QRCode?QRData=${qrcode}`;
+     document.getElementById(`QRCodeLink`).href = `${qrcode}`;
+     
+   } catch (error) { }
+   }
  

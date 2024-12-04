@@ -20,10 +20,6 @@ export let _productId = 0;
 
 let mtDeviceType = "";
 
-function EmitObject(e_obj) {
-  EventEmitter.emit(e_obj.Name, e_obj);
-}
-
 export function getDeviceInfo(pid) {
   //This is required to account for the different report lengths
   //until we can obtain the report length from the USB capabilites

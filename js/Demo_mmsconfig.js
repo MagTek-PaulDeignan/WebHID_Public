@@ -11,8 +11,7 @@ DO NOT REMOVE THIS COPYRIGHT
 */
 
 import * as mt_Utils from "./mt_utils.js";
-import * as mt_MMS from "./mt_mms.js";
-import * as mt_HID from "./mt_hid.js";
+import * as mt_MMS from "./API_mmsHID.js";
 import * as mt_UI from "./mt_ui.js";
 import "./mt_events.js";
 
@@ -205,7 +204,7 @@ async function getDeviceName() {
 
 
 async function handleDOMLoaded() {
-  let devices = await mt_HID.getDeviceList();
+  let devices = await mt_MMS.getDeviceList();
   mt_UI.LogData(`Devices currently attached and allowed:`);
   
   if (devices.length == 0) mt_UI.setUSBConnected("Connect a device");
@@ -247,7 +246,7 @@ async function handleClearButton() {
 }
 
 async function handleOpenButton() {
-  window.mt_device_hid = await mt_HID.openDevice();
+  window.mt_device_hid = await mt_MMS.openDevice();
 }
 
 async function handleSendCommandButton() {
@@ -273,16 +272,16 @@ async function parseCommand(message) {
       devices = getDeviceList();      
       break;
     case "OPENDEVICE":
-      window.mt_device_hid = await mt_HID.openDevice();      
+      window.mt_device_hid = await mt_MMS.openDevice();      
       break;
     case "CLOSEDEVICE":
-      window.mt_device_hid = await mt_HID.closeDevice();
+      window.mt_device_hid = await mt_MMS.closeDevice();
       break;
     case "WAIT":
       wait(cmd[1]);
       break;
     case "DETECTDEVICE":
-      window.mt_device_hid = await mt_HID.openDevice();      
+      window.mt_device_hid = await mt_MMS.openDevice();      
       break;
     case "GETTAGVALUE":
       let asAscii = (cmd[4] === 'true');

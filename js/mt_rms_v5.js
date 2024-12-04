@@ -11,7 +11,7 @@ DO NOT REMOVE THIS COPYRIGHT
 */
 
 "use strict";
-import * as mt_V5 from "./mt_v5.js";
+import * as mt_V5 from "./API_v5HID.js";
 import * as mt_Utils from "./mt_utils.js";
 import * as mt_RMS_API from "./API_rms.js";
 
@@ -24,6 +24,7 @@ let _DeviceDetected =false;
 let _HasBLEFirmware = false;
 let _DeviceConfigList = null;
 let  _openTimeDelay = 2000;
+
 export function setDeviceDetected(bval) {
   _DeviceDetected = bval;
 };

@@ -11,40 +11,16 @@ DO NOT REMOVE THIS COPYRIGHT
 */
 
 import * as mt_Utils from "./mt_utils.js";
-import * as mt_MMS from "./API_mmsHID.js";
+//import * as mt_MMS from "./mt_mms.js";
 import * as mt_UI from "./mt_ui.js";
-import * as mt_RMS from "./mt_rms_mms.js";
-import * as mt_RMS_API from "./API_rms.js";
-import * as mt_MMSMQTT_API from "./API_mmsMQTT.js";
+import * as mt_WSS from "./API_mmsWebSocket.js";
 import "./mt_events.js";
 
-let defaultRMSURL = '';
-let defaultRMSAPIKey = '';
-let defaultRMSProfileName = '';
-
-
-let url = mt_Utils.getEncodedValue('MQTTURL','d3NzOi8vZGV2ZWxvcGVyLmRlaWduYW4uY29tOjgwODQvbXF0dA==');
-let devPath = mt_Utils.getEncodedValue('MQTTDevice','');
-let userName = mt_Utils.getEncodedValue('MQTTUser','RGVtb0NsaWVudA==');
-if (userName.length == 0 ) userName = null;
-
-let password = mt_Utils.getEncodedValue('MQTTPassword','ZDNtMENMdjFjMQ==');
-if (password.length == 0 ) password = null;
-
-
-const params = new Proxy(new URLSearchParams(window.location.search), {
-  get: (searchParams, prop) => searchParams.get(prop),
-});
-
-let value = params.devpath;
-if (value != null) {
-  devPath = value;
-}
-
+var wsAddress = mt_Utils.getEncodedValue('WSAddress','');
+  
 
 let _contactSeated = false;
 let _AwaitingContactEMV = false;
-
 export let _contactlessDelay = parseInt(mt_Utils.getEncodedValue("ContactlessDelay", "NTAw"));
 export let _openTimeDelay = 1500;
 
@@ -64,40 +40,27 @@ document
   .querySelector("#CommandList")
   .addEventListener("change", mt_UI.FromListToText);
 
-document.getElementById('fileInput')
-  .addEventListener('change', handleFileUpload);
-  
-document.addEventListener("DOMContentLoaded", handleDOMLoaded);
+  document.addEventListener("DOMContentLoaded", handleDOMLoaded);
 
-function EmitObject(e_obj) {
-  EventEmitter.emit(e_obj.Name, e_obj);
-};
+// function EmitObject(e_obj) {
+//   EventEmitter.emit(e_obj.Name, e_obj);
+// };
 
 async function handleDOMLoaded() {
-  mt_UI.LogData(`Configured Device: ${devPath}`);
-  handleOpenButton();
 }
 
-
-
 async function handleCloseButton() {
-  await mt_MMSMQTT_API.CloseMQTT();
+  mt_WSS.CloseWS();
   mt_UI.ClearLog();
 }
 async function handleClearButton() {
   mt_UI.ClearLog();
   mt_UI.DeviceDisplay("");
-  window.mt_device_ARQCData = null;
-  document.getElementById("fileInput").value = null;
 }
 
-
 async function handleOpenButton() {
-  mt_MMSMQTT_API.setURL(url);
-  mt_MMSMQTT_API.setUserName(userName);
-  mt_MMSMQTT_API.setPassword(password);
-  mt_MMSMQTT_API.setPath(devPath);  
-  mt_MMSMQTT_API.OpenMQTT();
+  mt_WSS.setURL(wsAddress);
+  mt_WSS.OpenWS();
 }
 
 async function handleSendCommandButton() {
@@ -115,24 +78,22 @@ async function parseCommand(message) {
       mt_Utils.debugLog("GETDEVINFO " + getDeviceInfo());      
       break;
     case "SENDCOMMAND":
-      mt_MMSMQTT_API.SendCommand(cmd[1]);
+      mt_WSS.SendCommand(cmd[1]);
       break;
     case "PCIRESET":
-      mt_MMSMQTT_API.SendCommand("AA00810401121F0184021F01");      
+      mt_WSS.SendCommand("AA00810401121F0184021F01");      
       break;
     case "GETDEVICELIST":
       devices = getDeviceList();      
       break;
     case "OPENDEVICE":      
-      mt_MMSMQTT_API.OpenMQTT();
+      mt_WSS.OpenWS();     
       break;
     case "CLOSEDEVICE":      
-    mt_MMSMQTT_API.CloseMQTT();
+      mt_WSS.CloseWS();
       break;
     case "WAIT":
-      mt_UI.LogData(`Waiting ${cmd[1]/1000} seconds...`);
-      await mt_Utils.wait(cmd[1]);
-      //mt_UI.LogData(`Done Waiting`);
+      wait(cmd[1]);
       break;
     case "DETECTDEVICE":
       //window._device = await mt_MMS.openDevice();      
@@ -149,40 +110,8 @@ async function parseCommand(message) {
     case "DISPLAYMESSAGE":
       mt_UI.LogData(cmd[1]);
       break;
-    case "PROCESS_SALE": 
-      handleProcessSale();
-      break;
-    case "GETDEVICESN":
-      var sn = await mt_MMS.GetDeviceSN();
-      mt_UI.LogData(sn);
-      break;
-    case "GETFIRMWAREID":
-      var fw = await mt_MMS.GetDeviceFWID();
-      mt_UI.LogData(fw);
-      break;
-    case "UPDATEDEVICE":
-
-      mt_RMS_API.setURL(mt_Utils.getEncodedValue('baseURL',defaultRMSURL));
-      mt_RMS_API.setAPIKey(mt_Utils.getEncodedValue('APIKey',defaultRMSAPIKey));
-      mt_RMS_API.setProfileName(mt_Utils.getEncodedValue('ProfileName',defaultRMSProfileName));
-      
-      fw = await mt_MMS.GetDeviceFWID();
-      sn = await mt_MMS.GetDeviceSN();
-
-      mt_RMS.setFWID(fw);
-      mt_RMS.setDeviceSN(sn);
-      
-      if(mt_RMS_API.BaseURL.length > 0 && mt_RMS_API.APIKey.length > 0 && mt_RMS_API.ProfileName.length > 0)
-      {
-        await mt_RMS.updateDevice();
-      }
-      else
-      {
-        mt_UI.LogData(`Please set APIKey and ProfileName`);      
-      }
-      break;
     default:
-      mt_UI.LogData("Unknown Command");
+      mt_Utils.debugLog("Unknown Command");
   }
 };
 
@@ -207,23 +136,8 @@ const dataLogger = (e) => {
   mt_UI.LogData(`Received Data: ${e.Name}: ${e.Data}`);
 };
 
-const NFCUIDLogger = (e) => {
-  mt_UI.LogData(`Received NFC UID : ${e.Name}: ${e.Data}`);
-  SendCommand("AA00810401641100840B1100810160820100830100");
-  SendCommand("AA00810401671100840D110081033A04278201008301FF");
-};
-
-
 const PINLogger = (e) => {
   mt_UI.LogData(`${e.Name}: EPB:${e.Data.EPB} KSN:${e.Data.KSN} Encryption Type:${e.Data.EncType} PIN Block Format: ${e.Data.PBF} TLV: ${e.Data.TLV}`);
-
-  let TLVs = mt_Utils.tlvParser(e.Data.TLV.substring(24));
-  mt_UI.LogData("TLVs---------------------------------");
-  TLVs.forEach(element => {
-    mt_UI.LogData(`${element.tag} : ${element.tagValue} `);    
-  });   
-  mt_UI.LogData("TLVs---------------------------------");
-
 };
 
 const trxCompleteLogger = (e) => {
@@ -234,12 +148,11 @@ const displayMessageLogger = (e) => {
   mt_UI.DeviceDisplay(e.Data);
 };
 const barcodeLogger = (e) => {
+  //mt_UI.LogData(`Barcode  Data: ${e.Data}`);
   mt_UI.LogData(`Barcode  Data: ${mt_Utils.getTagValue("DF74", "", e.Data, true)}`);
 };
 const arqcLogger = (e) => {
   mt_UI.LogData(`${e.Source} ARQC Data:  ${e.Data}`);
-  window.mt_device_ARQCData = e.Data;
-  window.mt_device_ARQCType = e.Source;
   let TLVs = mt_Utils.tlvParser(e.Data.substring(4));
    mt_UI.LogData("TLVs---------------------------------");
    TLVs.forEach(element => {
@@ -251,13 +164,13 @@ const batchLogger = (e) => {
   mt_UI.LogData(`${e.Source} Batch Data: ${e.Data}`);
 };
 const fromDeviceLogger = (e) => {
-  mt_UI.LogData(`Device Response: ${e.Data.TLVData}`);  
+  mt_UI.LogData(`Device Response: ${e.Data.TLVData}`);
 };
 const inputReportLogger = (e) => {
   mt_UI.LogData(`Input Report: ${e.Data}`);
 };
 const errorLogger = (e) => {
-  mt_UI.LogData(`Error: ${e.Source} ${e.Data}`);
+  mt_UI.LogData(`Error: ${e.Source} ${JSON.stringify(e.Data)}`);
 };
 const debugLogger = (e) => {
   mt_UI.LogData(`Error: ${e.Source} ${e.Data}`);
@@ -334,35 +247,6 @@ const userEventLogger = (e) => {
   mt_UI.LogData(`User Event Data: ${e.Name} ${e.Data}`);
 };
 
-const fileLogger = (e) => {
-  mt_UI.LogData(`File: ${e.Data.HexString}`);
-};
-
-
-const mqttStatus = e => {
-  let topicArray = e.Data.Topic.split('/');
-  let data = e.Data.Message;
-  mt_UI.AddDeviceLink(topicArray[topicArray.length-3], `${topicArray[topicArray.length-2]}`,data, `${window.location.pathname}?devpath=${topicArray[topicArray.length-3]}/${topicArray[topicArray.length-2]}`);
-}
-
-
-async function handleFileUpload(event) {
-  if( event.target.files.length ==1 )
-  {
-    const file = event.target.files[0];
-    const reader = new FileReader();
-    reader.onload = async function(e) {
-      const lines = e.target.result.split('\n');
-      for (const line of lines) 
-        {
-        // Process each line here
-        await parseCommand(line);
-        }
-    };
-  reader.readAsText(file); 
-};
-}
-
 // Subscribe to  events
 EventEmitter.on("OnInputReport", inputReportLogger);
 EventEmitter.on("OnDeviceConnect", deviceConnectLogger);
@@ -386,7 +270,7 @@ EventEmitter.on("OnContactlessCardCollision", dataLogger);
 EventEmitter.on("OnContactlessMifare1KCardDetected", dataLogger);
 EventEmitter.on("OnContactlessMifare4KCardDetected", dataLogger);
 EventEmitter.on("OnContactlessMifareUltralightCardDetected", dataLogger);
-EventEmitter.on("OnContactlessNFCUID", NFCUIDLogger);
+EventEmitter.on("OnContactlessNFCUID", dataLogger);
 EventEmitter.on("OnContactlessPINBlockError", dataLogger);
 EventEmitter.on("OnContactlessPINPadError", dataLogger);
 EventEmitter.on("OnContactlessVASError", dataLogger);
@@ -427,7 +311,3 @@ EventEmitter.on("OnError", errorLogger);
 EventEmitter.on("OnPINComplete", PINLogger);
 EventEmitter.on("OnUIDisplayMessage", displayMessageLogger);
 EventEmitter.on("OnDebug", debugLogger);
-
-EventEmitter.on("OnFileFromHost", fileLogger);
-EventEmitter.on("OnFileFromDevice", fileLogger);
-EventEmitter.on("OnMQTTStatus", mqttStatus);

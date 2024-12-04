@@ -205,7 +205,7 @@ function onMQTTConnect() {
   client.subscribe(`${mt_AppSettings.MQTT.Base_Sub}${devPath}/#`, CheckMQTTError)
   mt_UI.LogData(`Connected to: ${mt_AppSettings.MQTT.Base_Sub}${devPath}`);
   let path = `https://rms.magensa.net/Test/HID/mmsMQTTDemo.html?devpath=${devPath}`
-  mt_UI.UpdateQRCode(path);
+  mt_UI.UpdateQRCodewithLink(path);
 
 };
 
