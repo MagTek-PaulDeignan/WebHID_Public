@@ -12,13 +12,10 @@ DO NOT REMOVE THIS COPYRIGHT
 
 import * as mt_Utils from "./mt_utils.js";
 import * as mt_MMS from "./API_mmsParse.js";
-import * as mt_HID from "./mt_hid.js";
+//import * as mt_HID from "./mt_hid.js";
+import * as mt_Configs from "./config/DeviceConfig.js";
 import "./mt_events.js";
 
-let _device;
-let _reportLen = 0;
-let vendorId = 0x0801;
-let _productId = 0;
 let mtDeviceType = "";
 
 function EmitObject(e_obj) {
@@ -103,12 +100,12 @@ export async function openDevice() {
   try {
     let reqDevice;
     let devices = await navigator.hid.getDevices();
-    let device = devices.find((d) => d.vendorId === vendorId);
+    let device = devices.find((d) => d.vendorId === mt_Configs.vendorId);
     
       //if (!device || devices.length > 1) {
       if (!device) {
-      let vendorId = vendorId;
-      reqDevice = await navigator.hid.requestDevice({filters: MMSfilters });
+      
+      reqDevice = await navigator.hid.requestDevice({filters: mt_Configs.MMSfilters });
       if(reqDevice != null)
         {
           if (reqDevice.length > 0)
@@ -123,7 +120,7 @@ export async function openDevice() {
     }
     if (device.opened) {
       window.mt_device_WasOpened = true;      
-      let _devinfo = mt_HID.getDeviceInfo(device.productId);
+      let _devinfo = mt_Configs.getHIDDeviceInfo(device.productId);
       mtDeviceType = _devinfo.DeviceType;
 
       switch (mtDeviceType) {
@@ -181,6 +178,8 @@ function handleInputReport(e) {
       break;
   }
 };
+
+
 
 Array.prototype.zeroFill = function (len) {
   for (let i = this.length; i < len; i++) {

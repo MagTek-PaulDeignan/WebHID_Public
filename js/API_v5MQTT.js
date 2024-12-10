@@ -10,11 +10,11 @@ DO NOT REMOVE THIS COPYRIGHT
  WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-import * as mt_MMS from "./API_mmsParse.js";
-import * as mt_AppSettings from "./config/appsettings.js";
-import mqtt from "./mqtt.esm.js";
-import "./mt_events.js";
 import * as mt_Utils from "./mt_utils.js";
+import * as MT_V5Parse from "./API_v5Parse.js";
+import * as mt_AppSettings from "./config/appsettings.js";
+import mqtt  from "./mqtt.esm.js";
+import "./mt_events.js";
 
 let _url = "";
 let _devPath = "";
@@ -59,7 +59,7 @@ function EmitObject(e_obj) {
 
 export async function SendCommand(cmdHexString) {
     window.mt_device_response = null
-    _client.publish(`${mt_AppSettings.MQTT.MMS_Base_Sub}${_devPath}`, cmdHexString);
+    _client.publish(`${mt_AppSettings.MQTT.V5_Base_Sub}${_devPath}`, cmdHexString);
     var Resp = await waitForDeviceResponse();
     return Resp;
 };
@@ -100,7 +100,7 @@ export function OpenMQTT(){
     let options = {
       clean: true,
       connectTimeout: 4000,
-      clientId: `MagTekClient-${mt_Utils.makeid(6)}`,
+      clientId: `MagTekV5Client-${mt_Utils.makeid(6)}`,
       username: _userName,
       password: _password  
     };
@@ -128,14 +128,12 @@ export async function CloseMQTT(){
 async function onMQTTConnect(_connack) {    
   if(_client != null){
   // Subscribe to a topic
-  if(_devPath.length > 0)
-  {
-    await _client.unsubscribe(`${mt_AppSettings.MQTT.MMS_Base_Pub}${_devPath}/#`, CheckMQTTError);  
-    await _client.subscribe(`${mt_AppSettings.MQTT.MMS_Base_Pub}${_devPath}/#`, CheckMQTTError);    
-  }
-  await _client.unsubscribe(`${mt_AppSettings.MQTT.MMS_DeviceList}`, CheckMQTTError);
-  await _client.subscribe(`${mt_AppSettings.MQTT.MMS_DeviceList}`, CheckMQTTError);  
-
+  
+  await _client.unsubscribe(`${mt_AppSettings.MQTT.V5_Base_Pub}${_devPath}/#`, CheckMQTTError);  
+  await _client.unsubscribe(`${mt_AppSettings.MQTT.V5_DeviceList}`, CheckMQTTError);
+  //console.log(`${mt_AppSettings.MQTT.V5_Base_Pub}${_devPath}/#`);
+  await _client.subscribe(`${mt_AppSettings.MQTT.V5_Base_Pub}${_devPath}/#`, CheckMQTTError);
+  await _client.subscribe(`${mt_AppSettings.MQTT.V5_DeviceList}`, CheckMQTTError);  
 }
 };
 
@@ -174,8 +172,8 @@ function onMQTTMessage(topic, message) {
           }
           }
           break; 
-        case "MMSMessage":
-          mt_MMS.ParseMMSMessage(mt_Utils.hexToBytes(data));
+        case "V5Message":          
+          MT_V5Parse.processMsgType(data);
           break;
         default:
           console.log(`${topic}: ${data}`);

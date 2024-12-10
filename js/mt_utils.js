@@ -76,7 +76,7 @@ export function hexToASCIInulltoNewLine(hexString) {
   return str;
 }
 
-function hexToASCIIRemoveNull(hexString) {
+export function hexToASCIIRemoveNull(hexString) {
   var str = "";
   for (var n = 0; n < hexString.length; n += 2) {
     if(parseInt(hexString.substr(n, 2), 16)!=0)
@@ -217,7 +217,7 @@ export function hexToBytes(hex) {
 }
 
 export function debugLog(data) {
-  // console.log(`DebugLog: ${data}`);
+  console.log(`DebugLog: ${data}`);
 }
 
 export function getDefaultValue(key, defaultValue){

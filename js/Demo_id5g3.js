@@ -102,7 +102,7 @@ async function parseCommand(message) {
       mt_V5.sendExtendedCommand("0500", spiCMD);
       break;
     case "GETDEVINFO":
-      return mt_HID.getDeviceInfo();
+      //return mt_HID.getDeviceInfo();
       break;
     case "SENDCOMMAND":
       Response = await mt_V5.sendCommand(cmd[1]);

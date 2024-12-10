@@ -11,7 +11,6 @@ DO NOT REMOVE THIS COPYRIGHT
 */
 
 import * as mt_Utils from "./mt_utils.js";
-//import * as mt_MMS from "./API_mmsHID.js";
 import * as mt_UI from "./mt_ui.js";
 import * as mt_RMS from "./mt_rms_mms.js";
 import * as mt_RMS_API from "./API_rms.js";
@@ -68,10 +67,6 @@ document.getElementById('fileInput')
   .addEventListener('change', handleFileUpload);
   
 document.addEventListener("DOMContentLoaded", handleDOMLoaded);
-
-function EmitObject(e_obj) {
-  EventEmitter.emit(e_obj.Name, e_obj);
-};
 
 async function handleDOMLoaded() {
   mt_UI.LogData(`Configured Device: ${devPath}`);
@@ -209,8 +204,8 @@ const dataLogger = (e) => {
 
 const NFCUIDLogger = (e) => {
   mt_UI.LogData(`Received NFC UID : ${e.Name}: ${e.Data}`);
-  SendCommand("AA00810401641100840B1100810160820100830100");
-  SendCommand("AA00810401671100840D110081033A04278201008301FF");
+  mt_MMSMQTT_API.SendCommand("AA00810401641100840B1100810160820100830100");
+  mt_MMSMQTT_API.SendCommand("AA00810401671100840D110081033A04278201008301FF");
 };
 
 
@@ -289,7 +284,7 @@ const contactlessCardDetectedLogger = async (e) => {
     }
     if (!_contactSeated) {
       // We didn't get a contact seated, do start the contactless transaction
-      SendCommand("AA008104010010018430100182010AA30981010082010083010184020003861A9C01009F02060000000001009F03060000000000005F2A020840");
+      mt_MMSMQTT_API.SendCommand("AA008104010010018430100182010AA30981010082010083010184020003861A9C01009F02060000000001009F03060000000000005F2A020840");
     }
   }
 };
@@ -310,7 +305,7 @@ const contactCardInsertedLogger = (e) => {
     _AwaitingContactEMV = false;
     ClearAutoCheck();
     mt_UI.LogData(`Auto Starting EMV...`);
-    SendCommand("AA008104010010018430100182010AA30981010082010183010084020003861A9C01009F02060000000001009F03060000000000005F2A020840");
+    mt_MMSMQTT_API.SendCommand("AA008104010010018430100182010AA30981010082010183010084020003861A9C01009F02060000000001009F03060000000000005F2A020840");
   }
 };
 
@@ -326,7 +321,7 @@ const msrSwipeDetectedLogger = (e) => {
   if (_autoStart.checked & chk.checked & (e.Data.toLowerCase() == "idle")) {
     ClearAutoCheck();
     mt_UI.LogData(`Auto Starting MSR...`);
-    SendCommand("AA008104010010018430100182010AA30981010182010183010084020003861A9C01009F02060000000001009F03060000000000005F2A020840");
+    mt_MMSMQTT_API.SendCommand("AA008104010010018430100182010AA30981010182010183010084020003861A9C01009F02060000000001009F03060000000000005F2A020840");
   }
 };
 
@@ -431,3 +426,6 @@ EventEmitter.on("OnDebug", debugLogger);
 EventEmitter.on("OnFileFromHost", fileLogger);
 EventEmitter.on("OnFileFromDevice", fileLogger);
 EventEmitter.on("OnMQTTStatus", mqttStatus);
+EventEmitter.on("OnV5Event", dataLogger);
+EventEmitter.on("OnV5DeviceResponse", dataLogger);
+EventEmitter.on("OnUserSelection", dataLogger);

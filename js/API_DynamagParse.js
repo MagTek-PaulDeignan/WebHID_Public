@@ -11,29 +11,150 @@ DO NOT REMOVE THIS COPYRIGHT
 */
 "use strict";
 import * as mt_Utils from "./mt_utils.js";
-import * as MT_Parse from "./API_v5Parse.js";
 import * as mt_Configs from "./config/DeviceConfig.js";
 
-let mtDeviceType = "";
-let _devinfo = "";
 
+let data_Buffer_Report = "";
+let data_Buffer_Response = "";
 
 
 var appOptions = {
   responseDelay: 5,
 };
 
+let technology = "";
 
 
 
-function EmitObject(e_obj) {
+function EmitObject(e_obj) {  
   EventEmitter.emit(e_obj.Name, e_obj);
 }
 
-export async function getDeviceList() {
-  let devices = await navigator.hid.getDevices();
-  return devices;
+
+
+export function parseV5Packet(data) {
+  //ParseInputReportBytes(data); 
+  let hex = mt_Utils.toHexString(data);
+  let report_id = hex.substring(0, 2);
+  switch (report_id) {
+    //this case is added to support Dynamag MSR
+    case "00":
+      processMsgType(hex);
+      break;
+    case "01":
+      processMsgType(hex);
+      break;
+    case "02":
+      var outString = parseExtendedReport(hex);
+      if (outString.length > 0) {
+        processMsgType(outString);
+      }
+      break;  
+    default:
+      EmitObject({
+        Name: "OnError",
+        Source: "parseV5Packet Unknown Report ID",
+        Data: hex,
+      });
+  }
 }
+
+export function parseID5G3Packet(data) {
+  //ParseInputReportBytes(data); 
+  let hex = mt_Utils.toHexString(data);
+  let report_id = hex.substring(0, 2);
+  switch (report_id) {
+    //this case is added to support Dynamag MSR
+    case "00":
+      processMsgType(hex);
+      break;
+    case "01":
+      processMsgType(hex);
+      break;
+    case "02":
+      var outString = parseExtendedReport(hex);
+      if (outString.length > 0) {
+        processMsg(outString);
+      }
+      break;
+    default:
+      EmitObject({
+        Name: "OnError",
+        Source: "parseV5Packet Unknown Report ID",
+        Data: hex,
+      });
+  }
+}
+
+export function parseExtendedReport(report) {
+  var report_id = report.substring(0, 2);
+  var report_rc = report.substring(2, 4);
+  var part_data_len = parseInt(report.substring(4, 6), 16);
+  var offset = parseInt(report.substring(6, 10), 16);
+  var notification_id = report.substring(10, 14);
+  var msg_data_len = parseInt(report.substring(14, 18), 16);
+  var msg_data = report.substring(18, part_data_len * 2 + 18);
+  var outString = "";
+  if (part_data_len == msg_data_len) {
+    //we don't need to buffer this data it's full length
+    outString =
+      report_id +
+      notification_id +
+      mt_Utils.makeHex(msg_data_len, 4) +
+      msg_data;
+  } else {
+    //we need to buffer this data it's partial length
+    if (offset == 0) data_Buffer_Report = ""; //This is the first packet clear the buffer
+    data_Buffer_Report += msg_data;
+    if (data_Buffer_Report.length == msg_data_len * 2) {
+      //We now have a complete report - let's send it
+      outString =
+        report_id +
+        notification_id +
+        mt_Utils.makeHex(msg_data_len, 4) +
+        data_Buffer_Report;
+      data_Buffer_Report = "";
+    }
+  }
+  return outString;
+}
+
+export function parseExtendedResponse(response) {
+  var respnseCode = response.substring(0, 2);
+  var part_data_len = parseInt(response.substring(2, 4), 16);
+  var offset = parseInt(response.substring(4, 8), 16);
+  var response_rc = response.substring(8, 12);
+  var msg_data_len = parseInt(response.substring(12, 16), 16);
+  var msg_data = response.substring(16, part_data_len * 2 + 16);
+  mt_Utils.debugLog("Extend Response: " + response);
+  mt_Utils.debugLog("respnseCode: " + respnseCode);
+  mt_Utils.debugLog("part_data_len: " + part_data_len);
+  mt_Utils.debugLog("offset: " + offset);
+  mt_Utils.debugLog("response_rc: " + response_rc);
+  mt_Utils.debugLog("msg_data_len: " + msg_data_len);
+  mt_Utils.debugLog("msg_data: " + msg_data);
+  var outString = "";
+  if (part_data_len == msg_data_len + 6) {
+    //we don't need to buffer this data it's full length
+    outString =  response.substring(8);
+  } else {
+    //we need to buffer this data it's partial length
+    if (offset == 0) 
+    {
+      //data_Buffer_Response = ""; //This is the first packet clear the buffer
+      data_Buffer_Response = respnseCode + response.substring(8);
+    } else 
+    {
+      data_Buffer_Response += msg_data;
+    }
+      if (data_Buffer_Response.length == msg_data_len * 2 + 6) {
+      //We now have a complete report - let's send it
+      outString = data_Buffer_Response;
+      data_Buffer_Response = "";
+    }
+  }
+  return outString;
+};
 
 
 Array.prototype.zeroFill = function (len) {
@@ -116,6 +237,7 @@ function getExtCommandArray(commandStr) {
   var command = mt_Utils.hexToBytes(commandStr);
   var result = [];
   const MAX_DATA_LEN = 60;
+  var commandLen = 0;
   var dataLen = parseInt(commandStr.substring(4, 8), 16);
   var offset = 0;
   while (offset < dataLen || dataLen == 0) {
@@ -209,7 +331,7 @@ export async function sendExtCommand(cmdData) {
       var rc = deviceResponse.substring(0, 2);
       switch (rc) {
         case "0A": //more data is available
-          extendedResponse = MT_Parse.parseExtendedResponse(deviceResponse);
+          extendedResponse = parseExtendedResponse(deviceResponse);
           if (extendedResponse.length > 0) {
             msgComplete = true;
           } else {
@@ -232,7 +354,7 @@ export async function sendExtCommand(cmdData) {
       rc = deviceResponse.substring(0, 2);
       switch (rc) {
         case "0A":
-          extendedResponse = MT_Parse.parseExtendedResponse(deviceResponse);
+          extendedResponse = parseExtendedResponse(deviceResponse);
           if (extendedResponse.length > 0) {
             msgComplete = true;
           } else {
@@ -247,9 +369,7 @@ export async function sendExtCommand(cmdData) {
       }
     }
     return extendedResponse;
-  } 
-  catch (error) 
-  {
+  } catch (error) {
     throw error;
   }
 }
@@ -288,14 +408,30 @@ export async function sendCommand(cmdToSend) {
   }
 }
 
+function parseV5ReturnInfo(packet) {
+ try {
+  let returnString;
+  let packetString = packet.replace(/\s+/g, ""); 
+  length = parseInt(packetString.substring(4, 6), 16);
+  returnString = packetString.substring(2,(length * 2) + 6);
+  return returnString;
+ } 
+ catch (error) 
+ {
+  return error;
+ }
+}
 
 async function sendDeviceCommand(cmdToSend) {
   return new Promise(async (resolve, reject) => {
     try {
-            
-      var cmdInput = buildCmdArray(cmdToSend, _devinfo.ReportLen);
-      var numBytes = await window.mt_device_hid.sendFeatureReport(_devinfo.ReportID, cmdInput);
+      let _devinfo = mt_Configs.getHIDDeviceInfo(window.mt_device_hid.productId);
+      let reportLen = _devinfo.ReportLen;
+      var cmdInput = buildCmdArray(cmdToSend, reportLen);
+      mt_Utils.debugLog(`sendCommand: ${mt_Utils.toHexString(cmdInput)}`);
+      var numBytes = await window.mt_device_hid.sendFeatureReport(1, cmdInput);
       let dv = await getDeviceResponse();
+      mt_Utils.debugLog(`v5 parse sendResponse: ${dv}`);
       resolve(dv);
     } catch (error) {
       reject(error);
@@ -307,18 +443,9 @@ async function getDeviceResponse() {
   return new Promise((resolve, reject) => {
     setTimeout(async function () {
       try {
-        var DataView = await window.mt_device_hid.receiveFeatureReport(_devinfo.ReportID);
+        var DataView = await window.mt_device_hid.receiveFeatureReport(1);
         var FP = new Uint8Array(DataView.buffer);
-        var RT = null;
-        switch (_devinfo.ReportID) {
-          case 0:
-            RT = FP.slice(0, FP[1] + 2);
-            break;
-          default:
-            RT = FP.slice(1, FP[2] + 3);
-            break;
-        }
-
+        var RT = FP.slice(1, FP[2] + 3);
         resolve(mt_Utils.toHexString(RT));
       } catch (err) {
         mt_Utils.debugLog("Error thrown " + err);
@@ -334,96 +461,74 @@ async function getDeviceResponse() {
   });
 }
 
-  export async function openDevice() {
-    try {
-    let reqDevice;    
-    let devices = await navigator.hid.getDevices();
-    let device = devices.find((d) => d.vendorId === mt_Configs.vendorId);
+export function processMsgType(msg) {
 
-    if (!device) {
-      reqDevice = await navigator.hid.requestDevice({ filters: mt_Configs.V5filters });
-      if(reqDevice != null)
-        {
-          if (reqDevice.length> 0)
-          {
-            device = reqDevice[0];
-          }
-        }
-    }
-      
-      if (!device.opened) {        
-        device.addEventListener("inputreport", handleInputReport);
-        await device.open();
-      }
-      if (device.opened) {
-        window.mt_device_WasOpened = true;        
-        _devinfo = mt_Configs.getHIDDeviceInfo(device.productId);
-        mtDeviceType = _devinfo.DeviceType;
+  var msgType = "";
+  switch (msg.substring(0, 2)) {
+    case "00": //Dynamag Card Swipe 
+      msgType = "Card Swipe";
+      processMSRDataMsg(msgType, msg.substring(2));
+      break;
+    default: //Unknown
+      msgType = "Unknown Message Type";
+      EmitObject({ Name: "OnError", Source:"Dynamag", Data: msgType });      
+  }
+}
+
+
+
+function processMSRDataMsg(messageType, msg) {
+    var ParsedMSR = ParseMSR(mt_Utils.hexToBytes(msg));
+    EmitObject({ Name: "OnV5MSRSwipe", Data: ParsedMSR });
+}
+
+
+function ParseMSR(cardDataBytes) {
+
+  let Track_1_Encrypted_Data_Length = parseInt(mt_Utils.toHexString(cardDataBytes.slice(3, 4)),16);
+  let Track_2_Encrypted_Data_Length = parseInt(mt_Utils.toHexString(cardDataBytes.slice(4, 5)),16);
+  let Track_3_Encrypted_Data_Length = parseInt(mt_Utils.toHexString(cardDataBytes.slice(5, 6)),16);
+  let MagnePrint_Data_Length = parseInt(mt_Utils.toHexString(cardDataBytes.slice(348, 349)),16);
   
-        switch (mtDeviceType) {
-          case "V5":
-            EmitObject({Name:"OnDeviceOpen", 
-              Device:device
-            });
-            break;
-          default:
-            EmitObject({Name:"OnError",
-              Source: "Bad DeviceType",
-              Data: `Use the ${mtDeviceType} Parser`
-            });
-            break;
-        }
-      }
-      return device;
-    } 
-    catch (error) 
-    {
-      EmitObject({Name:"OnError",
-        Source: "OpenDevice",
-        Data: `Error opening device: ${error.message}`,
-      });
-    }
-  };
-  export async function closeDevice(){
-    window.mt_device_WasOpened = false;
-  if (window.mt_device_hid != null) {
-    await window.mt_device_hid.close();
-    EmitObject({Name: "OnDeviceClose", Device: window.mt_device_hid});
+  let _card  = {
+    EncodeType: mt_Utils.toHexString(cardDataBytes.slice(6, 7)),
+    MagnePrintStatus: mt_Utils.toHexString(cardDataBytes.slice(343, 348)),
+    MagnePrintData: mt_Utils.toHexString(cardDataBytes.slice(349, 477)).substring(0,MagnePrint_Data_Length*2),
   }
-  };
 
-  function handleInputReport(e) {
-    var packetArray = [];
-    var dataArray = new Uint8Array(e.data.buffer);
-    packetArray[0] = e.reportId;
-    packetArray.push(...dataArray);
-    //let data = mt_Utils.toHexString(dataArray);
-    //mt_Utils.debugLog(`Here is the Input Report: ${data}`)
-    switch (mtDeviceType) {
-      case "CMF":
-        EmitObject({Name: "OnError",
-          Source: "DeviceType",
-          Data: "Not Implemented"
-        });
-        break;
-      case "MMS":
-        EmitObject({Name:"OnError",
-          Source: "DeviceType",
-          Data: "Use the MMS Parser"
-        });
-        break;
-      case "V5":
-        MT_Parse.parseV5Packet(packetArray);
-        break;
-      case "ID5G3":
-        MT_Parse.parseID5G3Packet(packetArray);
-        break;
-
-        default:
-        EmitObject({Name: "OnError",
-          Source: "DeviceType",
-          Data: "Unknown Device Type"
-        });
-        break;
-    }
+  let _device  = {
+    SerialNumber: mt_Utils.hexToASCIIRemoveNull(mt_Utils.toHexString(cardDataBytes.slice(477, 493))),
+    EncryptionStatus: mt_Utils.toHexString(cardDataBytes.slice(493, 495)),
+    KeySerialNumber: mt_Utils.toHexString(cardDataBytes.slice(495, 505)),
+    SessionID: mt_Utils.toHexString(cardDataBytes.slice(844, 852)),
   }
+
+  let _track1 = {
+    DecodeStatus:  parseInt(mt_Utils.toHexString(cardDataBytes.slice(0, 1)),16),
+    EncryptedData: mt_Utils.toHexString(cardDataBytes.slice(7, 119)).substring(0,Track_1_Encrypted_Data_Length*2),
+    MaskedData: mt_Utils.hexToASCIIRemoveNull(mt_Utils.toHexString(cardDataBytes.slice(508, 620))),
+
+  }
+  
+  let _track2 = {
+    DecodeStatus: parseInt(mt_Utils.toHexString(cardDataBytes.slice(1, 2)),16),
+    EncryptedData: mt_Utils.toHexString(cardDataBytes.slice(119, 231)).substring(0,Track_2_Encrypted_Data_Length*2),
+    MaskedData: mt_Utils.hexToASCIIRemoveNull(mt_Utils.toHexString(cardDataBytes.slice(620, 732))),
+  }
+  
+  let _track3 = {
+    DecodeStatus: parseInt(mt_Utils.toHexString(cardDataBytes.slice(2, 3)),16),
+    EncryptedData: mt_Utils.toHexString(cardDataBytes.slice(231, 343)).substring(0,Track_3_Encrypted_Data_Length*2),
+    MaskedData: mt_Utils.hexToASCIIRemoveNull(mt_Utils.toHexString(cardDataBytes.slice(732, 844))),
+  }
+
+  let _resp = {
+    Track1: _track1,
+    Track2: _track2,
+    Track3: _track3,
+    Card: _card,
+    Device: _device,
+  };
+  
+  return _resp;
+}

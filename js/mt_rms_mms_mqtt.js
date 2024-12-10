@@ -310,7 +310,7 @@ async function parseRMSCommand(message) {
   var cmd = message.split(",");
   switch (cmd[0].toUpperCase()) {
     case "GETDEVINFO":
-      return mt_HID.getDeviceInfo();
+      //return mt_HID.getDeviceInfo();
       break;
     case "SENDCOMMAND":
       Response = await mt_mms.SendCommand(cmd[1]);

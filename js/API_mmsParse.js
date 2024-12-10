@@ -13,7 +13,7 @@ DO NOT REMOVE THIS COPYRIGHT
 import * as mt_Utils from "./mt_utils.js";
 import "./mt_events.js";
 
-export var LogMMStoConsole = false;
+export var LogMMStoConsole = true;
 export var LogMMStoEvent = false;
 
 let data_buffer_response = [];
@@ -207,7 +207,6 @@ function parseContactDetail(Msg) {
   switch (Detail) {
     case "010200": //Inserted
       NotifyDetail = Msg.TLVData;
-      //EmitObject({Name:"OnContactCardInserted",Data:NotifyDetail});
       EmitObject({
         Name: "OnContactCardInserted",
         Data: "Transaction in progress",
@@ -215,7 +214,6 @@ function parseContactDetail(Msg) {
       break;
     case "010300": //Removed
       NotifyDetail = Msg.TLVData;
-      //EmitObject({Name:"OnContactCardRemoved",Data:NotifyDetail});
       EmitObject({
         Name: "OnContactCardRemoved",
         Data: "Transaction in progress",

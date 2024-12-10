@@ -9,21 +9,44 @@ DO NOT REMOVE THIS COPYRIGHT
  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, 
  WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-"use strict";
 
 import * as mt_Utils from "./mt_utils.js";
-import * as mt_Device from "./API_v5HID.js";
-import * as mt_RMS from "./mt_rms_v5.js";
-import * as mt_RMS_API from "./API_rms.js";
 import * as mt_UI from "./mt_ui.js";
+import * as mt_RMS from "./mt_rms_mms.js";
+import * as mt_RMS_API from "./API_rms.js";
+import * as mt_V5MQTT_API from "./API_v5MQTT.js";
+import * as mt_V5 from "./API_v5HID.js";
 import "./mt_events.js";
 
-export var _openTimeDelay = 2000;
-
-// these will need to be changed and are here for testing
 let defaultRMSURL = '';
 let defaultRMSAPIKey = '';
 let defaultRMSProfileName = '';
+
+
+let url = mt_Utils.getEncodedValue('MQTTURL','d3NzOi8vZGV2ZWxvcGVyLmRlaWduYW4uY29tOjgwODQvbXF0dA==');
+let devPath = mt_Utils.getEncodedValue('MQTTDevice','');
+let userName = mt_Utils.getEncodedValue('MQTTUser','RGVtb0NsaWVudA==');
+if (userName.length == 0 ) userName = null;
+
+let password = mt_Utils.getEncodedValue('MQTTPassword','ZDNtMENMdjFjMQ==');
+if (password.length == 0 ) password = null;
+
+
+const params = new Proxy(new URLSearchParams(window.location.search), {
+  get: (searchParams, prop) => searchParams.get(prop),
+});
+
+let value = params.devpath;
+if (value != null) {
+  devPath = value;
+}
+
+
+let _contactSeated = false;
+let _AwaitingContactEMV = false;
+
+export let _contactlessDelay = parseInt(mt_Utils.getEncodedValue("ContactlessDelay", "NTAw"));
+export let _openTimeDelay = 1500;
 
 document
   .querySelector("#deviceOpen")
@@ -40,165 +63,139 @@ document
 document
   .querySelector("#CommandList")
   .addEventListener("change", mt_UI.FromListToText);
+
+document.getElementById('fileInput')
+  .addEventListener('change', handleFileUpload);
+  
 document.addEventListener("DOMContentLoaded", handleDOMLoaded);
 
+// function EmitObject(e_obj) {
+//   EventEmitter.emit(e_obj.Name, e_obj);
+// };
+
 async function handleDOMLoaded() {
-  mt_UI.ClearLog();
-  var devices = await mt_Device.getDeviceList();
-  mt_UI.LogData(`Devices currently attached and allowed:`);
-  
-  if (devices.length == 0 ) mt_UI.setUSBConnected("Connect a device");
-  devices.forEach((device) => {
-    mt_UI.LogData(`${device.productName}`);
-    mt_UI.setUSBConnected("Connected");
+  mt_UI.LogData(`Configured Device: ${devPath}`);
+  handleOpenButton();
+}
 
-  });
 
-  navigator.hid.addEventListener("connect", async ({ device }) => {
-    EmitObject({Name:"OnDeviceConnect", Device:device});
-    if (window.mt_device_WasOpened) {
-      await mt_Utils.wait(_openTimeDelay);
-      await handleOpenButton();
-    }
-  });
-
-  navigator.hid.addEventListener("disconnect", ({ device }) => {
-    EmitObject({Name:"OnDeviceDisconnect", Device:device});
-  });
-};
 
 async function handleCloseButton() {
-  mt_Device.closeDevice();  
-  mt_UI.ClearLog();  
+  await mt_V5MQTT_API.CloseMQTT();
+  mt_UI.ClearLog();
 }
 async function handleClearButton() {
   mt_UI.ClearLog();
   mt_UI.DeviceDisplay("");
+  window.mt_device_ARQCData = null;
+  document.getElementById("fileInput").value = null;
 }
 
+
 async function handleOpenButton() {
-  window.mt_device_hid = await mt_Device.openDevice();
-  mt_Utils.debugLog(`PID: ${window.mt_device_hid.productId}`)
-  
-  //dont set date or USB output if in Bootloader '0x5357'
-  if(window.mt_device_hid.productId != 0x5357){
-    let Response = await mt_Device.sendCommand(mt_Device.calcDateTime());  //Set Date and Time
-    if (Response != "0A06000000000000") mt_UI.LogData(`Error Setting Date: ${Response}`);
-    Response = await mt_Device.sendCommand("480100");   //SET USB Output Channel
-    if (Response != "0000") mt_UI.LogData(`Error Setting USB Output: ${Response}`);
-  }
+  mt_V5MQTT_API.setURL(url);
+  mt_V5MQTT_API.setUserName(userName);
+  mt_V5MQTT_API.setPassword(password);
+  mt_V5MQTT_API.setPath(devPath);  
+  mt_V5MQTT_API.OpenMQTT();
 }
 
 async function handleSendCommandButton() {
-    let data = document.getElementById("sendData");
-    let resp = await parseCommand(data.value);  
-  }
+  const data = document.getElementById("sendData");
+  await parseCommand(data.value);
+}
 
 async function parseCommand(message) {
-  let Response ;
-  var cmd = message.split(",");
+  let cmd = message.split(",");
   switch (cmd[0].toUpperCase()) {
     case "GETAPPVERSION":
-      mt_Utils.debugLog("GETAPPVERSION " + appOptions.version);
-      return appOptions.version;
-      break;
-    case "GETSPIDATA":
-      var spiCMD = "00" + "F".repeat(cmd[1] * 2);
-      mt_Device.sendExtendedCommand("0500", spiCMD);
+      mt_Utils.debugLog("GETAPPVERSION " + appOptions.version);      
       break;
     case "GETDEVINFO":
-      //return mt_HID.getDeviceInfo();
+      mt_Utils.debugLog("GETDEVINFO " + getDeviceInfo());      
       break;
     case "SENDCOMMAND":
-      Response = await mt_Device.sendCommand(cmd[1]);
-      return EmitObject({ Name: "OnV5DeviceResponse", Data: Response });
+      mt_V5MQTT_API.SendCommand(cmd[1]);
       break;
     case "SENDDATETIME":
-      Response = await mt_Device.sendCommand(mt_Device.calcDateTime()); 
+      Response = await mt_V5MQTT_API.SendCommand(mt_V5.calcDateTime()); 
       return EmitObject({ Name: "OnV5DeviceResponse", Data: Response });
       break;
     case "SENDEXTENDEDCOMMAND":
-      Response = await mt_Device.sendExtendedCommand(cmd[1], cmd[2]);
+      Response = await mt_V5.sendExtendedCommand(cmd[1], cmd[2]);
       return EmitObject({ Name: "OnV5DeviceResponse", Data: Response });
       break;
     case "SENDEXTCOMMAND":
-      Response = await mt_Device.sendExtCommand(cmd[1]);
+      Response = await mt_V5.sendExtCommand(cmd[1]);
       return EmitObject({ Name: "OnV5DeviceResponse", Data: Response });
+      break;  
+    case "PCIRESET":
+      mt_V5MQTT_API.SendCommand("0200");      
       break;
     case "GETDEVICELIST":
-      devices = getDeviceList();
+      devices = getDeviceList();      
       break;
-    case "OPENDEVICE":
-      window.mt_device_hid = await mt_Device.openDevice();
+    case "OPENDEVICE":      
+      mt_V5MQTT_API.OpenMQTT();
       break;
-    case "CLOSEDEVICE":
-      window.mt_device_hid = await mt_Device.closeDevice();        
+    case "CLOSEDEVICE":      
+    mt_V5MQTT_API.CloseMQTT();
       break;
     case "WAIT":
       mt_UI.LogData(`Waiting ${cmd[1]/1000} seconds...`);
-      await mt_Utils.wait(cmd[1]);
-      mt_UI.LogData(`Done Waiting`);
+      await mt_Utils.wait(cmd[1]);      
       break;
     case "DETECTDEVICE":
-      await mt_Device.closeDevice();
-      window.mt_device_hid = await mt_Device.openDevice();      
-      await mt_Utils.wait(_openTimeDelay);
-      break;
-    case "DISPLAYMESSAGE":
-      mt_UI.LogData(cmd[1]);mt
+      //window._device = await mt_MMS.openDevice();      
       break;
     case "GETTAGVALUE":
       let asAscii = (cmd[4] === 'true');
       var retval = mt_Utils.getTagValue(cmd[1], cmd[2], cmd[3], asAscii);
-      mt_UI.LogData(`Get Tags for ${retval}`);      
+      mt_UI.LogData(retval);
       break;
     case "PARSETLV":
       var retval = mt_Utils.tlvParser(cmd[1]);
       mt_UI.LogData(JSON.stringify(retval));
       break;
+    case "DISPLAYMESSAGE":
+      mt_UI.LogData(cmd[1]);
+      break;
+    case "PROCESS_SALE": 
+      handleProcessSale();
+      break;
+    case "GETDEVICESN":
+      var sn = await mt_V5MQTT_API.GetDeviceSN();
+      mt_UI.LogData(sn);
+      break;
+    case "GETFIRMWAREID":
+      var fw = await mt_V5MQTT_API.GetDeviceFWID();
+      mt_UI.LogData(fw);
+      break;
     case "UPDATEDEVICE":
+
       mt_RMS_API.setURL(mt_Utils.getEncodedValue('baseURL',defaultRMSURL));
       mt_RMS_API.setAPIKey(mt_Utils.getEncodedValue('APIKey',defaultRMSAPIKey));
       mt_RMS_API.setProfileName(mt_Utils.getEncodedValue('ProfileName',defaultRMSProfileName));
-      if(mt_RMS_API.BaseURL.length > 0 && mt_RMS_API.APIKey.length > 0 && mt_RMS_API.ProfileName.length > 0){
+      
+      fw = await mt_V5MQTT_API.GetDeviceFWID();
+      sn = await mt_V5MQTT_API.GetDeviceSN();
+
+      mt_RMS.setFWID(fw);
+      mt_RMS.setDeviceSN(sn);
+      
+      if(mt_RMS_API.BaseURL.length > 0 && mt_RMS_API.APIKey.length > 0 && mt_RMS_API.ProfileName.length > 0)
+      {
         await mt_RMS.updateDevice();
-      }else{
+      }
+      else
+      {
         mt_UI.LogData(`Please set APIKey and ProfileName`);      
       }
       break;
-    case "TESTBOOTLOADER":
-      if(window.mt_device_hid.productId != 0x5357)
-        {
-          mt_UI.LogData(`Switching to Bootloader... `);      
-          await mt_Device.sendCommand("6800");
-          await mt_Utils.wait(3000);
-          if (document.getElementById("lblUSBStatus").innerText.toLowerCase() == "opened")          
-          {
-            await mt_Device.sendCommand("7100");
-            mt_UI.LogData(`Success: You have paired the Bootloader`);            
-          }
-          else
-          {
-            mt_UI.LogData(`Press the 'Open' button to 'permit' access to the Bootloader and repeat the test`);            
-          }
-          
-        }else
-        {
-          await mt_Device.sendCommand("7100");
-          mt_UI.LogData(`Exiting the Bootloader`);
-          mt_UI.LogData(`Please repeat the test`);
-        }
-        break;
-      
-
-    case "UPDATEPROGRESS":
-      mt_UI.updateProgressBar(cmd[1],cmd[2])  
-      break;
     default:
-      mt_UI.LogData(`Unknown Parse Command: ${cmd[0]}`);    
+      mt_UI.LogData("Unknown Command");
   }
-}
-
+};
 
 function ClearAutoCheck() {
   var chk = document.getElementById("chk-AutoStart");
@@ -215,25 +212,79 @@ const deviceCloseLogger = (e) => {
   mt_UI.setUSBConnected("Closed");
 };
 const deviceOpenLogger = (e) => {
-  mt_RMS.setDeviceDetected(true);
   mt_UI.setUSBConnected("Opened");
 };
 const dataLogger = (e) => {
   mt_UI.LogData(`Received Data: ${e.Name}: ${e.Data}`);
 };
+
+// const NFCUIDLogger = (e) => {
+//   mt_UI.LogData(`Received NFC UID : ${e.Name}: ${e.Data}`);
+//   //mt_V5MQTT_API.SendCommand("AA00810401641100840B1100810160820100830100");
+//   //mt_V5MQTT_API.SendCommand("AA00810401671100840D110081033A04278201008301FF");
+// };
+
+
 const PINLogger = (e) => {
   mt_UI.LogData(`${e.Name}: EPB:${e.Data.EPB} KSN:${e.Data.KSN} Encryption Type:${e.Data.EncType} PIN Block Format: ${e.Data.PBF} TLV: ${e.Data.TLV}`);
+
+  let TLVs = mt_Utils.tlvParser(e.Data.TLV.substring(24));
+  mt_UI.LogData("TLVs---------------------------------");
+  TLVs.forEach(element => {
+    mt_UI.LogData(`${element.tag} : ${element.tagValue} `);    
+  });   
+  mt_UI.LogData("TLVs---------------------------------");
+
 };
+
+const trxCompleteLogger = (e) => {
+  mt_UI.LogData(`${e.Name}: ${e.Data}`);
+};
+const displayMessageLogger = (e) => {
+  mt_UI.LogData(`Display: ${e.Data}`);
+  mt_UI.DeviceDisplay(e.Data);
+};
+const barcodeLogger = (e) => {
+  mt_UI.LogData(`Barcode  Data: ${mt_Utils.getTagValue("DF74", "", e.Data, true)}`);
+};
+const debugLogger = (e) => {
+  mt_UI.LogData(`Error: ${e.Source} ${e.Data}`);
+};
+
+
+
+const fileLogger = (e) => {
+  mt_UI.LogData(`File: ${e.Data.HexString}`);
+};
+
+
+const mqttStatus = e => {
+  let topicArray = e.Data.Topic.split('/');
+  let data = e.Data.Message;
+  mt_UI.AddDeviceLink(topicArray[topicArray.length-3], `${topicArray[topicArray.length-2]}`,data, `${window.location.pathname}?devpath=${topicArray[topicArray.length-3]}/${topicArray[topicArray.length-2]}`);
+}
+
+
+async function handleFileUpload(event) {
+  if( event.target.files.length ==1 )
+  {
+    const file = event.target.files[0];
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+      const lines = e.target.result.split('\n');
+      for (const line of lines) 
+        {
+        // Process each line here
+        await parseCommand(line);
+        }
+    };
+  reader.readAsText(file); 
+};
+}
+
 
 const v5eventLogger = (e) => {
   mt_UI.LogData(`V5 Event: ${e.Name}: ${e.Data}`);
-};
-const trxCompleteLogger = (e) => {
-  mt_UI.LogData(`Transaction Complete: ${e.Name}: ${e.Data}`);
-};
-const displayMessageLogger = (e) => {
-  //mt_UI.LogData(`Display: ${e.Data}`);
-  mt_UI.DeviceDisplay(e.Data);
 };
 
 const displayRMSLogger = (e) => {
@@ -253,11 +304,6 @@ const displayUserSelectionLogger = (e) =>{
   mt_UI.LogData(`Language/App Selection: ${e.Data}`);
 }
 
-const barcodeLogger = (e) => {
-  //mt_UI.LogData(`Barcode  Data: ${e.Data}`);
-  mt_UI.LogData(`Barcode  Data: ${mt_Utils.getTagValue("DF74", "", e.Data, true)}`);
-};
-
 const arqcLogger = (e) => {
   mt_UI.LogData(`${e.Source} ARQC Data:  ${e.Data}`);
   let TLVs = mt_Utils.tlvParser(e.Data.substring(4));
@@ -272,13 +318,13 @@ const batchLogger = (e) => {
 };
 
 const fromDeviceLogger = (e) => {
-  mt_UI.LogData(`Device Response: ${e.Data.TLVData}`);
+  mt_UI.LogData(`Device Response: ${e.Data}`);
 };
 const fromV5DeviceLogger = (e) => {
   mt_UI.LogData(`V5 Device Response: ${e.Data}`);
 };
 const inputReportLogger = (e) => {
-  //mt_UI.LogData(`Input Report: ${e.Data}`);
+  mt_UI.LogData(`Input Report: ${e.Data}`);
 };
 
 const errorLogger = (e) => {
@@ -311,7 +357,7 @@ const contactCardInsertedLogger = async (e) => {
   if (_autoStart.checked & (e.Data.toLowerCase() == "idle")) {
     ClearAutoCheck();
     mt_UI.LogData(`Auto Starting EMV...`);
-    await mt_Device.sendCommand("491900000300001303028000000000100000000000000000084002");    
+    await mt_V5MQTT_API.SendCommand("491900000300001303028000000000100000000000000000084002");    
   }
 };
 
@@ -332,13 +378,10 @@ const msrSwipeDetectedLogger = (e) => {
   }
 };
 
-const userEventLogger = (e) => {
-  mt_UI.LogData(`User Event Data: ${e.Name} ${e.Data}`);
-};
+// const userEventLogger = (e) => {
+//   mt_UI.LogData(`User Event Data: ${e.Name} ${e.Data}`);
+// };
 
-function EmitObject(e_obj) {
-  EventEmitter.emit(e_obj.Name, e_obj);
-}
 
 // Subscribe to  events
 EventEmitter.on("OnDeviceConnect", deviceConnectLogger);
@@ -388,7 +431,7 @@ EventEmitter.on("OnUIHostActionComplete", dataLogger);
 EventEmitter.on("OnUIHostActionRequest", dataLogger);
 EventEmitter.on("OnUIInformationUpdate", dataLogger);
 
-EventEmitter.on("OnUserEvent", userEventLogger);
+//EventEmitter.on("OnUserEvent", userEventLogger);
 
 EventEmitter.on("OnContactlessCardDetected", contactlessCardDetectedLogger);
 EventEmitter.on("OnContactlessCardRemoved", contactlessCardRemovedLogger);
@@ -411,3 +454,5 @@ EventEmitter.on("OnUserSelection", displayUserSelectionLogger);
 EventEmitter.on("OnRMSLogData", displayRMSLogger);
 EventEmitter.on("OnRMSProgress", displayRMSProgressLogger);
 EventEmitter.on("OnFirmwareLoadStatus", displayFirmwareLoadStatusLogger);
+
+EventEmitter.on("OnMQTTStatus", mqttStatus);

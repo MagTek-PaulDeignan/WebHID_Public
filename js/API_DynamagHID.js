@@ -11,7 +11,7 @@ DO NOT REMOVE THIS COPYRIGHT
 */
 "use strict";
 import * as mt_Utils from "./mt_utils.js";
-import * as MT_Parse from "./API_v5Parse.js";
+import * as MT_Parse from "./API_DynamagParse.js";
 import * as mt_Configs from "./config/DeviceConfig.js";
 
 let mtDeviceType = "";
@@ -46,27 +46,6 @@ Array.prototype.zeroFill = function (len) {
 function buildCmdArray(commandstring, reportLen) {
   var cmdArray = mt_Utils.hexToBytes(commandstring).zeroFill(reportLen);
   return new Uint8Array(cmdArray);
-}
-
-export function calcDateTime() {
-  const now = new Date();
-  const month = now.getMonth() + 1;
-  const day = now.getDate();
-  const hour = now.getHours();
-  const minute = now.getMinutes();
-  const second = now.getSeconds();
-  const year = now.getFullYear() - 2008;
-  const dateTimeString =
-    mt_Utils.makeHex(month, 2) +
-    mt_Utils.makeHex(day, 2) +
-    mt_Utils.makeHex(hour, 2) +
-    mt_Utils.makeHex(minute, 2) +
-    mt_Utils.makeHex(second, 2) +
-    "00" +
-    mt_Utils.makeHex(year, 2);
-    const command =
-    "491E0000030C00180000000000000000000000000000000000" + dateTimeString;
-  return command;
 }
 
 function getExtendedCommandArray(commandStr, dataStr) {
@@ -247,21 +226,11 @@ export async function sendExtCommand(cmdData) {
       }
     }
     return extendedResponse;
-  } 
-  catch (error) 
-  {
+  } catch (error) {
     throw error;
   }
 }
 
-export async function getBLEFWID() {
-  let ret = await sendCommand("460401000000");
-  if(ret.substring(0,2) != "00") return "";
-  let data = ret.substring(10);
-  let dl = mt_Utils.makeHex(data.length);
-  return `00${dl}${data}`;
-
-}
 export async function sendCommand(cmdToSend) {
   try {
     if (window.mt_device_hid == null) {
@@ -283,7 +252,9 @@ export async function sendCommand(cmdToSend) {
     
     const Response = await sendDeviceCommand(cmdToSend);
     return Response;
-  } catch (error) {
+  } 
+  catch (error) 
+  {
     return error;
   }
 }
@@ -297,7 +268,9 @@ async function sendDeviceCommand(cmdToSend) {
       var numBytes = await window.mt_device_hid.sendFeatureReport(_devinfo.ReportID, cmdInput);
       let dv = await getDeviceResponse();
       resolve(dv);
-    } catch (error) {
+    } 
+    catch (error) 
+    {
       reject(error);
     }
   });
@@ -341,7 +314,7 @@ async function getDeviceResponse() {
     let device = devices.find((d) => d.vendorId === mt_Configs.vendorId);
 
     if (!device) {
-      reqDevice = await navigator.hid.requestDevice({ filters: mt_Configs.V5filters });
+      reqDevice = await navigator.hid.requestDevice({ filters: mt_Configs.DynaMagfilters });
       if(reqDevice != null)
         {
           if (reqDevice.length> 0)
@@ -397,8 +370,12 @@ async function getDeviceResponse() {
     var dataArray = new Uint8Array(e.data.buffer);
     packetArray[0] = e.reportId;
     packetArray.push(...dataArray);
-    //let data = mt_Utils.toHexString(dataArray);
+    let data = mt_Utils.toHexString(dataArray);
     //mt_Utils.debugLog(`Here is the Input Report: ${data}`)
+    EmitObject({Name: "OnInputReport",
+      Data: data
+    });
+
     switch (mtDeviceType) {
       case "CMF":
         EmitObject({Name: "OnError",
