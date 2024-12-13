@@ -15,10 +15,10 @@ import * as mt_MQTT from "./API_mmsMQTT.js";
 import * as mt_UI from "./mt_ui.js";
 import * as mt_MPPG from "./API_mppg.js";
 import * as mt_QMFA from "./qMFAAPI.js";
-
-
 import "./mt_events.js";
 
+
+let retval = "";
 let url = mt_Utils.getEncodedValue('MQTTURL','d3NzOi8vZGV2ZWxvcGVyLmRlaWduYW4uY29tOjgwODQvbXF0dA==');
 let devPath = mt_Utils.getEncodedValue('MQTTDevice','');
 let userName = mt_Utils.getEncodedValue('MQTTUser','RGVtb0NsaWVudA==');
@@ -40,15 +40,6 @@ if (value != null) {
 
 if (userName.length == 0 ) userName = null;
 if (password.length == 0 ) password = null;
-
-// // Create an MQTT client instance
-// const options = {
-//   clean: true,
-//   connectTimeout: 4000,
-//   clientId: `MagTekClient-${mt_Utils.makeid(6)}`,
-//   username: userName,
-//   password: password  
-// };
 
 let _contactSeated = false;
 let _AwaitingContactEMV = false;
@@ -123,8 +114,8 @@ async function handleClearButton() {
           if(tax.length > 0) Amount.Tax = parseFloat(tax);
           if(tip.length > 0) Amount.Tip = parseFloat(tip);
     
-          var email;
-          var sms;
+          let email;
+          let sms;
 
           if(QMFAChecked)
           {
@@ -137,11 +128,11 @@ async function handleClearButton() {
             sms = document.getElementById("receiptSMS").value;
           }
 
-            var saleResp = await mt_MPPG.ProcessSale(Amount, email, sms, 6, window.mt_device_ARQCData);  
+            let saleResp = await mt_MPPG.ProcessSale(Amount, email, sms, 6, window.mt_device_ARQCData);  
 
             if(saleResp.Details.status == "PASS")
               {
-                var claims = saleResp.Details;
+                let claims = saleResp.Details;
                 claims.MagTranID = saleResp.MagTranID;
                 
                 if(QMFAChecked)
@@ -153,7 +144,7 @@ async function handleClearButton() {
                   {
                     window.mt_device_SaleResponse = saleResp;
                     mt_UI.LogData(`Sending Qwantum MultiFactor Auth Request`);
-                    var mfaResponse = mt_QMFA.TransactionCreate(sms, email, claims)
+                    let mfaResponse = mt_QMFA.TransactionCreate(sms, email, claims)
                   }
                   else
                   {
@@ -207,10 +198,10 @@ async function parseCommand(message) {
   let cmd = message.split(",");
   switch (cmd[0].toUpperCase()) {
     case "GETAPPVERSION":
-      mt_Utils.debugLog("GETAPPVERSION " + appOptions.version);      
+      //mt_Utils.debugLog("GETAPPVERSION " + appOptions.version);      
       break;
     case "GETDEVINFO":
-      mt_Utils.debugLog("GETDEVINFO " + getDeviceInfo());      
+      //mt_Utils.debugLog("GETDEVINFO " + getDeviceInfo());      
       break;
     case "SENDCOMMAND":
       mt_MQTT.SendCommand(cmd[1]);
@@ -232,11 +223,11 @@ async function parseCommand(message) {
       break;
     case "GETTAGVALUE":
       let asAscii = (cmd[4] === 'true');
-      var retval = mt_Utils.getTagValue(cmd[1], cmd[2], cmd[3], asAscii);
+      retval = mt_Utils.getTagValue(cmd[1], cmd[2], cmd[3], asAscii);
       mt_UI.LogData(retval);
       break;
     case "PARSETLV":
-      var retval = mt_Utils.tlvParser(cmd[1]);
+      retval = mt_Utils.tlvParser(cmd[1]);
       mt_UI.LogData(JSON.stringify(retval));
       break;
     case "DISPLAYMESSAGE":
@@ -246,17 +237,17 @@ async function parseCommand(message) {
       handleProcessSale();
       break;
     default:
-      mt_Utils.debugLog("Unknown Command");
+      //mt_Utils.debugLog("Unknown Command");
   }
 };
 
 function ClearAutoCheck() {
-  var chk = document.getElementById("chk-AutoStart");
+  let chk = document.getElementById("chk-AutoStart");
   chk.checked = false;
 }
 
 function SetAutoCheck() {
-  var chk = document.getElementById("chk-AutoStart");
+  let chk = document.getElementById("chk-AutoStart");
   chk.checked = true;
 }
 
@@ -296,14 +287,14 @@ const displayMessageLogger = (e) => {
   mt_UI.DeviceDisplay(e.Data);
 };
 const barcodeLogger = async (e) => {
-  var stringbc = mt_Utils.getTagValue("DF74", "", e.Data, true);
-  var bc = JSON.parse(stringbc);
+  let stringbc = mt_Utils.getTagValue("DF74", "", e.Data, true);
+  let bc = JSON.parse(stringbc);
   if(bc.Header == "QMFAToken")
   {
     mt_UI.LogData("Redeeming Token");
     
     
-    var resp = await mt_QMFA.TransactionRedeem(bc.ID,bc.Status.toString(), bc.Reason);    
+    let resp = await mt_QMFA.TransactionRedeem(bc.ID,bc.Status.toString(), bc.Reason);    
   if(resp.status == 0 )
   {
     if(window.mt_device_SaleResponse != null)
@@ -357,22 +348,22 @@ const debugLogger = (e) => {
   mt_UI.LogData(`Error: ${e.Source} ${e.Data}`);
 };
 const touchUpLogger = (e) => {
-  var chk = document.getElementById("chk-AutoTouch");
+  let chk = document.getElementById("chk-AutoTouch");
   if (chk.checked) {
     mt_UI.LogData(`Touch Up: X: ${e.Data.Xpos} Y: ${e.Data.Ypos}`);
   }
 };
 const touchDownLogger = (e) => {
-  var chk = document.getElementById("chk-AutoTouch");
+  let chk = document.getElementById("chk-AutoTouch");
   if (chk.checked) {
     mt_UI.LogData(`Touch Down: X: ${e.Data.Xpos} Y: ${e.Data.Ypos}`);
   }
 };
 const contactlessCardDetectedLogger = async (e) => {
   if (e.Data.toLowerCase() == "idle") mt_UI.LogData(`Contactless Card Detected`);
-  var chk = document.getElementById("chk-AutoNFC");
-  var chkEMV = document.getElementById("chk-AutoEMV");  
-  var _autoStart = document.getElementById("chk-AutoStart");
+  let chk = document.getElementById("chk-AutoNFC");
+  let chkEMV = document.getElementById("chk-AutoEMV");  
+  let _autoStart = document.getElementById("chk-AutoStart");
   if (_autoStart.checked & chk.checked & (e.Data.toLowerCase() == "idle")) {
     ClearAutoCheck();
     mt_UI.LogData(`Auto Starting...`);
@@ -395,8 +386,8 @@ const contactlessCardRemovedLogger = (e) => {
 const contactCardInsertedLogger = (e) => {
   _contactSeated = true;
   if (e.Data.toLowerCase() == "idle") mt_UI.LogData(`Contact Card Inserted`);
-  var chk = document.getElementById("chk-AutoEMV");
-  var _autoStart = document.getElementById("chk-AutoStart");
+  let chk = document.getElementById("chk-AutoEMV");
+  let _autoStart = document.getElementById("chk-AutoStart");
   if (
     _autoStart.checked & chk.checked & (e.Data.toLowerCase() == "idle") ||
     _AwaitingContactEMV
@@ -415,8 +406,8 @@ const contactCardRemovedLogger = (e) => {
 
 const msrSwipeDetectedLogger = (e) => {
   if (e.Data.toLowerCase() == "idle") mt_UI.LogData(`MSR Swipe Detected ${e.Data}`);
-  var chk = document.getElementById("chk-AutoMSR");
-  var _autoStart = document.getElementById("chk-AutoStart");
+  let chk = document.getElementById("chk-AutoMSR");
+  let _autoStart = document.getElementById("chk-AutoStart");
   if (_autoStart.checked & chk.checked & (e.Data.toLowerCase() == "idle")) {
     ClearAutoCheck();
     mt_UI.LogData(`Auto Starting MSR...`);

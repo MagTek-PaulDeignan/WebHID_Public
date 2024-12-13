@@ -1,86 +1,232 @@
-
-<!doctype html>
-<!-- 
-Copyright 2022 Paul Deignan MagTek, Inc.
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), 
-to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
-and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, 
-WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
--->
 <html lang="en">
-	<head>
-		<title>MagTek Web Demo</title>
-		<!-- Required meta tags -->
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=yes">
-		<!-- Bootstrap CSS -->
-		<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-		<link rel="stylesheet" type="text/css" href="./css/site.css"/>
-	</head>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+	<link rel="stylesheet" type="text/css" href="./css/site.css"/>
+    <title>MagTek Web Demos</title>
+    <style>
+        /* body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+            background-color: #f4f4f9;
+        } */
+        /* h1 {
+            color: #2c3e50;
+            text-align: center;s
+        } */
+        .tile-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            margin-top: 20px;
+        }
+        .tile {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin: 10px;
+            width: 300px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+        }
+        .tile:hover {
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            transform: translateY(-5px);
+        }
+        .tile h2 {
+            font-size: 18px;
+            margin: 0 0 10px;
+            color: rgba(210, 18, 66, 1);
+        }
+        .tile p {
+            font-size: 14px;
+            color: #666;
+        }
+        .tile .content {
+            display: none;
+            margin-top: 10px;
+        }
+        .collapsible {
+            cursor: pointer;
+            background-color: #f9f9f9;
+            border: none;
+            text-align: left;
+            outline: none;
+            font-size: 16px;
+            padding: 10px;
+            width: 100%;
+            border-radius: 5px;
+        }
+        .collapsible:hover {
+            background-color: #e9e9e9;
+        }
+        .content ul {
+            list-style-type: disc;
+            margin: 10px 0 0 20px;
+        }
+    </style>
+</head>
+<body class="d-flex flex-column vh-100">
+	<div class="container">
+		<img src="./images/magtek_logo.png" alt="Logo" width="150">
+  </div>
 
-	<body d-flex flex-column>
-		<div class="container">
-			  <img src="./images/magtek_logo.png" alt="Logo" width="150">
-		</div>
-		  
-		<div class="container">
-		<h1>Web Demo</h1>
-		</div>
-	  
-		<div class="container">
-			<div class="form-group row"> 
-		    		<a href="mmsdemo.html" class="link-primary">HID MMS Demo</a>
-			</div>
-			<br>
-			<div class="form-group row"> 
-				<a href="mmsWebSocket.html" class="link-primary">WebSocket MMS Demo</a>
-			</div>
-			<br>
-			<div class="form-group row"> 
-				<a href="mmsMQTTDemo.html" class="link-primary">MMS MQTT Demo</a>
-			</div>
-			<div class="form-group row"> 
-				<a href="mmsMPPGDemo.html" class="link-primary">MMS MQTT MPPG Demo</a>
-			</div>
-			<div class="form-group row"> 
-				<a href="mmsmqttdevice.html" class="link-primary" target="_blank">MMS MQTT Device Client</a>
-			</div>
-			<br>
-			<div class="form-group row"> 
-				<a href="V5MQTTDemo.html" class="link-primary">MQTT V5 Demo</a>
-			</div>
-			<div class="form-group row"> 
-				<a href="v5mqttdevice.html" class="link-primary" target="_blank">MQTT V5 Device Client</a>
-			</div>
-			<div class="form-group row"> 
-				<a href="v5demo.html" class="link-primary">HID V5 Demo</a>				
-			</div>
-			<div class="form-group row"> 
-				<a href="DynaMagdemo.html" class="link-primary">HID Dynamag Demo</a>				
-			</div>
-			<div class="form-group row"> 
-				<a href="ID5G3Demo.html" class="link-primary">HID ID5G3 Demo</a>				
-			</div>
-			<br>
-			<div class="form-group row"> 
-				<a href="configure.html" class="link-primary">Configure</a>
-			</div>
-			<br>
-			<div class="form-group row"> 
-				<a href="mmsconfigdevice.html" class="link-primary">Trust Configuration</a>
-			</div>
-			<br>
-			<div class="form-group row"> 
-				<a href="https://github.com/MagTek-PaulDeignan/WebHID_Public" class="link-primary" target="_blank" >GitHub Source</a>				
-			</div>
-		</div>
-		<footer class="mt-auto text-center text-lg-start text-muted fixed-bottom">
-			<div class="mt-auto text-center p-4" style="background-color: rgba(0, 0, 0, 0);">
-			  MagTek, Inc. Copyright 2024 ©: Version 1.1.0.0
-			</div>
-		</footer>
-	</body>
+    
+  
+
+    <div class="tile-container">
+		
+        <!-- MMS Devices-->
+        <div class="tile">
+            <h2>MMS Devices for EMV, NFC, BCR and PIN </h2>
+              <div>DynaFlex I, DynFlex II, DynaFlex II Go, DynaFlex II PED, and Dynaprox</div><br>
+            <p>These demos show how to communicate with Secure Card Reader Authenticator (SCRA) devices which implement MagTek Messaging Schema (MMS) system architecture.</p>
+Click to see more.
+            <div class="content">
+                <div>
+                    <p>Web HID enables reliable USB communication using a Desktop Chromium Browser.</p>
+                    <ul>
+                        <li><a href="mmsdemo.html">MMS Device Demo</a></li>
+                    </ul>
+                </div>                
+                <div>
+                    <br>
+                    <p>MQTT is a lightweight messaging protocol for secure communication.  DynaFlex II PED supports native MQTT where other MMS devices require the use of the MMS Device Client.</p>
+                    <ul>
+                        <li><a href="mmsMQTTDemo.html">MMS Device Demo</a></li>
+                        <li><a href="mmsmqttdevice.html" target="_blank">MMS Device Client</a></li>
+                        <li><a href="mmsMPPGDemo.html">MMS MPPG Demo</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <br>
+                    <p>DynaFlex II PED supports native WebSocket providing full-duplex communication over a single TCP connection.</p>
+                    <ul>
+                        <li><a href="mmsWebSocket.html">MMS Device Demo</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- V5 Devices -->
+        <div class="tile">
+            <h2>V5 Devices for EMV and NFC</h2>
+<div>iDynamo 6, eDynamo, mDynamo and tDynamo</div><br>
+<p>These demos show how to communicate with Secure Card Reader Authenticator (SCRA) devices which implement MagTek's MagneSafe V5 system architecture.</p>
+Click to see more.
+            <div class="content">
+                <div>
+                    <p>Web HID enables reliable USB communication using a Desktop Chromium Browser.</p>
+                    <ul>
+                        <li><a href="v5demo.html">V5 Device Demo</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <br>
+                    <p>MQTT is a lightweight messaging protocol for secure communication.  V5 devices require the use of the V5 Device Client.</p>
+                    <ul>
+                        <li><a href="V5MQTTDemo.html">V5 Device Demo</a></li>
+                        <li><a href="v5mqttdevice.html" target="_blank">V5 Device Client</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dynamag Devices -->
+        <div class="tile">
+            <h2>V5 Devices for MSR/Manual Entry</h2>
+<div>Dynamag and DynaPAD and other V5 HID swipe readers</div><br>
+            <p>These demos show how to communicate with Secure Card Reader Authenticator (SCRA) devices which implement MagTek's MagneSafe V5 (Non-EMV) system architecture.</p>
+Click to see more.
+            <div class="content">
+                <div>
+                    <p>Web HID enables reliable USB communication using a Desktop Chromium Browser.</p>
+                    <ul>
+                        <li><a href="Dynamagdemo.html">Dynamag Demo</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- ID5G3 Devices -->
+        <div class="tile">
+            <h2>V5 (SRED) MSR Devices</h2>
+<div>iDynamo 5 Gen III</div><br>
+<p>These demos show how to communicate with Secure Card Reader Authenticator (SCRA) devices
+which implement MagTek's ID5G3 system architecture.</p>
+Click to see more.
+            <div class="content">
+                <div>
+                    <p>Web HID enables reliable USB communication using a Desktop Chromium Browser.</p>
+                    <ul>
+                        <li><a href="ID5G3Demo.html">ID5G3 Demo</a></li>
+                    </ul>
+                </div>
+
+		    <div>
+                <br>
+                <p>MQTT is a lightweight messaging protocol for secure communication.  V5 (SRED) devices require the use of the ID5G3 Device Client.</p>
+		            <ul>
+                        <li><a href="ID5G3MQTTDemo.html">ID5G3 Demo</a></li>
+                        <li><a href="ID5G3MQTTDevice.html" target="_blank">ID5G3 Device Client</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+                <!-- Configure Devices -->
+                <div class="tile">
+                    <h2>Misc.</h2>
+                    <p>Contains configuration and documentation pages.</p>
+        Click to see more.
+                    <div class="content">
+                        <div>
+                            <p></p>
+                            <ul>
+                                <li><a href="configure.html">Configuration for the Demos</a></li>
+                                <li><a href="mmsconfigdevice.html">Trust Config</a></li>
+                                <li><a href="https://github.com/MagTek-PaulDeignan/WebHID_Public" target="_blank">GitHub Source</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    </div>
+
+
+    
+    <script>
+        const collapsibles = document.querySelectorAll('.collapsible');
+        collapsibles.forEach(button => {
+            button.addEventListener('click', function () {
+                this.classList.toggle('active');
+                const content = this.nextElementSibling;
+                if (content.style.display === "block") {
+                    content.style.display = "none";
+                } else {
+                    content.style.display = "block";
+                }
+            });
+        });
+
+        const tiles = document.querySelectorAll('.tile');
+        tiles.forEach(tile => {
+            tile.addEventListener('click', function () {
+                const content = this.querySelector('.content');
+                content.style.display = content.style.display === 'block' ? 'none' : 'block';
+            });
+        });
+    </script>
+
+<footer class="mt-auto text-center text-lg-start text-muted">
+    <div class="mt-auto text-center p-4" style="background-color: rgba(0, 0, 0, 0);">
+      MagTek, Inc. Copyright 2024 ©: Version 2.0.0.0
+    </div>
+</footer>
+
+</body>
 </html>

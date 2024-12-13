@@ -10,11 +10,11 @@ DO NOT REMOVE THIS COPYRIGHT
  WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-import * as mt_MMS from "./API_mmsParse.js";
-import * as mt_AppSettings from "./config/appsettings.js";
-import mqtt from "./mqtt.esm.js";
-import "./mt_events.js";
 import * as mt_Utils from "./mt_utils.js";
+import * as MT_ID5G3Parse from "./API_ID5G3Parse.js";
+import * as mt_AppSettings from "./config/appsettings.js";
+import mqtt  from "./mqtt.esm.js";
+import "./mt_events.js";
 
 let _url = "";
 let _devPath = "";
@@ -59,7 +59,7 @@ function EmitObject(e_obj) {
 
 export async function SendCommand(cmdHexString) {
     window.mt_device_response = null
-    _client.publish(`${mt_AppSettings.MQTT.MMS_Base_Sub}${_devPath}`, cmdHexString);
+    _client.publish(`${mt_AppSettings.MQTT.ID5G3_Base_Sub}${_devPath}`, cmdHexString);
     let Resp = await waitForDeviceResponse();
     return Resp;
 };
@@ -76,21 +76,21 @@ function waitForDeviceResponse() {
   return waitFor();
 }
 
-export async function GetDeviceSN(){
-  let resp = await SendCommand("AA0081040100D101841AD10181072B06010401F609850102890AE208E106E104E102C100");
-  let str = resp.TLVData.substring(24);  
-  let tag89 = mt_Utils.getTagValue("89","",str, false) ;
-  let data = mt_Utils.getTagValue("C1","",tag89, false);
-  return data.substring(0,7);
-}
+// export async function GetDeviceSN(){
+//   let resp = await SendCommand("AA0081040100D101841AD10181072B06010401F609850102890AE208E106E104E102C100");
+//   let str = resp.TLVData.substring(24);  
+//   let tag89 = mt_Utils.getTagValue("89","",str, false) ;
+//   let data = mt_Utils.getTagValue("C1","",tag89, false);
+//   return data.substring(0,7);
+// }
 
-export async function GetDeviceFWID(){
-  let resp = await SendCommand("AA0081040102D101841AD10181072B06010401F609850102890AE108E206E204E202C200");
-  let str = resp.TLVData.substring(24);  
-  let tag89 = mt_Utils.getTagValue("89","",str, false);
-  let data = mt_Utils.getTagValue("C2","",tag89, true);
-  return data;
-}
+// export async function GetDeviceFWID(){
+//   let resp = await SendCommand("AA0081040102D101841AD10181072B06010401F609850102890AE108E206E204E202C200");
+//   let str = resp.TLVData.substring(24);  
+//   let tag89 = mt_Utils.getTagValue("89","",str, false);
+//   let data = mt_Utils.getTagValue("C2","",tag89, true);
+//   return data;
+// }
 
 
 export function OpenMQTT(){
@@ -100,7 +100,7 @@ export function OpenMQTT(){
     let options = {
       clean: true,
       connectTimeout: 4000,
-      clientId: `MagTekClient-${mt_Utils.makeid(6)}`,
+      clientId: `MagTekID5G3Client-${mt_Utils.makeid(6)}`,
       username: _userName,
       password: _password  
     };
@@ -128,14 +128,12 @@ export async function CloseMQTT(){
 async function onMQTTConnect(_connack) {    
   if(_client != null){
   // Subscribe to a topic
-  if(_devPath.length > 0)
-  {
-    await _client.unsubscribe(`${mt_AppSettings.MQTT.MMS_Base_Pub}${_devPath}/#`, CheckMQTTError);  
-    await _client.subscribe(`${mt_AppSettings.MQTT.MMS_Base_Pub}${_devPath}/#`, CheckMQTTError);    
-  }
-  await _client.unsubscribe(`${mt_AppSettings.MQTT.MMS_DeviceList}`, CheckMQTTError);
-  await _client.subscribe(`${mt_AppSettings.MQTT.MMS_DeviceList}`, CheckMQTTError);  
+  
+  await _client.unsubscribe(`${mt_AppSettings.MQTT.ID5G3_Base_Pub}${_devPath}/#`, CheckMQTTError);  
+  await _client.unsubscribe(`${mt_AppSettings.MQTT.ID5G3_DeviceList}`, CheckMQTTError);
 
+  await _client.subscribe(`${mt_AppSettings.MQTT.ID5G3_Base_Pub}${_devPath}/#`, CheckMQTTError);
+  await _client.subscribe(`${mt_AppSettings.MQTT.ID5G3_DeviceList}`, CheckMQTTError);  
 }
 };
 
@@ -151,7 +149,7 @@ function CheckMQTTError (err) {
 
 function onMQTTMessage(topic, message) {
     let data = message.toString();
-    //console.log(topic + " MMS:: " + data )
+    //console.log(topic + " ID5G3:: " + data )
     let topicArray = topic.split('/');
     if(topicArray.length >= 5){
       switch (topicArray[topicArray.length-1]) {
@@ -175,8 +173,19 @@ function onMQTTMessage(topic, message) {
           }
           }
           break; 
-        case "MMSMessage":
-          mt_MMS.ParseMMSMessage(mt_Utils.hexToBytes(data));
+        //case "V5Message":          
+          //MT_V5Parse.processMsgType(data);
+        //  break;
+        case "ID5G3Message":
+          
+          switch (data.substring(0,2)) {
+            case "4D":
+              MT_ID5G3Parse.ParseID5G3MSR(data);  
+              break;
+            default:
+              EmitObject({ Name: "OnDeviceResponse", Source:"ID5G3", Data: data });      
+              break;
+          };
           break;
         default:
           console.log(`${topic}: ${data}`);

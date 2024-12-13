@@ -19,7 +19,7 @@ export function toHexString(byteArray) {
 }
 
 export function AsciiToHexPad(AsciiString, length) {
-  var hex = (AsciiToHex(AsciiString) + "0".repeat(length*2)).slice(0, length*2);
+  let hex = (AsciiToHex(AsciiString) + "0".repeat(length*2)).slice(0, length*2);
   return hex;
 };
 
@@ -29,14 +29,14 @@ export function wait(ms) {
 }
 
 export function makeHex(value, sigDigits) {
-  var hex = ("0".repeat(sigDigits) + value.toString(16).toUpperCase()).slice(
+  let hex = ("0".repeat(sigDigits) + value.toString(16).toUpperCase()).slice(
     -sigDigits
   );
   return hex;
 }
 export function hexToASCII(hexString) {
-  var str = "";
-  for (var n = 0; n < hexString.length; n += 2) {
+  let str = "";
+  for (let n = 0; n < hexString.length; n += 2) {
     str += String.fromCharCode(parseInt(hexString.substr(n, 2), 16));
   }
   return str;
@@ -44,18 +44,18 @@ export function hexToASCII(hexString) {
 
 export function AsciiToHex(str)
 {
-    var arr1 = [];
-    for (var n = 0, l = str.length; n < l; n++)
+    let arr1 = [];
+    for (let n = 0, l = str.length; n < l; n++)
     {
-        var hex = Number(str.charCodeAt(n)).toString(16).toUpperCase();
+        let hex = Number(str.charCodeAt(n)).toString(16).toUpperCase();
         arr1.push(hex);
     }
     return arr1.join('');
 };
 
 export function hexToDecIPv4(hexString) {
-  var str = "";
-  for (var n = 0; n < hexString.length; n += 2) {
+  let str = "";
+  for (let n = 0; n < hexString.length; n += 2) {
     str += parseInt(hexString.substr(n, 2), 16).toString();
     if (n < (hexString.length - 2)) str += ".";
   }
@@ -64,8 +64,8 @@ export function hexToDecIPv4(hexString) {
 
 
 export function hexToASCIInulltoNewLine(hexString) {
-  var str = "";
-  for (var n = 0; n < hexString.length; n += 2) {
+  let str = "";
+  for (let n = 0; n < hexString.length; n += 2) {
     if(parseInt(hexString.substr(n, 2), 16)==0){
       str += '\n';
     }else
@@ -77,8 +77,8 @@ export function hexToASCIInulltoNewLine(hexString) {
 }
 
 export function hexToASCIIRemoveNull(hexString) {
-  var str = "";
-  for (var n = 0; n < hexString.length; n += 2) {
+  let str = "";
+  for (let n = 0; n < hexString.length; n += 2) {
     if(parseInt(hexString.substr(n, 2), 16)!=0)
     {
       str += String.fromCharCode(parseInt(hexString.substr(n, 2), 16));
@@ -88,7 +88,7 @@ export function hexToASCIIRemoveNull(hexString) {
 };
 
 export function MMSParser(hexdata) {
-  var Msg = hexToBytes(hexdata);
+  let Msg = hexToBytes(hexdata);
   const MMSMessage = {
     MsgHeader: makeHex(Msg[0], 2),
     MsgVersion: makeHex(Msg[1], 2),
@@ -103,7 +103,7 @@ return MMSMessage;
 
 
 export function tlvParser(hexdata) {
-  var data = hexToBytes(hexdata);
+  let data = hexToBytes(hexdata);
   const dataLength = data.length;
   const moreTagBytesFlag1 = 0x1f;
   const moreTagBytesFlag2 = 0x80;
@@ -186,8 +186,8 @@ export function tlvParser(hexdata) {
 export function getTagValue(tagName, defaultTagValue, tlvData, asASCII) {
   try 
   {
-    var TLVS = tlvParser(tlvData);
-    var currtlv = TLVS.find((tlv) => tlv.tag === tagName);
+    let TLVS = tlvParser(tlvData);
+    let currtlv = TLVS.find((tlv) => tlv.tag === tagName);
     if (currtlv == undefined) return defaultTagValue;
     {
       if (asASCII == true) {
@@ -221,7 +221,7 @@ export function debugLog(data) {
 }
 
 export function getDefaultValue(key, defaultValue){
-  var keyVal = localStorage.getItem(key);
+  let keyVal = localStorage.getItem(key);
   if (keyVal == null) keyVal = defaultValue;
  
   return keyVal;
@@ -232,7 +232,7 @@ export function saveDefaultValue(key, value){
 }
 
 export function getEncodedValue(key, defaultValue){
-  var keyVal = localStorage.getItem(`enc-${window.btoa(key)}`);
+  let keyVal = localStorage.getItem(`enc-${window.btoa(key)}`);
   if (keyVal == null) keyVal = defaultValue;
   return window.atob(keyVal);
 }
@@ -264,7 +264,7 @@ export function filterString(inputString) {
 
 
 Array.prototype.zeroFill = function (len) {
-  for (var i = this.length; i < len; i++) {
+  for (let i = this.length; i < len; i++) {
     this[i] = 0;
   }
   return this;
@@ -291,13 +291,13 @@ Array.prototype.zeroFill = function (len) {
         }
     
         // Initialize an empty object to store the event objects
-        var eventObjects = {};
+        let eventObjects = {};
     
         // Store the index of the last event that was fired
-        var lastEventIndex = -1;
+        let lastEventIndex = -1;
     
         // Create an array of promises, one for each event
-        var listeners = eventNames.map(function(eventName, index) {
+        let listeners = eventNames.map(function(eventName, index) {
     
             // Return a promise that resolves once event fired
             return new Promise(function(resolve) {

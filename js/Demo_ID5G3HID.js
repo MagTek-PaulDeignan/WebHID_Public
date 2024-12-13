@@ -19,8 +19,9 @@ import * as mt_UI from "./mt_ui.js";
 
 import "./mt_events.js";
 
-export var _openTimeDelay = 2000;
+export let _openTimeDelay = 2000;
 
+let retval = "";
 
 document
   .querySelector("#deviceOpen")
@@ -41,7 +42,7 @@ document.addEventListener("DOMContentLoaded", handleDOMLoaded);
 
 async function handleDOMLoaded() {
   mt_UI.ClearLog();
-  var devices = await mt_Device.getDeviceList();
+  let devices = await mt_Device.getDeviceList();
   mt_UI.LogData(`Devices currently attached and allowed:`);
   
   if (devices.length == 0 ) mt_UI.setUSBConnected("Connect a device");
@@ -74,8 +75,7 @@ async function handleClearButton() {
 }
 
 async function handleOpenButton() {
-  window.mt_device_hid = await mt_Device.openDevice();
-  mt_Utils.debugLog(`PID: ${window.mt_device_hid.productId}`)  
+  window.mt_device_hid = await mt_Device.openDevice();  
 }
 
 async function handleSendCommandButton() {
@@ -85,10 +85,10 @@ async function handleSendCommandButton() {
 
 async function parseCommand(message) {
   let Response ;
-  var cmd = message.split(",");
+  let cmd = message.split(",");
   switch (cmd[0].toUpperCase()) {
     case "GETAPPVERSION":
-      mt_Utils.debugLog("GETAPPVERSION " + mt_AppSettings.App.Version);
+      //mt_Utils.debugLog("GETAPPVERSION " + mt_AppSettings.App.Version);
       return mt_AppSettings.App.Version;
       break;
     case "GETDEVINFO":
@@ -122,11 +122,11 @@ async function parseCommand(message) {
       break;
     case "GETTAGVALUE":
       let asAscii = (cmd[4] === 'true');
-      var retval = mt_Utils.getTagValue(cmd[1], cmd[2], cmd[3], asAscii);
+      retval = mt_Utils.getTagValue(cmd[1], cmd[2], cmd[3], asAscii);
       mt_UI.LogData(`Get Tags for ${retval}`);      
       break;
     case "PARSETLV":
-      var retval = mt_Utils.tlvParser(cmd[1]);
+      retval = mt_Utils.tlvParser(cmd[1]);
       mt_UI.LogData(JSON.stringify(retval));
       break;
     case "UPDATEPROGRESS":
@@ -139,7 +139,7 @@ async function parseCommand(message) {
 
 
 function ClearAutoCheck() {
-  var chk = document.getElementById("chk-AutoStart");
+  let chk = document.getElementById("chk-AutoStart");
   chk.checked = false;
 }
 

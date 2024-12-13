@@ -106,7 +106,7 @@ This module provides utility functions essential for processing hexadecimal data
 
    ```javascript
    Array.prototype.zeroFill = function (len) {
-     for (var i = this.length; i < len; i++) {
+     for (let i = this.length; i < len; i++) {
        this[i] = 0;
      }
      return this;

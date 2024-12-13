@@ -29,7 +29,7 @@ export async function TransactionCreate( SMSNumber, EmailAddress, Claims ){
   
     try {
        
-      var req = {
+      let req = {
     
         InputParameters: {
           
@@ -42,7 +42,7 @@ export async function TransactionCreate( SMSNumber, EmailAddress, Claims ){
       }
 
       
-      var TransactionResponse = await PostCreateTransaction(req);
+      let TransactionResponse = await PostCreateTransaction(req);
       return TransactionResponse;
     } 
     catch (error) 
@@ -76,7 +76,7 @@ async function PostCreateTransaction(request) {
         }
       }
   
-      var TransactionResponse = await PostRedeemTransaction(req);
+      let TransactionResponse = await PostRedeemTransaction(req);
      
       return TransactionResponse;
     } 
@@ -95,7 +95,7 @@ async function PostCreateTransaction(request) {
         }
       }
   
-      var TransactionResponse = await PostReadTransaction(req);
+      let TransactionResponse = await PostReadTransaction(req);
      
       return TransactionResponse;
     } 

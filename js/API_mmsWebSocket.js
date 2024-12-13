@@ -59,7 +59,7 @@ export async function CloseWS(){
 export async function SendCommand(cmdHexString) {
   window.mt_device_response = null;
   MTWebSocket.send(cmdHexString);    
-  var Resp = await waitForDeviceResponse();
+  let Resp = await waitForDeviceResponse();
   return Resp;
 
 };
@@ -91,7 +91,7 @@ function ws_onerror(error) {
   };
 
 function ws_onmessage(ws_msg) {			
-    var dataArray
+    let dataArray
     if( typeof ws_msg.data == 'string')
     {
       dataArray = mt_Utils.hexToBytes(ws_msg.data);

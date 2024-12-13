@@ -13,8 +13,8 @@ DO NOT REMOVE THIS COPYRIGHT
 import * as mt_Utils from "./mt_utils.js";
 import "./mt_events.js";
 
-export var LogMMStoConsole = true;
-export var LogMMStoEvent = false;
+export let LogMMStoConsole = false;
+export let LogMMStoEvent = false;
 
 let data_buffer_response = [];
 

@@ -60,7 +60,7 @@ function EmitObject(e_obj) {
 export async function SendCommand(cmdHexString) {
     window.mt_device_response = null
     _client.publish(`${mt_AppSettings.MQTT.V5_Base_Sub}${_devPath}`, cmdHexString);
-    var Resp = await waitForDeviceResponse();
+    let Resp = await waitForDeviceResponse();
     return Resp;
 };
 
@@ -149,6 +149,7 @@ function CheckMQTTError (err) {
 
 function onMQTTMessage(topic, message) {
     let data = message.toString();
+    //console.log(topic + " V5:: " + data )
     let topicArray = topic.split('/');
     if(topicArray.length >= 5){
       switch (topicArray[topicArray.length-1]) {

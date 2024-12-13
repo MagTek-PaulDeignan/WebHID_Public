@@ -15,6 +15,7 @@ import * as mt_V5 from "./API_v5HID.js";
 import * as mt_Utils from "./mt_utils.js";
 import * as mt_RMS_API from "./API_rms.js";
 
+let retval = "";
 let _KSN = "";
 let _UIK = "";
 let _FWID = "";
@@ -41,7 +42,7 @@ function updateProgress(caption, progress ){
   EmitObject({ Name: "OnRMSProgress", Data: {Caption: caption, Progress: progress }});
 };
 export async function updateDevice() {
-  var bStatus = true;
+  let bStatus = true;
   _DeviceConfigList = null;
   try {
     LogData(`${mt_RMS_API.ProfileName}: Checking for updates...`);
@@ -115,7 +116,7 @@ async function getDeviceInfo() {
 async function parseRMSCommands(description, messageArray) {
   for (let index = 0; index < messageArray.length; index++) {
     const element = messageArray[index];        
-    var progress = parseInt((index / messageArray.length) * 100);
+    let progress = parseInt((index / messageArray.length) * 100);
     updateProgress(`Loading ${description}`, progress);
     await parseRMSCommand(element);
   }
@@ -139,7 +140,7 @@ async function updateTags(command) {
         DownloadPayload: true,
       };
 
-      var tagsResp = await mt_RMS_API.GetTags(req);      
+      let tagsResp = await mt_RMS_API.GetTags(req);      
     }
 
     switch (tagsResp.ResultCode) {
@@ -197,7 +198,7 @@ async function updateConfig(configname) {
         InterfaceType: "USB",
         DownloadPayload: true,
       };
-      var configResp = await mt_RMS_API.GetConfig(req);      
+      let configResp = await mt_RMS_API.GetConfig(req);      
 
 
     switch (configResp.ResultCode) {
@@ -252,7 +253,7 @@ async function updateFirmware(fwType) {
       DownloadPayload: true,
     };
 
-    var firmwareResp = await mt_RMS_API.GetFirmware(req);
+    let firmwareResp = await mt_RMS_API.GetFirmware(req);
           if(firmwareResp.HasBLEFirmware && fwType.toLowerCase() == "main"){
             _HasBLEFirmware = true;
             //LogData("This reader has BLE firmware");
@@ -295,7 +296,7 @@ async function updateFirmware(fwType) {
 };
 async function parseRMSCommand(message) {
   let Response;
-  var cmd = message.split(",");
+  let cmd = message.split(",");
   switch (cmd[0].toUpperCase()) {
     case "GETDEVINFO":
       //return mt_HID.getDeviceInfo();
@@ -354,11 +355,11 @@ async function parseRMSCommand(message) {
       break;
     case "GETTAGVALUE":
       let asAscii = (cmd[4] === 'true');
-      var retval = mt_Utils.getTagValue(cmd[1], cmd[2], cmd[3], asAscii);
+      retval = mt_Utils.getTagValue(cmd[1], cmd[2], cmd[3], asAscii);
       LogData(`Get Tags for ${retval}`);
       break;
     case "PARSETLV":
-      var retval = mt_Utils.tlvParser(mt_Utils.hexToBytes(cmd[1]));
+      retval = mt_Utils.tlvParser(mt_Utils.hexToBytes(cmd[1]));
       LogData("PARSETLV", JSON.stringify(retval));
       break;
     default:

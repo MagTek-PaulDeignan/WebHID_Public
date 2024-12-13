@@ -215,6 +215,7 @@ function CheckMQTTError (err) {
 
 function onMQTTMessage(topic, message) {
     let data = message.toString();
+    //console.log(topic + " MMSDevice:: " + data )
     mt_MMS.sendCommand(data);
 };
 

@@ -13,17 +13,12 @@ DO NOT REMOVE THIS COPYRIGHT
 import * as mt_Utils from "./mt_utils.js";
 import * as MT_Parse from "./API_v5Parse.js";
 import * as mt_Configs from "./config/DeviceConfig.js";
+import * as mt_AppSettings from "./config/appsettings.js";
+
+let _filters = mt_Configs.V5filters;
 
 let mtDeviceType = "";
 let _devinfo = "";
-
-
-
-var appOptions = {
-  responseDelay: 5,
-};
-
-
 
 
 function EmitObject(e_obj) {
@@ -32,19 +27,20 @@ function EmitObject(e_obj) {
 
 export async function getDeviceList() {
   let devices = await navigator.hid.getDevices();
+  devices = mt_Configs.filterDevices(devices, _filters);
   return devices;
 }
 
 
 Array.prototype.zeroFill = function (len) {
-  for (var i = this.length; i < len; i++) {
+  for (let i = this.length; i < len; i++) {
     this[i] = 0;
   }
   return this;
 };
 
 function buildCmdArray(commandstring, reportLen) {
-  var cmdArray = mt_Utils.hexToBytes(commandstring).zeroFill(reportLen);
+  let cmdArray = mt_Utils.hexToBytes(commandstring).zeroFill(reportLen);
   return new Uint8Array(cmdArray);
 }
 
@@ -70,12 +66,12 @@ export function calcDateTime() {
 }
 
 function getExtendedCommandArray(commandStr, dataStr) {
-  var command = mt_Utils.hexToBytes(commandStr);
-  var data = mt_Utils.hexToBytes(dataStr);
-  var result = [];
+  let command = mt_Utils.hexToBytes(commandStr);
+  let data = mt_Utils.hexToBytes(dataStr);
+  let result = [];
   const MAX_DATA_LEN = 60;
-  var commandLen = 0;
-  var dataLen = 0;
+  let commandLen = 0;
+  let dataLen = 0;
   if (command != null) {
     commandLen = command.length;
   }
@@ -85,13 +81,13 @@ function getExtendedCommandArray(commandStr, dataStr) {
   if (data != null) {
     dataLen = data.length;
   }
-  var offset = 0;
+  let offset = 0;
   while (offset < dataLen || dataLen == 0) {
-    var len = dataLen - offset;
+    let len = dataLen - offset;
     if (len >= MAX_DATA_LEN - 8) {
       len = MAX_DATA_LEN - 9;
     }
-    var extendedCommand = new Array(8 + len);
+    let extendedCommand = new Array(8 + len);
     extendedCommand[0] = 0x49;
     extendedCommand[1] = 6 + len;
     extendedCommand[2] = (offset >> 8) & 0xff;
@@ -100,7 +96,7 @@ function getExtendedCommandArray(commandStr, dataStr) {
     extendedCommand[5] = command[1];
     extendedCommand[6] = (dataLen >> 8) & 0xff;
     extendedCommand[7] = dataLen & 0xff;
-    var i;
+    let i;
     for (i = 0; i < len; i++) {
       extendedCommand[8 + i] = data[offset + i];
     }
@@ -113,17 +109,17 @@ function getExtendedCommandArray(commandStr, dataStr) {
 }
 
 function getExtCommandArray(commandStr) {
-  var command = mt_Utils.hexToBytes(commandStr);
-  var result = [];
+  let command = mt_Utils.hexToBytes(commandStr);
+  let result = [];
   const MAX_DATA_LEN = 60;
-  var dataLen = parseInt(commandStr.substring(4, 8), 16);
-  var offset = 0;
+  let dataLen = parseInt(commandStr.substring(4, 8), 16);
+  let offset = 0;
   while (offset < dataLen || dataLen == 0) {
-    var len = dataLen - offset;
+    let len = dataLen - offset;
     if (len >= MAX_DATA_LEN - 8) {
       len = MAX_DATA_LEN - 9;
     }
-    var extendedCommand = new Array(8 + len);
+    let extendedCommand = new Array(8 + len);
     extendedCommand[0] = 0x49;
     extendedCommand[1] = 6 + len;
     extendedCommand[2] = (offset >> 8) & 0xff;
@@ -132,7 +128,7 @@ function getExtCommandArray(commandStr) {
     extendedCommand[5] = command[1];
     extendedCommand[6] = (dataLen >> 8) & 0xff;
     extendedCommand[7] = dataLen & 0xff;
-    var i;
+    let i;
     for (i = 0; i < len; i++) {
       extendedCommand[8 + i] = command[4 + offset + i];
     }
@@ -146,12 +142,14 @@ function getExtCommandArray(commandStr) {
 
 export async function sendExtendedCommand(cmdNumber, cmdData) {
   try {
-    var msgComplete = true;
-    var extendedResponse = "";
-    var cmds = getExtendedCommandArray(cmdNumber, cmdData);
-    for (var index = 0; index < cmds.length; index++) {
-      var deviceResponse = await sendDeviceCommand(cmds[index]);
-      var rc = deviceResponse.substring(2, 4);
+    let deviceResponse = "";
+    let rc = "";
+    let msgComplete = true;
+    let extendedResponse = "";
+    let cmds = getExtendedCommandArray(cmdNumber, cmdData);
+    for (let index = 0; index < cmds.length; index++) {
+      deviceResponse = await sendDeviceCommand(cmds[index]);
+      rc = deviceResponse.substring(2, 4);
       switch (rc) {
         case "0A": //more data is available
           extendedResponse = parseExtendedResponse(deviceResponse);
@@ -199,14 +197,16 @@ export async function sendExtendedCommand(cmdNumber, cmdData) {
 
 export async function sendExtCommand(cmdData) {
   try {
-    var index;
-    var msgComplete = true;
-    var extendedResponse = "";
-    var cmds = getExtCommandArray(cmdData);
+    let deviceResponse = "";
+    let rc = "";
+    let index;
+    let msgComplete = true;
+    let extendedResponse = "";
+    let cmds = getExtCommandArray(cmdData);
     for (index = 0; index < cmds.length; index++) {
       
-      var deviceResponse = await sendDeviceCommand(cmds[index]);      
-      var rc = deviceResponse.substring(0, 2);
+      deviceResponse = await sendDeviceCommand(cmds[index]);      
+      rc = deviceResponse.substring(0, 2);
       switch (rc) {
         case "0A": //more data is available
           extendedResponse = MT_Parse.parseExtendedResponse(deviceResponse);
@@ -293,8 +293,8 @@ async function sendDeviceCommand(cmdToSend) {
   return new Promise(async (resolve, reject) => {
     try {
             
-      var cmdInput = buildCmdArray(cmdToSend, _devinfo.ReportLen);
-      var numBytes = await window.mt_device_hid.sendFeatureReport(_devinfo.ReportID, cmdInput);
+      let cmdInput = buildCmdArray(cmdToSend, _devinfo.ReportLen);
+      let numBytes = await window.mt_device_hid.sendFeatureReport(_devinfo.ReportID, cmdInput);
       let dv = await getDeviceResponse();
       resolve(dv);
     } catch (error) {
@@ -307,9 +307,9 @@ async function getDeviceResponse() {
   return new Promise((resolve, reject) => {
     setTimeout(async function () {
       try {
-        var DataView = await window.mt_device_hid.receiveFeatureReport(_devinfo.ReportID);
-        var FP = new Uint8Array(DataView.buffer);
-        var RT = null;
+        let DataView = await window.mt_device_hid.receiveFeatureReport(_devinfo.ReportID);
+        let FP = new Uint8Array(DataView.buffer);
+        let RT = null;
         switch (_devinfo.ReportID) {
           case 0:
             RT = FP.slice(0, FP[1] + 2);
@@ -321,7 +321,7 @@ async function getDeviceResponse() {
 
         resolve(mt_Utils.toHexString(RT));
       } catch (err) {
-        mt_Utils.debugLog("Error thrown " + err);
+        //mt_Utils.debugLog("Error thrown " + err);
         reject(
           EmitObject({
             Name: "OnError",
@@ -330,18 +330,18 @@ async function getDeviceResponse() {
           })
         );
       }
-    }, appOptions.responseDelay);
+    }, mt_AppSettings.App.ResponseDelay);
   });
 }
 
   export async function openDevice() {
     try {
     let reqDevice;    
-    let devices = await navigator.hid.getDevices();
+    let devices = await getDeviceList();
     let device = devices.find((d) => d.vendorId === mt_Configs.vendorId);
 
     if (!device) {
-      reqDevice = await navigator.hid.requestDevice({ filters: mt_Configs.V5filters });
+      reqDevice = await navigator.hid.requestDevice({ filters: _filters});
       if(reqDevice != null)
         {
           if (reqDevice.length> 0)
@@ -393,37 +393,24 @@ async function getDeviceResponse() {
   };
 
   function handleInputReport(e) {
-    var packetArray = [];
-    var dataArray = new Uint8Array(e.data.buffer);
+    let packetArray = [];
+    let dataArray = new Uint8Array(e.data.buffer);
     packetArray[0] = e.reportId;
     packetArray.push(...dataArray);
     //let data = mt_Utils.toHexString(dataArray);
     //mt_Utils.debugLog(`Here is the Input Report: ${data}`)
     switch (mtDeviceType) {
       case "CMF":
-        EmitObject({Name: "OnError",
-          Source: "DeviceType",
-          Data: "Not Implemented"
-        });
+        EmitObject({Name: "OnError", Source: "DeviceType", Data: "Not Implemented"});
         break;
       case "MMS":
-        EmitObject({Name:"OnError",
-          Source: "DeviceType",
-          Data: "Use the MMS Parser"
-        });
+        EmitObject({Name:"OnError", Source: "DeviceType", Data: "Use the MMS Parser"});
         break;
       case "V5":
         MT_Parse.parseV5Packet(packetArray);
         break;
-      case "ID5G3":
-        MT_Parse.parseID5G3Packet(packetArray);
-        break;
-
         default:
-        EmitObject({Name: "OnError",
-          Source: "DeviceType",
-          Data: "Unknown Device Type"
-        });
+        EmitObject({Name: "OnError", Source: "DeviceType", Data: "Unknown Device Type"});
         break;
     }
   }

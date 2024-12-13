@@ -12,15 +12,10 @@ DO NOT REMOVE THIS COPYRIGHT
 "use strict";
 import * as mt_Utils from "./mt_utils.js";
 import * as mt_Configs from "./config/DeviceConfig.js";
+import * as mt_AppSettings from "./config/appsettings.js";
 
 
 let data_Buffer_Response = "";
-
-
-var appOptions = {
-  responseDelay: 5,
-};
-
 
 
 function EmitObject(e_obj) {  
@@ -39,7 +34,7 @@ export function parseID5G3Packet(data) {
     default:
       EmitObject({
         Name: "OnError",
-        Source: "parseV5Packet Unknown Report ID",
+        Source: "parseID5G3Packet Unknown Report ID",
         Data: hex,
       });
   }
@@ -48,14 +43,14 @@ export function parseID5G3Packet(data) {
 
 
 Array.prototype.zeroFill = function (len) {
-  for (var i = this.length; i < len; i++) {
+  for (let i = this.length; i < len; i++) {
     this[i] = 0;
   }
   return this;
 };
 
 function buildCmdArray(commandstring, reportLen) {
-  var cmdArray = mt_Utils.hexToBytes(commandstring).zeroFill(reportLen);
+  let cmdArray = mt_Utils.hexToBytes(commandstring).zeroFill(reportLen);
   return new Uint8Array(cmdArray);
 }
 
@@ -93,11 +88,9 @@ async function sendDeviceCommand(cmdToSend) {
     try {
       let _devinfo = mt_Configs.getHIDDeviceInfo(window.mt_device_hid.productId);
       let reportLen = _devinfo.ReportLen;
-      var cmdInput = buildCmdArray(cmdToSend, reportLen);
-      mt_Utils.debugLog(`sendCommand: ${mt_Utils.toHexString(cmdInput)}`);
-      var numBytes = await window.mt_device_hid.sendFeatureReport(1, cmdInput);
+      let cmdInput = buildCmdArray(cmdToSend, reportLen);
+      let numBytes = await window.mt_device_hid.sendFeatureReport(1, cmdInput);
       let dv = await getDeviceResponse();
-      mt_Utils.debugLog(`v5 parse sendResponse: ${dv}`);
       resolve(dv);
     } catch (error) {
       reject(error);
@@ -109,12 +102,11 @@ async function getDeviceResponse() {
   return new Promise((resolve, reject) => {
     setTimeout(async function () {
       try {
-        var DataView = await window.mt_device_hid.receiveFeatureReport(1);
-        var FP = new Uint8Array(DataView.buffer);
-        var RT = FP.slice(1, FP[2] + 3);
+        let DataView = await window.mt_device_hid.receiveFeatureReport(1);
+        let FP = new Uint8Array(DataView.buffer);
+        let RT = FP.slice(1, FP[2] + 3);
         resolve(mt_Utils.toHexString(RT));
       } catch (err) {
-        mt_Utils.debugLog("Error thrown " + err);
         reject(
           EmitObject({
             Name: "OnError",
@@ -123,18 +115,19 @@ async function getDeviceResponse() {
           })
         );
       }
-    }, appOptions.responseDelay);
+    }, mt_AppSettings.App.ResponseDelay);
   });
 }
 
 export function processMsgType(msg) {
 
-  var msgType = "";
+  
+  let msgType = "";
   switch (msg.substring(0, 2)) {
-    case "01": 
-      msgType = "ID5G3 Card Swipe";
-      processID5G3Msg(msg.substring(2));
-      break;
+     case "01": 
+       msgType = "ID5G3 Card Swipe";
+       processID5G3Msg(msg.substring(2));
+       break;
     default: 
       msgType = "Unknown Message Type";
       EmitObject({ Name: "OnError", Source:"ID5G3", Data: msgType });      
@@ -164,15 +157,26 @@ let _msg =  msg.substring(14, (_packetLen*2)+2);
 
   if (_msgLen * 2 == data_Buffer_Response.length)
   {
-    let arry = mt_Utils.hexToASCIIRemoveNull(data_Buffer_Response).split("|");
-    let ParsedMSR = ParseID5G3MSR(arry);
-    EmitObject({ Name: "OnV5MSRSwipe", Data: ParsedMSR});
+    EmitObject({Name: "OnV5Message",Data: data_Buffer_Response}); 
+    let ParsedMSR = ParseID5G3MSR(data_Buffer_Response);
     data_Buffer_Response = "";
   } 
 
 }
 
-function ParseID5G3MSR(cardArray) {
+export function ParseID5G3MSR(buffer) {
+  let newBuff = "";
+  let endsWith = buffer.substring(buffer.length -2, buffer.length)
+  if (endsWith == "0D")
+  {
+    newBuff = buffer.substring(0, buffer.length -2)
+  }
+  else
+  {
+    newBuff = buffer;
+  }
+  
+  let cardArray = mt_Utils.hexToASCIIRemoveNull(newBuff).split("|");
 
   let _card  = {
     EncodeType: "00",
@@ -185,24 +189,25 @@ function ParseID5G3MSR(cardArray) {
     EncryptionStatus: cardArray[11],
     KeySerialNumber: cardArray[10],
     SessionID: cardArray[17],
+    Transport: "Swipe"
   }
 
   let _track1 = {
     DecodeStatus:  0,
     EncryptedData: cardArray[4],
-    MaskedData: cardArray[1],
+    Data: cardArray[1],
   }
   
   let _track2 = {
     DecodeStatus: 0,
     EncryptedData: cardArray[5],
-    MaskedData: cardArray[2],
+    Data: cardArray[2],
   }
   
   let _track3 = {
     DecodeStatus: 0,
     EncryptedData: cardArray[6] ,
-    MaskedData: cardArray[3],
+    Data: cardArray[3],
   }
 
   let _resp = {
@@ -213,5 +218,6 @@ function ParseID5G3MSR(cardArray) {
     Device: _device,
   };
   
+  EmitObject({ Name: "OnV5MSRSwipe", Data: _resp});
   return _resp;
 }

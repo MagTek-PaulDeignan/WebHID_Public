@@ -15,8 +15,8 @@ import * as mt_HID from "./mt_hid.js";
 import * as mt_MQTT from "./API_mmsMQTT.js";
 import * as mt_WSS from "./API_mmsWebSocket.js";
 
-var _Transport = "HID";
-var _Type = "MMS";
+let _Transport = "HID";
+let _Type = "MMS";
 
 
 /**

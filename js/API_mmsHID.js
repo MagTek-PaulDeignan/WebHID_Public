@@ -12,9 +12,11 @@ DO NOT REMOVE THIS COPYRIGHT
 
 import * as mt_Utils from "./mt_utils.js";
 import * as mt_MMS from "./API_mmsParse.js";
-//import * as mt_HID from "./mt_hid.js";
 import * as mt_Configs from "./config/DeviceConfig.js";
 import "./mt_events.js";
+
+
+let _filters = mt_Configs.MMSfilters;
 
 let mtDeviceType = "";
 
@@ -24,6 +26,7 @@ function EmitObject(e_obj) {
 
 export async function getDeviceList() {
   let devices = await navigator.hid.getDevices();
+  devices = mt_Configs.filterDevices(devices, _filters);
   return devices;
 }
 
@@ -99,13 +102,11 @@ export async function GetDeviceFWID(){
 export async function openDevice() {
   try {
     let reqDevice;
-    let devices = await navigator.hid.getDevices();
+    let devices = await getDeviceList();    
     let device = devices.find((d) => d.vendorId === mt_Configs.vendorId);
     
-      //if (!device || devices.length > 1) {
       if (!device) {
-      
-      reqDevice = await navigator.hid.requestDevice({filters: mt_Configs.MMSfilters });
+      reqDevice = await navigator.hid.requestDevice({filters: _filters });
       if(reqDevice != null)
         {
           if (reqDevice.length > 0)

@@ -21,6 +21,7 @@ let defaultRMSURL = '';
 let defaultRMSAPIKey = '';
 let defaultRMSProfileName = '';
 
+let retval = "";
 
 let _contactSeated = false;
 let _AwaitingContactEMV = false;
@@ -103,10 +104,10 @@ async function parseCommand(message) {
   let cmd = message.split(",");
   switch (cmd[0].toUpperCase()) {
     case "GETAPPVERSION":
-      mt_Utils.debugLog("GETAPPVERSION " + appOptions.version);      
+      //mt_Utils.debugLog("GETAPPVERSION " + appOptions.version);      
       break;
     case "GETDEVINFO":
-      mt_Utils.debugLog("GETDEVINFO " + getDeviceInfo());      
+      //mt_Utils.debugLog("GETDEVINFO " + getDeviceInfo());      
       break;
     case "SENDCOMMAND":
       Response = await mt_MMS.sendCommand(cmd[1]);
@@ -134,15 +135,15 @@ async function parseCommand(message) {
       break;
     case "GETTAGVALUE":
       let asAscii = (cmd[4] === 'true');
-      var retval = mt_Utils.getTagValue(cmd[1], cmd[2], cmd[3], asAscii);
+      retval = mt_Utils.getTagValue(cmd[1], cmd[2], cmd[3], asAscii);
       mt_UI.LogData(retval);
       break;
     case "PARSETLV":
-      var retval = mt_Utils.tlvParser(cmd[1]);
+      retval = mt_Utils.tlvParser(cmd[1]);
       mt_UI.LogData(JSON.stringify(retval));
       break;
     case "PARSEMMS":
-      var retval = mt_Utils.MMSParser(cmd[1]);
+      retval = mt_Utils.MMSParser(cmd[1]);
       mt_UI.LogData(JSON.stringify(retval));
       break;
     
@@ -150,11 +151,11 @@ async function parseCommand(message) {
       mt_UI.LogData(cmd[1]);
       break;
     case "GETDEVICESN":
-      var sn = await mt_MMS.GetDeviceSN();
+      let sn = await mt_MMS.GetDeviceSN();
       mt_UI.LogData(sn);
       break;
     case "GETFIRMWAREID":
-      var fw = await mt_MMS.GetDeviceFWID();
+      let fw = await mt_MMS.GetDeviceFWID();
       mt_UI.LogData(fw);
       break;
     case "UPDATEDEVICE":
@@ -174,12 +175,12 @@ async function parseCommand(message) {
       }
       break;
     default:
-      mt_Utils.debugLog("Unknown Command");
+      //mt_Utils.debugLog("Unknown Command");
   }
 };
 
 function ClearAutoCheck() {
-  var chk = document.getElementById("chk-AutoStart");
+  let chk = document.getElementById("chk-AutoStart");
   chk.checked = false;
 }
 
@@ -255,14 +256,14 @@ const debugLogger = (e) => {
   mt_UI.LogData(`Error: ${e.Source} ${e.Data}`);
 };
 const touchUpLogger = (e) => {
-  var chk = document.getElementById("chk-AutoTouch");
+  let chk = document.getElementById("chk-AutoTouch");
   if (chk.checked) {
     mt_UI.LogData(`Touch Up: X: ${e.Data.Xpos} Y: ${e.Data.Ypos}`);
   }
 };
 
 const touchDownLogger = (e) => {
-  var chk = document.getElementById("chk-AutoTouch");
+  let chk = document.getElementById("chk-AutoTouch");
   if (chk.checked) {
     mt_UI.LogData(`Touch Down: X: ${e.Data.Xpos} Y: ${e.Data.Ypos}`);
   }
@@ -270,9 +271,9 @@ const touchDownLogger = (e) => {
 
 const contactlessCardDetectedLogger = async (e) => {
   if (e.Data.toLowerCase() == "idle") mt_UI.LogData(`Contactless Card Detected`);
-  var chk = document.getElementById("chk-AutoNFC");
-  var chkEMV = document.getElementById("chk-AutoEMV");  
-  var _autoStart = document.getElementById("chk-AutoStart");
+  let chk = document.getElementById("chk-AutoNFC");
+  let chkEMV = document.getElementById("chk-AutoEMV");  
+  let _autoStart = document.getElementById("chk-AutoStart");
   if (_autoStart.checked & chk.checked & (e.Data.toLowerCase() == "idle")) {
     ClearAutoCheck();
     mt_UI.LogData(`Auto Starting...`);
@@ -297,8 +298,8 @@ const contactlessCardRemovedLogger = (e) => {
 const contactCardInsertedLogger = (e) => {
   _contactSeated = true;
   if (e.Data.toLowerCase() == "idle") mt_UI.LogData(`Contact Card Inserted`);
-  var chk = document.getElementById("chk-AutoEMV");
-  var _autoStart = document.getElementById("chk-AutoStart");
+  let chk = document.getElementById("chk-AutoEMV");
+  let _autoStart = document.getElementById("chk-AutoStart");
   if (
     _autoStart.checked & chk.checked & (e.Data.toLowerCase() == "idle") ||
     _AwaitingContactEMV
@@ -319,8 +320,8 @@ const contactCardRemovedLogger = (e) => {
 
 const msrSwipeDetectedLogger = (e) => {
   if (e.Data.toLowerCase() == "idle") mt_UI.LogData(`MSR Swipe Detected ${e.Data}`);
-  var chk = document.getElementById("chk-AutoMSR");
-  var _autoStart = document.getElementById("chk-AutoStart");
+  let chk = document.getElementById("chk-AutoMSR");
+  let _autoStart = document.getElementById("chk-AutoStart");
   if (_autoStart.checked & chk.checked & (e.Data.toLowerCase() == "idle")) {
     ClearAutoCheck();
     mt_UI.LogData(`Auto Starting MSR...`);

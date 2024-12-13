@@ -16,7 +16,7 @@ import * as mt_QMFA from "./qMFAAPI.js";
 
 import "./mt_events.js";
 
-var TokenID = null;
+let TokenID = null;
 
 const params = new Proxy(new URLSearchParams(window.location.search), {
   get: (searchParams, prop) => searchParams.get(prop),
@@ -47,7 +47,7 @@ document.addEventListener("DOMContentLoaded", handleDOMLoaded);
 
 async function handleLookup() {
   TokenID = document.getElementById(`TransLookupID`).value;
-  var resp = await mt_QMFA.TransactionRead(TokenID);
+  let resp = await mt_QMFA.TransactionRead(TokenID);
   mt_UI.LogData(JSON.stringify(resp, null, 2)); 
 
 }
@@ -58,7 +58,7 @@ async function handleDOMLoaded() {
 
 if (TokenID != null)
 {
-  var resp = await mt_QMFA.TransactionRead(TokenID);
+  let resp = await mt_QMFA.TransactionRead(TokenID);
   mt_UI.LogData(JSON.stringify(resp, null, 2));
   document.getElementById(`TransLookup`).hidden = true;
   document.getElementById(`TransLookupID`).hidden = true;
@@ -78,11 +78,11 @@ else
 }
 
 async function handleApprove(){
-  var resp = await mt_QMFA.TransactionRedeem(TokenID,"True","Approved");
+  let resp = await mt_QMFA.TransactionRedeem(TokenID,"True","Approved");
   mt_UI.LogData(JSON.stringify(resp, null, 2)); 
 }
 async function handleDecline(){
-  var resp = await mt_QMFA.TransactionRedeem(TokenID,"False","Declined");
+  let resp = await mt_QMFA.TransactionRedeem(TokenID,"False","Declined");
   mt_UI.LogData(JSON.stringify(resp, null, 2));  
 }
 

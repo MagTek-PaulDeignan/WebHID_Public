@@ -11,18 +11,9 @@ DO NOT REMOVE THIS COPYRIGHT
 */
 "use strict";
 import * as mt_Utils from "./mt_utils.js";
-import * as mt_Configs from "./config/DeviceConfig.js";
-
-let mtDeviceType = "";
 let data_Buffer_Report = "";
 let data_Buffer_Response = "";
 
-let _devinfo = "";
-
-
-var appOptions = {
-  responseDelay: 5,
-};
 
 let technology = "";
 
@@ -36,7 +27,7 @@ function EmitObject(e_obj) {
 
 
 export function parseV5Packet(data) {
-  ParseInputReportBytes(data); 
+  
   let hex = mt_Utils.toHexString(data);
   let report_id = hex.substring(0, 2);
   switch (report_id) {
@@ -48,7 +39,7 @@ export function parseV5Packet(data) {
       processMsgType(hex);
       break;
     case "02":
-      var outString = parseExtendedReport(hex);
+      let outString = parseExtendedReport(hex);
       if (outString.length > 0) {
         //processMsg(outString);
         processMsgType(outString);
@@ -63,42 +54,15 @@ export function parseV5Packet(data) {
   }
 }
 
-export function parseID5G3Packet(data) {
-  ParseInputReportBytes(data); 
-  let hex = mt_Utils.toHexString(data);
-  let report_id = hex.substring(0, 2);
-  switch (report_id) {
-    //this case is added to support Dynamag MSR
-    case "00":
-      processMsgType(hex);
-      break;
-    case "01":
-      processMsgType(hex);
-      break;
-    case "02":
-      var outString = parseExtendedReport(hex);
-      if (outString.length > 0) {
-        processMsg(outString);
-      }
-      break;
-    default:
-      EmitObject({
-        Name: "OnError",
-        Source: "parseV5Packet Unknown Report ID",
-        Data: hex,
-      });
-  }
-}
-
 export function parseExtendedReport(report) {
-  var report_id = report.substring(0, 2);
-  var report_rc = report.substring(2, 4);
-  var part_data_len = parseInt(report.substring(4, 6), 16);
-  var offset = parseInt(report.substring(6, 10), 16);
-  var notification_id = report.substring(10, 14);
-  var msg_data_len = parseInt(report.substring(14, 18), 16);
-  var msg_data = report.substring(18, part_data_len * 2 + 18);
-  var outString = "";
+  let report_id = report.substring(0, 2);
+  let report_rc = report.substring(2, 4);
+  let part_data_len = parseInt(report.substring(4, 6), 16);
+  let offset = parseInt(report.substring(6, 10), 16);
+  let notification_id = report.substring(10, 14);
+  let msg_data_len = parseInt(report.substring(14, 18), 16);
+  let msg_data = report.substring(18, part_data_len * 2 + 18);
+  let outString = "";
   if (part_data_len == msg_data_len) {
     //we don't need to buffer this data it's full length
     outString =
@@ -124,20 +88,20 @@ export function parseExtendedReport(report) {
 }
 
 export function parseExtendedResponse(response) {
-  var respnseCode = response.substring(0, 2);
-  var part_data_len = parseInt(response.substring(2, 4), 16);
-  var offset = parseInt(response.substring(4, 8), 16);
-  var response_rc = response.substring(8, 12);
-  var msg_data_len = parseInt(response.substring(12, 16), 16);
-  var msg_data = response.substring(16, part_data_len * 2 + 16);
-  mt_Utils.debugLog("Extend Response: " + response);
-  mt_Utils.debugLog("respnseCode: " + respnseCode);
-  mt_Utils.debugLog("part_data_len: " + part_data_len);
-  mt_Utils.debugLog("offset: " + offset);
-  mt_Utils.debugLog("response_rc: " + response_rc);
-  mt_Utils.debugLog("msg_data_len: " + msg_data_len);
-  mt_Utils.debugLog("msg_data: " + msg_data);
-  var outString = "";
+  let respnseCode = response.substring(0, 2);
+  let part_data_len = parseInt(response.substring(2, 4), 16);
+  let offset = parseInt(response.substring(4, 8), 16);
+  let response_rc = response.substring(8, 12);
+  let msg_data_len = parseInt(response.substring(12, 16), 16);
+  let msg_data = response.substring(16, part_data_len * 2 + 16);
+  //mt_Utils.debugLog("Extend Response: " + response);
+  //mt_Utils.debugLog("respnseCode: " + respnseCode);
+  //mt_Utils.debugLog("part_data_len: " + part_data_len);
+  //mt_Utils.debugLog("offset: " + offset);
+  //mt_Utils.debugLog("response_rc: " + response_rc);
+  //mt_Utils.debugLog("msg_data_len: " + msg_data_len);
+  //mt_Utils.debugLog("msg_data: " + msg_data);
+  let outString = "";
   if (part_data_len == msg_data_len + 6) {
     //we don't need to buffer this data it's full length
     outString =  response.substring(8);
@@ -162,14 +126,14 @@ export function parseExtendedResponse(response) {
 
 
 Array.prototype.zeroFill = function (len) {
-  for (var i = this.length; i < len; i++) {
+  for (let i = this.length; i < len; i++) {
     this[i] = 0;
   }
   return this;
 };
 
 function buildCmdArray(commandstring, reportLen) {
-  var cmdArray = mt_Utils.hexToBytes(commandstring).zeroFill(reportLen);
+  let cmdArray = mt_Utils.hexToBytes(commandstring).zeroFill(reportLen);
   return new Uint8Array(cmdArray);
 }
 
@@ -195,12 +159,12 @@ export function calcDateTime() {
 }
 
 function getExtendedCommandArray(commandStr, dataStr) {
-  var command = mt_Utils.hexToBytes(commandStr);
-  var data = mt_Utils.hexToBytes(dataStr);
-  var result = [];
+  let command = mt_Utils.hexToBytes(commandStr);
+  let data = mt_Utils.hexToBytes(dataStr);
+  let result = [];
   const MAX_DATA_LEN = 60;
-  var commandLen = 0;
-  var dataLen = 0;
+  let commandLen = 0;
+  let dataLen = 0;
   if (command != null) {
     commandLen = command.length;
   }
@@ -210,13 +174,13 @@ function getExtendedCommandArray(commandStr, dataStr) {
   if (data != null) {
     dataLen = data.length;
   }
-  var offset = 0;
+  let offset = 0;
   while (offset < dataLen || dataLen == 0) {
-    var len = dataLen - offset;
+    let len = dataLen - offset;
     if (len >= MAX_DATA_LEN - 8) {
       len = MAX_DATA_LEN - 9;
     }
-    var extendedCommand = new Array(8 + len);
+    let extendedCommand = new Array(8 + len);
     extendedCommand[0] = 0x49;
     extendedCommand[1] = 6 + len;
     extendedCommand[2] = (offset >> 8) & 0xff;
@@ -225,7 +189,7 @@ function getExtendedCommandArray(commandStr, dataStr) {
     extendedCommand[5] = command[1];
     extendedCommand[6] = (dataLen >> 8) & 0xff;
     extendedCommand[7] = dataLen & 0xff;
-    var i;
+    let i;
     for (i = 0; i < len; i++) {
       extendedCommand[8 + i] = data[offset + i];
     }
@@ -238,18 +202,18 @@ function getExtendedCommandArray(commandStr, dataStr) {
 }
 
 function getExtCommandArray(commandStr) {
-  var command = mt_Utils.hexToBytes(commandStr);
-  var result = [];
+  let command = mt_Utils.hexToBytes(commandStr);
+  let result = [];
   const MAX_DATA_LEN = 60;
-  var commandLen = 0;
-  var dataLen = parseInt(commandStr.substring(4, 8), 16);
-  var offset = 0;
+  let commandLen = 0;
+  let dataLen = parseInt(commandStr.substring(4, 8), 16);
+  let offset = 0;
   while (offset < dataLen || dataLen == 0) {
-    var len = dataLen - offset;
+    let len = dataLen - offset;
     if (len >= MAX_DATA_LEN - 8) {
       len = MAX_DATA_LEN - 9;
     }
-    var extendedCommand = new Array(8 + len);
+    let extendedCommand = new Array(8 + len);
     extendedCommand[0] = 0x49;
     extendedCommand[1] = 6 + len;
     extendedCommand[2] = (offset >> 8) & 0xff;
@@ -258,7 +222,7 @@ function getExtCommandArray(commandStr) {
     extendedCommand[5] = command[1];
     extendedCommand[6] = (dataLen >> 8) & 0xff;
     extendedCommand[7] = dataLen & 0xff;
-    var i;
+    let i;
     for (i = 0; i < len; i++) {
       extendedCommand[8 + i] = command[4 + offset + i];
     }
@@ -270,200 +234,11 @@ function getExtCommandArray(commandStr) {
   return result;
 }
 
-export async function sendExtendedCommand(cmdNumber, cmdData) {
-  try {
-    var msgComplete = true;
-    var extendedResponse = "";
-    var cmds = getExtendedCommandArray(cmdNumber, cmdData);
-    for (var index = 0; index < cmds.length; index++) {
-      var deviceResponse = await sendDeviceCommand(cmds[index]);
-      var rc = deviceResponse.substring(2, 4);
-      switch (rc) {
-        case "0A": //more data is available
-          extendedResponse = parseExtendedResponse(deviceResponse);
-          if (extendedResponse.length > 0) {
-            msgComplete = true;
-          } else {
-            msgComplete = false;
-          }
-          break;
-        case "0B": //buffering data
-          msgComplete = true;
-          extendedResponse = deviceResponse;
-          break;
-        default:
-          msgComplete = true;
-          extendedResponse = deviceResponse;
-      }
-    }
 
-    while (!msgComplete) {
-      //we need to get more data...
-      deviceResponse = await sendDeviceCommand("4A00");
-      rc = deviceResponse.substring(2, 4);
-      switch (rc) {
-        case "0A":
-          extendedResponse = parseExtendedResponse(deviceResponse);
-          if (extendedResponse.length > 0) {
-            msgComplete = true;
-          } else {
-            msgComplete = false;
-          }
-          break;
-        case "0B":
-          extendedResponse = deviceResponse;
-          break;
-        default:          
-          extendedResponse = deviceResponse;
-      }
-    }
-    return  extendedResponse;
-  } catch (error) {
-    return error;
-  }
-}
 
-export async function sendExtCommand(cmdData) {
-  try {
-    var index;
-    var msgComplete = true;
-    var extendedResponse = "";
-    var cmds = getExtCommandArray(cmdData);
-    for (index = 0; index < cmds.length; index++) {
-      
-      var deviceResponse = await sendDeviceCommand(cmds[index]);      
-      var rc = deviceResponse.substring(0, 2);
-      switch (rc) {
-        case "0A": //more data is available
-          extendedResponse = parseExtendedResponse(deviceResponse);
-          if (extendedResponse.length > 0) {
-            msgComplete = true;
-          } else {
-            msgComplete = false;
-          }
-          break;
-        case "0B": //buffering data
-          msgComplete = true;
-          extendedResponse = deviceResponse;
-          break;
-        default:
-          msgComplete = true;
-          extendedResponse = deviceResponse;
-      }
-    }
 
-    while (!msgComplete) {
-      //we need to get more data...
-      deviceResponse = await sendDeviceCommand("4A00");
-      rc = deviceResponse.substring(0, 2);
-      switch (rc) {
-        case "0A":
-          extendedResponse = parseExtendedResponse(deviceResponse);
-          if (extendedResponse.length > 0) {
-            msgComplete = true;
-          } else {
-            msgComplete = false;
-          }
-          break;
-        case "0B":
-          extendedResponse = deviceResponse;
-          break;
-        default:
-          extendedResponse = deviceResponse;
-      }
-    }
-    return extendedResponse;
-  } catch (error) {
-    throw error;
-  }
-}
 
-export async function getBLEFWID() {
-  let ret = await sendCommand("460401000000");
-  if(ret.substring(0,2) != "00") return "";
-  let data = ret.substring(10);
-  let dl = mt_Utils.makeHex(data.length);
-  return `00${dl}${data}`;
 
-}
-export async function sendCommand(cmdToSend) {
-  try {
-    if (window.mt_device_hid == null) {
-      EmitObject({
-        Name: "OnError",
-        Source: "SendCommand",
-        Data: "Device is null",
-      });
-      return 0;
-    }
-    if (!window.mt_device_hid.opened) {
-      EmitObject({
-        Name: "OnError",
-        Source: "SendCommand",
-        Data: "Device is not open",
-      });
-      return 0;
-    }
-    
-    const Response = await sendDeviceCommand(cmdToSend);
-    return Response;
-  } catch (error) {
-    return error;
-  }
-}
-
-function parseV5ReturnInfo(packet) {
- try {
-  let returnString;
-  let packetString = packet.replace(/\s+/g, ""); 
-  length = parseInt(packetString.substring(4, 6), 16);
-  returnString = packetString.substring(2,(length * 2) + 6);
-  return returnString;
- } 
- catch (error) 
- {
-  return error;
- }
-}
-
-async function sendDeviceCommand(cmdToSend) {
-  return new Promise(async (resolve, reject) => {
-    try {
-      let _devinfo = mt_Configs.getHIDDeviceInfo(window.mt_device_hid.productId);
-      let reportLen = _devinfo.ReportLen;
-      var cmdInput = buildCmdArray(cmdToSend, reportLen);
-      mt_Utils.debugLog(`sendCommand: ${mt_Utils.toHexString(cmdInput)}`);
-      var numBytes = await window.mt_device_hid.sendFeatureReport(1, cmdInput);
-      let dv = await getDeviceResponse();
-      mt_Utils.debugLog(`v5 parse sendResponse: ${dv}`);
-      resolve(dv);
-    } catch (error) {
-      reject(error);
-    }
-  });
-}
-
-async function getDeviceResponse() {
-  return new Promise((resolve, reject) => {
-    setTimeout(async function () {
-      try {
-        var DataView = await window.mt_device_hid.receiveFeatureReport(1);
-        var FP = new Uint8Array(DataView.buffer);
-        var RT = FP.slice(1, FP[2] + 3);
-        resolve(mt_Utils.toHexString(RT));
-      } catch (err) {
-        mt_Utils.debugLog("Error thrown " + err);
-        reject(
-          EmitObject({
-            Name: "OnError",
-            Source: "getDeviceResponse",
-            Data: err.message,
-          })
-        );
-      }
-    }, appOptions.responseDelay);
-  });
-}
 
 export function processMsgType(msg) {
 
@@ -474,7 +249,7 @@ export function processMsgType(msg) {
     
 
 
-  var msgType = "";
+  let msgType = "";
   switch (msg.substring(0, 2)) {
     case "00": //Device  Response
       msgType = "Device Response";
@@ -482,7 +257,7 @@ export function processMsgType(msg) {
       break;
     case "01": //MSR Notification
       msgType = "MSR Notification";
-      processMSRDataMsg(msgType, msg);
+      processMSRDataMsg(msgType, msg.substring(2));
       break;
     case "02": //Device Notification
       msgType = "Device Notification";
@@ -507,7 +282,7 @@ function processDeviceExtendedResponseMsg(messageType, msg) {
 }
 
 function processMSRDataMsg(messageType, msg) {
-    var ParsedMSR = ParseMSR(mt_Utils.hexToBytes(msg));
+    let ParsedMSR = ParseMSR(mt_Utils.hexToBytes(msg));
     EmitObject({ Name: "OnV5MSRSwipe", Data: ParsedMSR });
 }
 
@@ -517,33 +292,35 @@ function processNotificationMsg(messageType, msg) {
 
 
 function processNotificationType(msg) {
-  var notifyType = "";
+  let notifyType = "";
+  let hexstring = ""
+  let ASCIIString = "";
   switch (msg.substring(2, 6)) {
     case "0300":
       notifyType = "Transaction Status Notification";
-      var hexstring = msg.substring(10);
+      hexstring = msg.substring(10);
       processTransactionStatus(hexstring);
       break;
     case "0301":
       notifyType = "Display Message Notification";
-      var hexstring = msg.substring(10);
-      var ASCIIString = mt_Utils.hexToASCII(hexstring);
+      hexstring = msg.substring(10);
+      ASCIIString = mt_Utils.hexToASCII(hexstring);
       EmitObject({ Name: "OnUIDisplayMessage", Data: ASCIIString });
       break;
     case "0302":
       notifyType = "User Selection Notification";
-      var hexstring = msg.substring(14);
-      var ASCIIString = mt_Utils.hexToASCIInulltoNewLine(hexstring);
+      hexstring = msg.substring(14);
+      ASCIIString = mt_Utils.hexToASCIInulltoNewLine(hexstring);
       EmitObject({ Name: "OnUserSelection", Source: "V5", Data: ASCIIString });
       break;
     case "0303":
       notifyType = "ARQC Notification";
-      var hexstring = msg.substring(10);
+      hexstring = msg.substring(10);
       EmitObject({ Name: "OnARQCData", Source: technology, Data: hexstring });
       break;
     case "0304":
       notifyType = "Transaction Result Notification";
-      var hexstring = msg.substring(12); //skip over Signature Required byte
+      hexstring = msg.substring(12); //skip over Signature Required byte
       EmitObject({
         Name: "OnSignatureRequired",
         Source: technology,
@@ -558,20 +335,20 @@ function processNotificationType(msg) {
       break;
     case "0400":
       notifyType = "UART Notification";
-      var hexstring = msg.substring(12);
+      hexstring = msg.substring(12);
       //processNotificationType(hexstring);
       EmitObject({ Name: "OnUARTData", Source: "V5", Data: hexstring });
 
       break;
     case "0500":
       notifyType = "SPI Notification - DAV";
-      //var len = parseInt(msg.substring(6, 10), 16);
-      var hexstring = msg.substring(12);
+      //let len = parseInt(msg.substring(6, 10), 16);
+      hexstring = msg.substring(12);
       EmitObject({ Name: "OnSPIData", Source: "V5", Data: hexstring });
       break;
      case "0600":  
        notifyType = "Firmware Load Status";
-       var hexstring = msg.substring(6);    
+       hexstring = msg.substring(6);    
        EmitObject({ Name: "OnFirmwareLoadStatus", Source: "V5", Data: hexstring });
        break;
     default:
@@ -585,7 +362,7 @@ function processNotificationType(msg) {
 }
 
 function processTransactionStatus(Status) {
-  var outString = "";
+  let outString = "";
   switch (Status.substring(0, 2)) {
     case "00":
       outString = "Idle";
@@ -792,156 +569,57 @@ function processTransactionStatus(Status) {
 }
 
 function ParseMSR(cardDataBytes) {
-  console.log(mt_Utils.toHexString(cardDataBytes));
+//     Remaining_MSR_Transactions: mt_Utils.toHexString(cardDataBytes.slice(856, 859)),
+//     MagneSafe_Version_Number: mt_Utils.toHexString(cardDataBytes.slice(859, 867)),
+//     HID_Report_Version: mt_Utils.toHexString(cardDataBytes.slice(867, 887)),
+//     MagnePrint_KSN: cardDataBytes.slice(920, 930),
+//     Battery_Level: cardDataBytes.slice(930)
+
+
+  let Track_1_Encrypted_Data_Length = parseInt(mt_Utils.toHexString(cardDataBytes.slice(3, 4)),16);
+  let Track_2_Encrypted_Data_Length = parseInt(mt_Utils.toHexString(cardDataBytes.slice(4, 5)),16);
+  let Track_3_Encrypted_Data_Length = parseInt(mt_Utils.toHexString(cardDataBytes.slice(5, 6)),16);
+  let MagnePrint_Data_Length = parseInt(mt_Utils.toHexString(cardDataBytes.slice(348, 349)),16);
+  
+  let _card  = {
+    EncodeType: mt_Utils.toHexString(cardDataBytes.slice(6, 7)),
+    MagnePrintStatus: mt_Utils.toHexString(cardDataBytes.slice(343, 348)),
+    MagnePrintData: mt_Utils.toHexString(cardDataBytes.slice(349, 477)).substring(0,MagnePrint_Data_Length*2),
+  }
+
+  let _device  = {
+    SerialNumber: mt_Utils.hexToASCIIRemoveNull(mt_Utils.toHexString(cardDataBytes.slice(477, 493))),
+    EncryptionStatus: mt_Utils.toHexString(cardDataBytes.slice(493, 495)),
+    KeySerialNumber: mt_Utils.toHexString(cardDataBytes.slice(495, 505)),
+    SessionID: mt_Utils.toHexString(cardDataBytes.slice(844, 852)),
+  }
+
+  let _track1 = {
+    DecodeStatus:  parseInt(mt_Utils.toHexString(cardDataBytes.slice(0, 1)),16),
+    EncryptedData: mt_Utils.toHexString(cardDataBytes.slice(7, 119)).substring(0,Track_1_Encrypted_Data_Length*2),
+    MaskedData: mt_Utils.hexToASCIIRemoveNull(mt_Utils.toHexString(cardDataBytes.slice(508, 620))),
+
+  }
+  
+  let _track2 = {
+    DecodeStatus: parseInt(mt_Utils.toHexString(cardDataBytes.slice(1, 2)),16),
+    EncryptedData: mt_Utils.toHexString(cardDataBytes.slice(119, 231)).substring(0,Track_2_Encrypted_Data_Length*2),
+    MaskedData: mt_Utils.hexToASCIIRemoveNull(mt_Utils.toHexString(cardDataBytes.slice(620, 732))),
+  }
+  
+  let _track3 = {
+    DecodeStatus: parseInt(mt_Utils.toHexString(cardDataBytes.slice(2, 3)),16),
+    EncryptedData: mt_Utils.toHexString(cardDataBytes.slice(231, 343)).substring(0,Track_3_Encrypted_Data_Length*2),
+    MaskedData: mt_Utils.hexToASCIIRemoveNull(mt_Utils.toHexString(cardDataBytes.slice(732, 844))),
+  }
+
   let _resp = {
-    Track_1_Decode_Status: mt_Utils.toHexString(cardDataBytes.slice(0, 1)),
-    Track_2_Decode_Status: mt_Utils.toHexString(cardDataBytes.slice(1, 2)),
-    Track_3_Decode_Status: mt_Utils.toHexString(cardDataBytes.slice(2, 3)),
-    Track_1_Encrypted_Data_Length: mt_Utils.toHexString(cardDataBytes.slice(3, 4)),
-    Track_2_Encrypted_Data_Length: mt_Utils.toHexString(cardDataBytes.slice(4, 5)),
-    Track_3_Encrypted_Data_Length: mt_Utils.toHexString(cardDataBytes.slice(5, 6)),
-    Card_Encode_Type: mt_Utils.toHexString(cardDataBytes.slice(6, 7)),
-    Track_1_Encrypted_Data: mt_Utils.toHexString(cardDataBytes.slice(7, 119)),
-    Track_2_Encrypted_Data: mt_Utils.toHexString(cardDataBytes.slice(119, 231)),
-    Track_3_Encrypted_Data: mt_Utils.toHexString(cardDataBytes.slice(231, 343)),
-    MagnePrint_Status: mt_Utils.toHexString(cardDataBytes.slice(343, 348)),
-    MagnePrint_Data_Length: mt_Utils.toHexString(cardDataBytes.slice(348, 349)),
-    Encrypted_MagnePrint_Data: mt_Utils.toHexString(cardDataBytes.slice(349, 477)),
-    Device_Serial_Number: mt_Utils.toHexString(cardDataBytes.slice(477, 493)),
-    Device_Encryption_Status: mt_Utils.toHexString(cardDataBytes.slice(493, 495)),
-    DUKPT_Key_Serial_Number: mt_Utils.toHexString(cardDataBytes.slice(495, 505)),
-    Track_1_Masked_Data_Length: mt_Utils.toHexString(cardDataBytes.slice(505, 506)),
-    Track_2_Masked_Data_Length: mt_Utils.toHexString(cardDataBytes.slice(506, 507)),
-    Track_3_Masked_Data_Length: mt_Utils.toHexString(cardDataBytes.slice(507, 508)),
-    Track_1_Masked_Data: mt_Utils.toHexString(cardDataBytes.slice(508, 620)),
-    Track_2_Masked_Data: mt_Utils.toHexString(cardDataBytes.slice(620, 732)),
-    Track_3_Masked_Data: mt_Utils.toHexString(cardDataBytes.slice(732, 844)),
-    Encrypted_Session_ID: mt_Utils.toHexString(cardDataBytes.slice(844, 852)),
-    Track_1_Absolute_Data_Length: mt_Utils.toHexString(cardDataBytes.slice(852, 853)),
-    Track_2_Absolute_Data_Length: mt_Utils.toHexString(cardDataBytes.slice(853, 854)),
-    Track_3_Absolute_Data_Length: mt_Utils.toHexString(cardDataBytes.slice(854, 855)),
-    MagnePrint_Absolute_Data_Length: mt_Utils.toHexString(cardDataBytes.slice(855, 856)),
-    //Remaining_MSR_Transactions: mt_Utils.toHexString(cardDataBytes.slice(856, 859)),
-    //MagneSafe_Version_Number: mt_Utils.toHexString(cardDataBytes.slice(859, 867)),
-    //HID_Report_Version: mt_Utils.toHexString(cardDataBytes.slice(867, 887)),
-    //MagnePrint_KSN: cardDataBytes.slice(920, 930),
-    //Battery_Level: cardDataBytes.slice(930)
+    Track1: _track1,
+    Track2: _track2,
+    Track3: _track3,
+    Card: _card,
+    Device: _device,
   };
+  
   return _resp;
 }
-
-
-
-function ParseInputReportBytes(input) {
-    var dataLen = parseInt( mt_Utils.toHexString(input.slice(7, 9)),16); 
-    let _resp = {
-      ReportID: mt_Utils.toHexString(input.slice(0, 1)),
-      ReportLen: mt_Utils.toHexString(input.slice(1, 3)),
-      offset: mt_Utils.toHexString(input.slice(3, 5)),
-      NotifyNumber: mt_Utils.toHexString(input.slice(5, 7)),
-      DataLen:mt_Utils.toHexString(input.slice(7, 9)),
-      DataVal:mt_Utils.toHexString(input.slice(9, 9 + dataLen))
-    };
-    // mt_Utils.debugLog("++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    // mt_Utils.debugLog("ReportID: " + _resp.ReportID);
-    // mt_Utils.debugLog("ReportLen: " + _resp.ReportLen);
-    // mt_Utils.debugLog("offset: " + _resp.offset);
-    // mt_Utils.debugLog("NotifyNumber: " + _resp.NotifyNumber);
-    // mt_Utils.debugLog("DataLen: " + _resp.DataLen);
-    // mt_Utils.debugLog("DataVal: " + _resp.DataVal);
-    // mt_Utils.debugLog("++++++++++++++++++++++++++++++++++++++++++++++++++++");
-  };
-  
-  export async function openDevice() {
-    try {
-    let reqDevice;    
-    let devices = await navigator.hid.getDevices();
-    let device = devices.find((d) => d.vendorId === mt_HID.vendorId);
-
-    if (!device) {
-      let vendorId = mt_HID.vendorId;
-      reqDevice = await navigator.hid.requestDevice({ filters: mt_HID.V5filters });
-      if(reqDevice != null)
-        {
-          if (reqDevice.length> 0)
-          {
-            device = reqDevice[0];
-          }
-        }
-    }
-      
-      if (!device.opened) {        
-        device.addEventListener("inputreport", handleInputReport);
-        await device.open();
-      }
-      if (device.opened) {
-        window.mt_device_WasOpened = true;        
-        _devinfo = mt_Configs.getHIDDeviceInfo(device.productId);
-        mtDeviceType = _devinfo.DeviceType;
-  
-        switch (mtDeviceType) {
-          case "V5":
-            EmitObject({Name:"OnDeviceOpen", 
-              Device:device
-            });
-            break;
-          default:
-            EmitObject({Name:"OnError",
-              Source: "Bad DeviceType",
-              Data: `Use the ${mtDeviceType} Parser`
-            });
-            break;
-        }
-      }
-      return device;
-    } 
-    catch (error) 
-    {
-      EmitObject({Name:"OnError",
-        Source: "OpenDevice",
-        Data: `Error opening device: ${error.message}`,
-      });
-    }
-  };
-  export async function closeDevice(){
-    window.mt_device_WasOpened = false;
-  if (window.mt_device_hid != null) {
-    await window.mt_device_hid.close();
-    EmitObject({Name: "OnDeviceClose", Device: window.mt_device_hid});
-  }
-  };
-
-  function handleInputReport(e) {
-    var packetArray = [];
-    var dataArray = new Uint8Array(e.data.buffer);
-    packetArray[0] = e.reportId;
-    packetArray.push(...dataArray);
-  
-    switch (mtDeviceType) {
-      case "CMF":
-        EmitObject({Name: "OnError",
-          Source: "DeviceType",
-          Data: "Not Implemented"
-        });
-        break;
-      case "MMS":
-        EmitObject({Name:"OnError",
-          Source: "DeviceType",
-          Data: "Use the MMS Parser"
-        });
-        break;
-      case "V5":
-        parseV5Packet(packetArray);
-        break;
-      case "ID5G3":
-        parseID5G3Packet(packetArray);
-        break;
-
-        default:
-        EmitObject({Name: "OnError",
-          Source: "DeviceType",
-          Data: "Unknown Device Type"
-        });
-        break;
-    }
-  }

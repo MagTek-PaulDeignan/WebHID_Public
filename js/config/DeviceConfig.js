@@ -29,6 +29,11 @@ export function getHIDDeviceInfo(pid) {
       deviceType = "V5";
       reportID = 0;
       break;
+    case 0x02:
+      reportLen = 0x3D;
+      deviceType = "V5";
+      reportID = 0;
+      break;
     case 0x03:
       reportLen = 0x19;
       deviceType = "V5";
@@ -48,11 +53,6 @@ export function getHIDDeviceInfo(pid) {
       reportLen = 0x40;
       deviceType = "ID5G3";
       reportID = 1;
-      break;
-    case 0x21:
-      reportLen = 0x40;
-      deviceType = "ID5G3";
-      reportID = 0;
       break;
     case 0x1A:
       reportLen = 0x3D;
@@ -153,6 +153,10 @@ export const DynaMagfilters = [
     productId: 0x01,
   },
   {
+    vendorId: vendorId,
+    productId: 0x02,
+  },
+  {
      vendorId: vendorId,
      productId: 0x03,
    },
@@ -165,10 +169,20 @@ export const ID5G3filters = [
     {
       vendorId: vendorId,
       productId: 0x20,
-    },
-    {
-      vendorId: vendorId,
-      productId: 0x21,
     }
 ];
   
+
+export function filterDevices(devices, filters)
+{
+ let newDeviceList = [];
+    devices.forEach(device => {
+        filters.forEach(filter => {
+          if (device.productId === filter.productId && device.vendorId === filter.vendorId)
+          {
+            newDeviceList.push( device);
+          }
+    })
+ });
+ return newDeviceList;
+}

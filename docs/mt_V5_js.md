@@ -26,13 +26,13 @@ let mtDeviceType = "";
 let data_Buffer_Report = "";
 let data_Buffer_Response = "";
 
-var appOptions = {
+let appOptions = {
   responseDelay: 5,
 };
 ```
 
 - `wasOpened`: Tracks if the device has been opened.
-- `appOptions.responseDelay`: Adjusts the delay for command responses, defaulting to 5ms.
+
 
 ### Main Modules and Functions
 
@@ -95,7 +95,7 @@ Processes incoming device data, differentiating based on device type, and parsin
 
 ```javascript
 function handleInputReport(e) {
-  var packetArray = [e.reportId, ...new Uint8Array(e.data.buffer)];
+  let packetArray = [e.reportId, ...new Uint8Array(e.data.buffer)];
   switch (mtDeviceType) {
     case "V5":
       parseV5Packet(packetArray);
@@ -139,8 +139,8 @@ Buffers and combines partial data packets until the complete message is assemble
 
 ```javascript
 function parseExtendedReport(report) {
-  var part_data_len = parseInt(report.substring(4, 6), 16);
-  var msg_data_len = parseInt(report.substring(14, 18), 16);
+  let part_data_len = parseInt(report.substring(4, 6), 16);
+  let msg_data_len = parseInt(report.substring(14, 18), 16);
   if (part_data_len == msg_data_len) {
     return report.substring(0, 18 + part_data_len * 2);
   } else {
@@ -195,7 +195,7 @@ EmitObject({ Name: "OnError", Source: "DeviceType", Data: "Unknown Device Type" 
 ### Troubleshooting
 
 - Device Connection Issues: Check if the device is recognized by `navigator.hid` and ensure the correct vendor ID is used.
-- Incomplete Response Data: Adjust `appOptions.responseDelay` if device responses are truncated or incorrect.
+
   
 ### License
 

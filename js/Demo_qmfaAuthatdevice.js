@@ -16,7 +16,7 @@ import * as mt_QMFA from "./qMFAAPI.js";
 
 import "./mt_events.js";
 
-var TokenID;
+let TokenID;
 
 const params = new Proxy(new URLSearchParams(window.location.search), {
   get: (searchParams, prop) => searchParams.get(prop),
@@ -44,7 +44,7 @@ document.addEventListener("DOMContentLoaded", handleDOMLoaded);
 
 async function handleDOMLoaded() {
 
-var resp = await mt_QMFA.TransactionRead(TokenID);
+let resp = await mt_QMFA.TransactionRead(TokenID);
  mt_UI.LogData(JSON.stringify(resp, null, 2));
 
 
@@ -52,7 +52,7 @@ var resp = await mt_QMFA.TransactionRead(TokenID);
 
 async function handleApprove(){
   
- var Token = 
+ let Token = 
  {
    Header: "QMFAToken",
    ID: TokenID,
@@ -66,7 +66,7 @@ async function handleApprove(){
 
 }
 async function handleDecline(){
-  var Token = 
+  let Token = 
   {
     Header: "QMFAToken",
     ID: TokenID,

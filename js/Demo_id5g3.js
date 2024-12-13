@@ -19,8 +19,8 @@ import * as mt_RMS_API from "./API_rms.js";
 import * as mt_UI from "./mt_ui.js";
 import "./mt_events.js";
 
-
-export var _openTimeDelay = 2000;
+let retval = "";
+export let _openTimeDelay = 2000;
 
 // these will need to be changed and are here for testing
 let defaultRMSURL = '';
@@ -46,7 +46,7 @@ document.addEventListener("DOMContentLoaded", handleDOMLoaded);
 
 async function handleDOMLoaded() {
   mt_UI.ClearLog();
-  var devices = await mt_HID.getDeviceList();
+  let devices = await mt_HID.getDeviceList();
   mt_UI.LogData(`Devices currently attached and allowed:`);
   
   if (devices.length == 0 ) mt_UI.setUSBConnected("Connect a device");
@@ -79,8 +79,7 @@ async function handleClearButton() {
 }
 
 async function handleOpenButton() {
-  window.mt_device_hid = await mt_V5.openDevice();
-  mt_Utils.debugLog(`PID: ${window.mt_device_hid.productId}`)
+  window.mt_device_hid = await mt_V5.openDevice();  
   
 }
 
@@ -91,14 +90,14 @@ async function handleSendCommandButton() {
 
 async function parseCommand(message) {
   let Response ;
-  var cmd = message.split(",");
+  let cmd = message.split(",");
   switch (cmd[0].toUpperCase()) {
     case "GETAPPVERSION":
-      mt_Utils.debugLog("GETAPPVERSION " + appOptions.version);
+      //mt_Utils.debugLog("GETAPPVERSION " + appOptions.version);
       return appOptions.version;
       break;
     case "GETSPIDATA":
-      var spiCMD = "00" + "F".repeat(cmd[1] * 2);
+      let spiCMD = "00" + "F".repeat(cmd[1] * 2);
       mt_V5.sendExtendedCommand("0500", spiCMD);
       break;
     case "GETDEVINFO":
@@ -144,11 +143,11 @@ async function parseCommand(message) {
       break;
     case "GETTAGVALUE":
       let asAscii = (cmd[4] === 'true');
-      var retval = mt_Utils.getTagValue(cmd[1], cmd[2], cmd[3], asAscii);
+      retval = mt_Utils.getTagValue(cmd[1], cmd[2], cmd[3], asAscii);
       mt_UI.LogData(`Get Tags for ${retval}`);      
       break;
     case "PARSETLV":
-      var retval = mt_Utils.tlvParser(cmd[1]);
+      retval = mt_Utils.tlvParser(cmd[1]);
       mt_UI.LogData(JSON.stringify(retval));
       break;
     case "UPDATEDEVICE":
@@ -196,7 +195,7 @@ async function parseCommand(message) {
 
 
 function ClearAutoCheck() {
-  var chk = document.getElementById("chk-AutoStart");
+  let chk = document.getElementById("chk-AutoStart");
   chk.checked = false;
 }
 
@@ -281,13 +280,13 @@ const errorLogger = (e) => {
 };
 
 const touchUpLogger = (e) => {
-  var chk = document.getElementById("chk-AutoTouch");
+  let chk = document.getElementById("chk-AutoTouch");
   if (chk.checked) {
     mt_UI.LogData(`Touch Up: X: ${e.Data.Xpos} Y: ${e.Data.Ypos}`);
   }
 };
 const touchDownLogger = (e) => {
-  var chk = document.getElementById("chk-AutoTouch");
+  let chk = document.getElementById("chk-AutoTouch");
   if (chk.checked) {
     mt_UI.LogData(`Touch Down: X: ${e.Data.Xpos} Y: ${e.Data.Ypos}`);
   }
@@ -302,7 +301,7 @@ const contactlessCardRemovedLogger = (e) => {
 const contactCardInsertedLogger = async (e) => {
   if (e.Data.toLowerCase() == "idle") mt_UI.LogData(`Contact Card Inserted`);
 
-  var _autoStart = document.getElementById("chk-AutoStart");
+  let _autoStart = document.getElementById("chk-AutoStart");
   if (_autoStart.checked & (e.Data.toLowerCase() == "idle")) {
     ClearAutoCheck();
     mt_UI.LogData(`Auto Starting EMV...`);
@@ -320,8 +319,8 @@ const contactCardRemovedLogger = (e) => {
 
 const msrSwipeDetectedLogger = (e) => {
   if (e.Data.toLowerCase() == "idle") mt_UI.LogData(`MSR Swipe Detected ${e.Data}`);
-  var chk = document.getElementById("chk-AutoMSR");
-  var _autoStart = document.getElementById("chk-AutoStart");
+  let chk = document.getElementById("chk-AutoMSR");
+  let _autoStart = document.getElementById("chk-AutoStart");
   if (_autoStart.checked & chk.checked & (e.Data.toLowerCase() == "idle")) {
     ClearAutoCheck();
   }
