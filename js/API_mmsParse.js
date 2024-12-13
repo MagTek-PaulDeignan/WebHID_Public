@@ -11,79 +11,27 @@ DO NOT REMOVE THIS COPYRIGHT
 */
 
 import * as mt_Utils from "./mt_utils.js";
-import * as mt_HID from "./mt_hid.js";
 import "./mt_events.js";
 
-export var LogMMStoConsole = false;
-export var LogMMStoEvent = false;
-export var wasOpened = false;
+export let LogMMStoConsole = false;
+export let LogMMStoEvent = false;
 
-let mtDeviceType = "";
-
-let device_response = null;
 let data_buffer_response = [];
 
 function EmitObject(e_obj) {
   EventEmitter.emit(e_obj.Name, e_obj);
 }
 
-export async function sendCommand(cmdToSend) {
-  let cmdResp = "";
-  device_response = null;
-  try {
-    if (window._device == null) {
-      EmitObject({
-        Name: "OnError",
-        Source: "SendCommand",
-        Data: "Device is null",
-      });
-      return 0;
-    }
-    if (!window._device.opened) {
-      EmitObject({
-        Name: "OnError",
-        Source: "SendCommand",
-        Data: "Device is not open",
-      });
-      return 0;
-    }
-    cmdResp = await sendMMSCommand(mt_Utils.removeSpaces(cmdToSend));
-    return cmdResp;
-  } catch (error) {
-    EmitObject({ Name: "OnError", Source: "SendCommand", Data: error });
-    return error;
-  }
-}
-
-async function sendMMSCommand(cmdToSend) {
-  let commands = buildCmdsArray(
-    cmdToSend,
-    window._device.collections[0].outputReports[0].items[0].reportCount
-  );
-  commands.forEach(async (command) => {
-    await window._device.sendReport(0, new Uint8Array(command));
-  });
-  Response = await waitForDeviceResponse();
-  return Response;
-};
-
-function waitForDeviceResponse() {
-  function waitFor(result) {
-    if (result) {
-      return result;
-    }
-    return new Promise((resolve) => setTimeout(resolve, 50))
-      .then(() => Promise.resolve(device_response)) 
-      .then((res) => waitFor(res));
-  }
-  return waitFor();
-}
 
 export function parseMMSPacket(data) {
   let subdata = [];
   switch (data[0]) {
     case 0x00:
       subdata = parseSinglePacket(data);
+      EmitObject({
+        Name: "OnMMSMessage",
+        Data: mt_Utils.toHexString(subdata)
+      });
       ParseMMSMessage(subdata);
       break;
     case 0x01:
@@ -94,7 +42,12 @@ export function parseMMSPacket(data) {
       break;
     case 0x03:
       subdata = parseTailPacket(data);
+      EmitObject({
+        Name: "OnMMSMessage",
+        Data: mt_Utils.toHexString(subdata)
+      });
       ParseMMSMessage(subdata);
+      
       break;
     case 0x04:
       parseCancelPacket(data);
@@ -254,7 +207,6 @@ function parseContactDetail(Msg) {
   switch (Detail) {
     case "010200": //Inserted
       NotifyDetail = Msg.TLVData;
-      //EmitObject({Name:"OnContactCardInserted",Data:NotifyDetail});
       EmitObject({
         Name: "OnContactCardInserted",
         Data: "Transaction in progress",
@@ -262,7 +214,6 @@ function parseContactDetail(Msg) {
       break;
     case "010300": //Removed
       NotifyDetail = Msg.TLVData;
-      //EmitObject({Name:"OnContactCardRemoved",Data:NotifyDetail});
       EmitObject({
         Name: "OnContactCardRemoved",
         Data: "Transaction in progress",
@@ -469,13 +420,13 @@ function parseNotificationFromDevice(Msg) {
         break;
       case "0205":
         NotifyDetail = Msg.TLVData;
-        
         let data = mt_Utils.getTagValue("F5", "", Msg.TLVData.substring(24), false); 
-
         let PBF = mt_Utils.getTagValue("DF71", "", data, false);
         let EPB = mt_Utils.getTagValue("99", "", data, false);
         let KSN = mt_Utils.getTagValue("DFDF41", "", data, false);
         let EncType = mt_Utils.getTagValue("DFDF42", "", data, false);
+
+
 
 
         EmitObject({ Name: "OnPINComplete", Data: { PBF:PBF,EPB:EPB,KSN:KSN,EncType:EncType, TLV:Msg.TLVData }});
@@ -598,7 +549,6 @@ function parseUserEventDetail(Msg) {
       NotifyDetail = mt_Utils.getTagValue("84", "", Msg.TLVData, false);
       EmitObject({
         Name: "OnBarcodeDetected",
-
         Data: NotifyDetail.substring(12),
       });
       break;
@@ -623,8 +573,8 @@ function parseRequestFromDevice(Msg) {
 }
 function parseResponseFromDevice(Msg) {
   let NotifyDetail = Msg.TLVData;
-  EmitObject({ Name: "OnDeviceResponse", Data: Msg });
-  device_response = Msg; 
+  window.mt_device_response = Msg; 
+  EmitObject({ Name: "OnDeviceResponse", Data: Msg });  
 }
 function parseRequestFromHost(Msg) {
   let NotifyDetail = mt_Utils.getTagValue("82", "", Msg.TLVData, false);
@@ -635,12 +585,10 @@ function parseResponseFromHost(Msg) {
   EmitObject({ Name: "OnHostResponse", Data: NotifyDetail });
 }
 
-function parseFileFromDevice(Msg) {
-  //let NotifyDetail = mt_Utils.getTagValue("82", "", Msg.TLVData, false);
+function parseFileFromDevice(Msg) {  
   EmitObject({ Name: "OnFileFromDevice", Data: Msg });
 }
-function parseFileFromHost(Msg) {
-  //let NotifyDetail = mt_Utils.getTagValue("82", "", Msg.TLVData, false);
+function parseFileFromHost(Msg) {  
   EmitObject({ Name: "OnFileFromHost", Data: Msg });
 }
 
@@ -706,7 +654,7 @@ export function buildCmdsArray(commandstring, reportLen) {
     while (RemainingLength > 0) {
       i++;
       if (RemainingLength > MaxMsgDataLen * 2) {
-        //Process middle packet
+        //Process middle packets
         packetType = "02";
         packetNumber = mt_Utils.makeHex(i, 4);
         SliceSize = MiddlePacketDataLen * 2;
@@ -737,89 +685,6 @@ export function buildCmdsArray(commandstring, reportLen) {
   return cmdArray;
 }
 
-
-
-export async function openDevice() {
-  try {
-    let reqDevice;
-    let devices = await navigator.hid.getDevices();
-    let device = devices.find((d) => d.vendorId === mt_HID.vendorId);
-    if (!device) {
-      let vendorId = mt_HID.vendorId;
-      reqDevice = await navigator.hid.requestDevice({filters: mt_HID.MMSfilters });
-      if(reqDevice != null)
-        {
-          if (reqDevice.length > 0)
-          {
-            device = reqDevice[0];
-          }
-        }
-    }
-    if (!device.opened) {
-      await device.open();
-      device.addEventListener("inputreport", handleInputReport);      
-    }
-    if (device.opened) {
-      wasOpened = true;      
-      let _devinfo = mt_HID.getDeviceInfo(device.productId);
-      mtDeviceType = _devinfo.DeviceType;
-
-      switch (mtDeviceType) {
-        case "MMS":
-          EmitObject({Name:"OnDeviceOpen", Device:device});
-          break;
-        default:
-          EmitObject({Name:"OnError",
-            Source: "Bad DeviceType",
-            Data: `Use the ${mtDeviceType} Parser`
-          });
-          break;
-      }      
-    }
-    return device;
-  } catch (error) {
-    EmitObject({Name:"OnError",
-      Source: "OpenDevice",
-      Data: "Error opening device",
-    });
-  }
-};
-
-export async function closeDevice(){
-  wasOpened = false;
-  if (window._device != null) {
-    await window._device.close();
-    EmitObject({Name:"OnDeviceClose", Device:window._device});
-  }
-};
-
-function handleInputReport(e) {
-  let dataArray = new Uint8Array(e.data.buffer);
-  switch (mtDeviceType) {
-    case "CMF":
-      EmitObject({Name:"OnError",
-        Source: "DeviceType",
-        Data: "Not Implemented"
-      });
-      break;
-    case "MMS":      
-      parseMMSPacket(dataArray);
-      break;
-    case "V5":
-      //mt_V5.parseV5Packet(dataArray)
-      EmitObject({Name:"OnError",
-        Source: "DeviceType",
-        Data: "Use the V5 Parser"
-      });
-      break;
-    default:
-      EmitObject({Name:"OnError",
-        Source: "DeviceType",
-        Data: "Unknown Device Type",
-      });
-      break;
-  }
-};
 
 Array.prototype.zeroFill = function (len) {
   for (let i = this.length; i < len; i++) {

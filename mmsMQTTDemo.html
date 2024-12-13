@@ -19,7 +19,7 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link rel="stylesheet" type="text/css" href="./css/site.css"/>
-    <script type="module" src="./js/mmsMQTT.js"></script>
+    <script type="module" src="./js/Demo_mmsMQTT.js"></script>
   </head>
   <body>
     <div class="container">
@@ -92,14 +92,18 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
           <option value="SENDCOMMAND,AA0081040155180384081803810100820114">Display Welcome</option>
           <option value="SENDCOMMAND,AA008104012C182184081821810101830100">Display Screen 1</option>
           <option value="SENDCOMMAND,AA008104012C182184081821810102830100">Display Screen 2</option>
+          <option value="SENDCOMMAND,AA008104012C182184081821810103830100">Display Screen 3</option>
+          <option value="SENDCOMMAND,AA008104012C182184081821810104830100">Display Screen 4</option>
           <option value="SENDCOMMAND,AA008104017A2001841C200181013C82010083020804850100A10B81010C8206123456789012">Request PIN</option>
-          <option value="SENDCOMMAND,AA00810401002002841C200281011EA309810101820101830101A40A82010183020804850100">Request PIN with Card Read</option>
           <option value="SENDCOMMAND,AA008104017A2001841C200181013C8201FF83020804850100A10B81010C8206123456789012">PIN Entry Success</option>
           <option value="SENDCOMMAND,AA008104017A2001841C200181013C8201FE83020804850100A10B81010C8206123456789012">PIN Entry Fail</option>
           <option value="SENDCOMMAND,AA0081040100180284081802810100820100">User Selection 0</option>
           <option value="SENDCOMMAND,AA0081040100180284081802810100820101">User Selection 1</option>
           <option value="SENDCOMMAND,AA0081040155D1118410D1118501018704020201018903CA0101">Set WebSocket Connections 1</option>          
           <option value="SENDCOMMAND,AA0081040155D1118410D1118501018704020201018903CA0104">Set WebSocket Connections 4</option>
+          <option value="SENDCOMMAND,AA00810401002002841C200281011EA309810101820101830101A40A82010183020804850100">Request PIN with Card Read</option>
+          <option value="SENDCOMMAND,AA00810401322002841C200281013CA309810101820101830101A40A8201FF83020804850100">PIN Entry With Card Read Success</option>
+          <option value="SENDCOMMAND,AA00810401322002841C200281013CA309810101820101830101A40A8201FE83020804850100">PIN Entry With Card Read Fail</option>
         </select>       
        
       </div>
@@ -117,5 +121,10 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
       <button class="btn btn-primary" id="deviceClose">Close</button>
       <button class="btn btn-primary" id="clearCommand">Clear</button>
     </div>
+    <br>
+    <div class="container">
+      <input class="btn btn-primary" id="fileInput" type="file">
+  </div>
+
   </body>
 </html>

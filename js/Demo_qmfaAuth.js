@@ -16,7 +16,7 @@ import * as mt_QMFA from "./qMFAAPI.js";
 
 import "./mt_events.js";
 
-var TokenID;
+let TokenID = null;
 
 const params = new Proxy(new URLSearchParams(window.location.search), {
   get: (searchParams, prop) => searchParams.get(prop),
@@ -36,45 +36,53 @@ document
 .querySelector("#TransDecline")
 .addEventListener("click", handleDecline);
 
+document
+.querySelector("#TransLookup")
+.addEventListener("click", handleLookup);
+
+
 
 document.addEventListener("DOMContentLoaded", handleDOMLoaded);
 
+
+async function handleLookup() {
+  TokenID = document.getElementById(`TransLookupID`).value;
+  let resp = await mt_QMFA.TransactionRead(TokenID);
+  mt_UI.LogData(JSON.stringify(resp, null, 2)); 
+
+}
 
 
 
 async function handleDOMLoaded() {
 
-var resp = await mt_QMFA.TransactionRead(TokenID);
- mt_UI.LogData(JSON.stringify(resp, null, 2));
+if (TokenID != null)
+{
+  let resp = await mt_QMFA.TransactionRead(TokenID);
+  mt_UI.LogData(JSON.stringify(resp, null, 2));
+  document.getElementById(`TransLookup`).hidden = true;
+  document.getElementById(`TransLookupID`).hidden = true;
+  document.getElementById(`TransApprove`).hidden = false;
+  document.getElementById(`TransDecline`).hidden = false;
 
+}
+else
+{
+  document.getElementById(`TransLookup`).hidden = false;
+  document.getElementById(`TransLookupID`).hidden = false;
+  document.getElementById(`TransApprove`).hidden = true;
+  document.getElementById(`TransDecline`).hidden = true;
+
+}
 
 }
 
 async function handleApprove(){
-  
- var Token = 
- {
-   Header: "QMFAToken",
-   ID: TokenID,
-   Status: true,
-   Reason:"Approved"
- }
- 
- mt_UI.LogData("Present this QRCode to the POS");
- mt_UI.LogData("To APPROVE this transaction");
- mt_UI.UpdateQRCode(JSON.stringify(Token));
-
+  let resp = await mt_QMFA.TransactionRedeem(TokenID,"True","Approved");
+  mt_UI.LogData(JSON.stringify(resp, null, 2)); 
 }
 async function handleDecline(){
-  var Token = 
-  {
-    Header: "QMFAToken",
-    ID: TokenID,
-    Status: false,
-    Reason:"Declined"
-  }  
-  mt_UI.LogData("Present this QRCode to the POS");
-  mt_UI.LogData("To DECLINE this transaction");
-  mt_UI.UpdateQRCode(JSON.stringify(Token));
+  let resp = await mt_QMFA.TransactionRedeem(TokenID,"False","Declined");
+  mt_UI.LogData(JSON.stringify(resp, null, 2));  
 }
 

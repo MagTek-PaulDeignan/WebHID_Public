@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<!-- 
+DO NOT REMOVE THIS COPYRIGHT
+Copyright 2020-2024 MagTek, Inc., Paul Deignan
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), 
+to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
+and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, 
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+-->
+<html lang="en">
+<html>
+  <head>
+    <title>MagTek MQTT V5 Demo</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="./css/site.css"/>
+    <script type="module" src="./js/Demo_v5MQTT.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <a href="index.html">
+        <img src="./images/magtek_logo.png" alt="Logo" width="150">
+      </a>
+    </div>
+    <div class="container">
+      <h1>MQTT V5 Demo</h1>
+    </div>
+    <div class="container">
+      <div id="DeviceDisplay">WELCOME</div>
+      <textarea class="form-control" name="LogData" id="LogData" rows="12"></textarea>
+      <div class="form-group container-left">
+        <img id="USBStatus" src="./images/usb-disconnected.png"><span id="lblUSBStatus">Disconnected</span>
+      </div>
+      <div class="form-group" id="autoStartOptions">
+        <input type="checkbox" id="chk-AutoStart" name="AutoStart" value=""><label for="chk-AutoStart">Auto Start</label>
+         <br> 
+        <input type="checkbox" id="chk-AutoEMV" name="AutoEMV" value=""><label for="chk-AutoEMV">EMV</label>
+        <input type="checkbox" id="chk-AutoNFC" name="AutoNFC" value=""><label for="chk-AutoNFC">NFC</label>
+        <input type="checkbox" id="chk-AutoMSR" name="AutoMSR" value=""><label for="chk-AutoMSR">MSR</label>
+        <input type="checkbox" id="chk-AutoTouch" name="AutoTouch" value="" hidden="true"><label for="chk-AutoTouch" hidden="true">Touch</label>
+        
+        <hr>
+        <div id="updDeviceContainer" class="container" style.visibility ='hidden'>      
+          <p></p> 
+          <div id="progressContainer" class="progress" style.visibility ='hidden'>
+            <div id="progressBar" style.visibility ='hidden' class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width:0%">
+            </div>
+          </div>
+        </div>
+        <label for="sendData">Command Data</label>
+        <input type="text" class="form-control" name="sendData" id="sendData" aria-describedby="helpId"
+          value="SENDCOMMAND,0900">
+        <button class="btn btn-primary" id="sendCommand">Send Command</button>
+      </div>
+      <div class="form-group shadow-textarea">
+        <label for="CommandList"></label>
+        <select class="form-control-3" name="CommandList" id="CommandList" >
+          <option value="SENDCOMMAND,0900">GET KSN</option>
+          <option value="SENDCOMMAND,491900000300001300078000000000100000000000000000084001">START 3 - No Timeout</option>		
+          <option value="SENDCOMMAND,000100">GET FIRMWARE</option>
+          <option value="SENDCOMMAND,000103">GET SN</option>
+          <option value="SENDCOMMAND,1900">GET MUT</option>
+          <option value="SENDDATETIME">SET DATE</option>
+          <option value="GETAPPVERSION">GET APP VERSION</option>
+          <option value="GETDEVINFO">GET DEVICE INFO</option>
+          <option value="SENDCOMMAND,4800">GET OUTPUT CHANNEL</option>
+          <option value="SENDCOMMAND,480100">SET USB OUTPUT CHANNEL</option>
+          <option value="SENDCOMMAND,49190000030000131E028000000000100000000000000000084002">START EMV</option>
+          <option value="SENDCOMMAND,491900000300001300048000000000100000000000000000084002">START CONTACTLESS EMV</option>		
+          <option value="SENDCOMMAND,49190000030000131E068000000000100000000000000000084001">START BOTH EMV</option>		
+          <option value="SENDCOMMAND,49190000030000131E078000000000100000000000000000084001">START 3 EMV</option>		
+          <option value="SENDEXTENDEDCOMMAND,0501,00">GET SPI Status</option>
+          <option value="SENDEXTENDEDCOMMAND,0500,00FFFFFFFFFF">GET MSR Len</option>
+          <option value="SENDEXTENDEDCOMMAND,004A,">GET More</option>
+          <option value="GETSPIDATA,600">GET SPI</option>
+          <option value="SENDEXTENDEDCOMMAND,0304,00">Cancel EMV</option>
+          <option value="SENDEXTENDEDCOMMAND,0300,1E068000000000100000000000000000084001">START BOTH EMV</option>		
+          <option value="SENDEXTCOMMAND,0300001300078000000000100000000000000000084000">START 3 EMV</option>		
+          <option value="SENDEXTCOMMAND,030200020000">User Selection 0</option>		
+          <option value="SENDEXTCOMMAND,030200020001">User Selection 1</option>
+          <option value="SENDCOMMAND,491900000300001300072100000000150000000000000000084002">Start NFC</option>
+          <option value="SENDCOMMAND,491900000330001300000000000000000000000000000000000060">NFC Read Version</option>
+          <option value="SENDCOMMAND,49190000033000140000000000000000000000000000000000003000">NFC Read Data</option>
+          <option value="UPDATEDEVICE">RMS Update Device</option>
+        </select>       
+       
+      </div>
+    </div>
+    <br>
+
+    <div id="device-links" class="container">
+    </div>
+
+    <div class="container">
+
+
+    <div class="container">
+      <button class="btn btn-primary" id="deviceOpen">Open</button>
+      <button class="btn btn-primary" id="deviceClose">Close</button>
+      <button class="btn btn-primary" id="clearCommand">Clear</button>
+    </div>
+    <br>
+    <div class="container">
+      <input class="btn btn-primary" id="fileInput" type="file">
+  </div>
+
+  </body>
+</html>

@@ -11,14 +11,14 @@ DO NOT REMOVE THIS COPYRIGHT
 */
 
 import * as mt_Utils from "./mt_utils.js";
-import * as mt_MMS from "./mt_mms.js";
-import * as mt_HID from "./mt_hid.js";
+import * as mt_MMS from "./API_mmsHID.js";
 import * as mt_UI from "./mt_ui.js";
 import "./mt_events.js";
 
+let retval = "";
 let _contactSeated = false;
 let _AwaitingContactEMV = false;
-export let _contactlessDelay = parseInt(mt_Utils.getDefaultValue("ContactlessDelay", "500"));
+export let _contactlessDelay = parseInt(mt_Utils.getEncodedValue("ContactlessDelay", "500"));
 export let _openTimeDelay = 1500;
 
 
@@ -205,7 +205,7 @@ async function getDeviceName() {
 
 
 async function handleDOMLoaded() {
-  let devices = await mt_HID.getDeviceList();
+  let devices = await mt_MMS.getDeviceList();
   mt_UI.LogData(`Devices currently attached and allowed:`);
   
   if (devices.length == 0) mt_UI.setUSBConnected("Connect a device");
@@ -219,7 +219,7 @@ async function handleDOMLoaded() {
   //Add the hid event listener for connect/plug in
   navigator.hid.addEventListener("connect", async ({ device }) => {
     EmitObject({Name:"OnDeviceConnect", Device:device});
-    if (mt_MMS.wasOpened) {
+    if (window.mt_device_WasOpened) {
       await mt_Utils.wait(_openTimeDelay);
       await handleOpenButton();
     }
@@ -247,7 +247,7 @@ async function handleClearButton() {
 }
 
 async function handleOpenButton() {
-  window._device = await mt_MMS.openDevice();
+  window.mt_device_hid = await mt_MMS.openDevice();
 }
 
 async function handleSendCommandButton() {
@@ -260,10 +260,10 @@ async function parseCommand(message) {
   let cmd = message.split(",");
   switch (cmd[0].toUpperCase()) {
     case "GETAPPVERSION":
-      mt_Utils.debugLog("GETAPPVERSION " + appOptions.version);      
+      //mt_Utils.debugLog("GETAPPVERSION " + appOptions.version);      
       break;
     case "GETDEVINFO":
-      mt_Utils.debugLog("GETDEVINFO " + getDeviceInfo());      
+      //mt_Utils.debugLog("GETDEVINFO " + getDeviceInfo());      
       break;
     case "SENDCOMMAND":
       Response = await mt_MMS.sendCommand(cmd[1]);
@@ -273,36 +273,36 @@ async function parseCommand(message) {
       devices = getDeviceList();      
       break;
     case "OPENDEVICE":
-      window._device = await mt_MMS.openDevice();      
+      window.mt_device_hid = await mt_MMS.openDevice();      
       break;
     case "CLOSEDEVICE":
-      await mt_MMS.closeDevice();
+      window.mt_device_hid = await mt_MMS.closeDevice();
       break;
     case "WAIT":
       wait(cmd[1]);
       break;
     case "DETECTDEVICE":
-      window._device = await mt_MMS.openDevice();      
+      window.mt_device_hid = await mt_MMS.openDevice();      
       break;
     case "GETTAGVALUE":
       let asAscii = (cmd[4] === 'true');
-      var retval = mt_Utils.getTagValue(cmd[1], cmd[2], cmd[3], asAscii);      
+      retval = mt_Utils.getTagValue(cmd[1], cmd[2], cmd[3], asAscii);      
       mt_UI.LogData(retval);
       break;
     case "PARSETLV":
-      var retval = mt_Utils.tlvParser(cmd[1]);
+      retval = mt_Utils.tlvParser(cmd[1]);
       mt_UI.LogData(JSON.stringify(retval));
       break;
     case "DISPLAYMESSAGE":
       mt_UI.LogData(cmd[1]);
       break;
     default:
-      mt_Utils.debugLog("Unknown Command");
+      //mt_Utils.debugLog("Unknown Command");
   }
 };
 
 function ClearAutoCheck() {
-  var chk = document.getElementById("chk-AutoStart");
+  let chk = document.getElementById("chk-AutoStart");
   chk.checked = false;
 }
 
@@ -339,11 +339,11 @@ const barcodeLogger = (e) => {
 const arqcLogger = (e) => {
   mt_UI.LogData(`${e.Source} ARQC Data:  ${e.Data}`);
   let TLVs = mt_Utils.tlvParser(e.Data.substring(4));
-   mt_UI.LogData("TLVS---------------------------------");
+   mt_UI.LogData("TLVs---------------------------------");
    TLVs.forEach(element => {
      mt_UI.LogData(`${element.tag} : ${element.tagValue} `);    
    });   
-    mt_UI.LogData("TLVS---------------------------------");
+    mt_UI.LogData("TLVs---------------------------------");
 };
 const batchLogger = (e) => {
   mt_UI.LogData(`${e.Source} Batch Data: ${e.Data}`);
@@ -361,22 +361,22 @@ const debugLogger = (e) => {
   mt_UI.LogData(`Error: ${e.Source} ${e.Data}`);
 };
 const touchUpLogger = (e) => {
-  var chk = document.getElementById("chk-AutoTouch");
+  let chk = document.getElementById("chk-AutoTouch");
   if (chk.checked) {
     mt_UI.LogData(`Touch Up: X: ${e.Data.Xpos} Y: ${e.Data.Ypos}`);
   }
 };
 const touchDownLogger = (e) => {
-  var chk = document.getElementById("chk-AutoTouch");
+  let chk = document.getElementById("chk-AutoTouch");
   if (chk.checked) {
     mt_UI.LogData(`Touch Down: X: ${e.Data.Xpos} Y: ${e.Data.Ypos}`);
   }
 };
 const contactlessCardDetectedLogger = async (e) => {
   if (e.Data.toLowerCase() == "idle") mt_UI.LogData(`Contactless Card Detected`);
-  var chk = document.getElementById("chk-AutoNFC");
-  var chkEMV = document.getElementById("chk-AutoEMV");  
-  var _autoStart = document.getElementById("chk-AutoStart");
+  let chk = document.getElementById("chk-AutoNFC");
+  let chkEMV = document.getElementById("chk-AutoEMV");  
+  let _autoStart = document.getElementById("chk-AutoStart");
   if (_autoStart.checked & chk.checked & (e.Data.toLowerCase() == "idle")) {
     ClearAutoCheck();
     mt_UI.LogData(`Auto Starting...`);
@@ -401,8 +401,8 @@ const contactlessCardRemovedLogger = (e) => {
 const contactCardInsertedLogger = (e) => {
   _contactSeated = true;
   if (e.Data.toLowerCase() == "idle") mt_UI.LogData(`Contact Card Inserted`);
-  var chk = document.getElementById("chk-AutoEMV");
-  var _autoStart = document.getElementById("chk-AutoStart");
+  let chk = document.getElementById("chk-AutoEMV");
+  let _autoStart = document.getElementById("chk-AutoStart");
   if (
     _autoStart.checked & chk.checked & (e.Data.toLowerCase() == "idle") ||
     _AwaitingContactEMV
@@ -423,8 +423,8 @@ const contactCardRemovedLogger = (e) => {
 
 const msrSwipeDetectedLogger = (e) => {
   if (e.Data.toLowerCase() == "idle") mt_UI.LogData(`MSR Swipe Detected ${e.Data}`);
-  var chk = document.getElementById("chk-AutoMSR");
-  var _autoStart = document.getElementById("chk-AutoStart");
+  let chk = document.getElementById("chk-AutoMSR");
+  let _autoStart = document.getElementById("chk-AutoStart");
   if (_autoStart.checked & chk.checked & (e.Data.toLowerCase() == "idle")) {
     ClearAutoCheck();
     mt_UI.LogData(`Auto Starting MSR...`);

@@ -9,6 +9,8 @@ DO NOT REMOVE THIS COPYRIGHT
  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, 
  WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
+import * as mt_Utils from "./mt_utils.js";
+
 export function updateProgressBar(caption, progress) {
   try 
   {
@@ -128,6 +130,11 @@ export function FromListToText(event) {
 
 
  export function AddDeviceLink(type, name, status, url ){
+    let bShowOffline = false;
+    
+    let isChecked = mt_Utils.getEncodedValue("ShowOffline", "ZmFsc2U=");
+   (isChecked === "true" ? bShowOffline = true: bShowOffline = false);
+  
     //console.log(status);
     const imgOnline = document.createElement('img');
     imgOnline.setAttribute('src', `./images/${status}.png`);
@@ -142,7 +149,7 @@ export function FromListToText(event) {
     img.setAttribute('width', '60px');
     
     const link = document.createElement('a');
-    link.id = `dev-${name}`;
+    link.id = `dev-${type}${name}`;
     link.href = url;
     link.textContent = name;
     //link.target = "_blank"; // Opens link in a new tab
@@ -150,13 +157,14 @@ export function FromListToText(event) {
     link.prepend(imgOnline);    
     link.prepend(img);
     if (status == "disconnected"){
-      link.hidden = true;
+      //link.hidden = true;
+      link.hidden = !bShowOffline;
     }
     else
     {
       link.hidden = false;
     }
-    const existingLink  = document.getElementById(`dev-${name}`);
+    const existingLink  = document.getElementById(`dev-${type}${name}`);
     if (existingLink == null){
       document.getElementById('device-links').appendChild(link);
     }else
@@ -169,10 +177,17 @@ export function FromListToText(event) {
  {
   try 
   {
-    document.getElementById(`QRCode`).src = `https://paoli.magensa.net/Test/RenderImage/Home/QRCode?QRData=${qrcode}`;    
-  } catch (error) 
+    document.getElementById(`QRCode`).src = `https://paoli.magensa.net/Test/RenderImage/Home/QRCode?QRData=${qrcode}`;
+  } catch (error) { }
+  }
+ 
+  export function UpdateQRCodewithLink(qrcode)
   {
-    
-  }
-  }
+   try 
+   {
+     document.getElementById(`QRCode`).src = `https://paoli.magensa.net/Test/RenderImage/Home/QRCode?QRData=${qrcode}`;
+     document.getElementById(`QRCodeLink`).href = `${qrcode}`;
+     
+   } catch (error) { }
+   }
  

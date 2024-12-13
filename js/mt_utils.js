@@ -19,7 +19,7 @@ export function toHexString(byteArray) {
 }
 
 export function AsciiToHexPad(AsciiString, length) {
-  var hex = (AsciiToHex(AsciiString) + "0".repeat(length*2)).slice(0, length*2);
+  let hex = (AsciiToHex(AsciiString) + "0".repeat(length*2)).slice(0, length*2);
   return hex;
 };
 
@@ -29,14 +29,14 @@ export function wait(ms) {
 }
 
 export function makeHex(value, sigDigits) {
-  var hex = ("0".repeat(sigDigits) + value.toString(16).toUpperCase()).slice(
+  let hex = ("0".repeat(sigDigits) + value.toString(16).toUpperCase()).slice(
     -sigDigits
   );
   return hex;
 }
 export function hexToASCII(hexString) {
-  var str = "";
-  for (var n = 0; n < hexString.length; n += 2) {
+  let str = "";
+  for (let n = 0; n < hexString.length; n += 2) {
     str += String.fromCharCode(parseInt(hexString.substr(n, 2), 16));
   }
   return str;
@@ -44,18 +44,18 @@ export function hexToASCII(hexString) {
 
 export function AsciiToHex(str)
 {
-    var arr1 = [];
-    for (var n = 0, l = str.length; n < l; n++)
+    let arr1 = [];
+    for (let n = 0, l = str.length; n < l; n++)
     {
-        var hex = Number(str.charCodeAt(n)).toString(16).toUpperCase();
+        let hex = Number(str.charCodeAt(n)).toString(16).toUpperCase();
         arr1.push(hex);
     }
     return arr1.join('');
 };
 
 export function hexToDecIPv4(hexString) {
-  var str = "";
-  for (var n = 0; n < hexString.length; n += 2) {
+  let str = "";
+  for (let n = 0; n < hexString.length; n += 2) {
     str += parseInt(hexString.substr(n, 2), 16).toString();
     if (n < (hexString.length - 2)) str += ".";
   }
@@ -64,8 +64,8 @@ export function hexToDecIPv4(hexString) {
 
 
 export function hexToASCIInulltoNewLine(hexString) {
-  var str = "";
-  for (var n = 0; n < hexString.length; n += 2) {
+  let str = "";
+  for (let n = 0; n < hexString.length; n += 2) {
     if(parseInt(hexString.substr(n, 2), 16)==0){
       str += '\n';
     }else
@@ -76,9 +76,9 @@ export function hexToASCIInulltoNewLine(hexString) {
   return str;
 }
 
-function hexToASCIIRemoveNull(hexString) {
-  var str = "";
-  for (var n = 0; n < hexString.length; n += 2) {
+export function hexToASCIIRemoveNull(hexString) {
+  let str = "";
+  for (let n = 0; n < hexString.length; n += 2) {
     if(parseInt(hexString.substr(n, 2), 16)!=0)
     {
       str += String.fromCharCode(parseInt(hexString.substr(n, 2), 16));
@@ -87,9 +87,23 @@ function hexToASCIIRemoveNull(hexString) {
   return str;
 };
 
+export function MMSParser(hexdata) {
+  let Msg = hexToBytes(hexdata);
+  const MMSMessage = {
+    MsgHeader: makeHex(Msg[0], 2),
+    MsgVersion: makeHex(Msg[1], 2),
+    MsgType: makeHex(Msg[4], 2),
+    RefNum: makeHex(Msg[5], 2),
+    RespID: makeHex((Msg[6] << 8) | Msg[7], 4),
+    TLVData: toHexString(Msg.slice(8, Msg.length)),
+    HexString: toHexString(Msg)
+}
+return MMSMessage;
+}
+
 
 export function tlvParser(hexdata) {
-  var data = hexToBytes(hexdata);
+  let data = hexToBytes(hexdata);
   const dataLength = data.length;
   const moreTagBytesFlag1 = 0x1f;
   const moreTagBytesFlag2 = 0x80;
@@ -172,8 +186,8 @@ export function tlvParser(hexdata) {
 export function getTagValue(tagName, defaultTagValue, tlvData, asASCII) {
   try 
   {
-    var TLVS = tlvParser(tlvData);
-    var currtlv = TLVS.find((tlv) => tlv.tag === tagName);
+    let TLVS = tlvParser(tlvData);
+    let currtlv = TLVS.find((tlv) => tlv.tag === tagName);
     if (currtlv == undefined) return defaultTagValue;
     {
       if (asASCII == true) {
@@ -203,12 +217,13 @@ export function hexToBytes(hex) {
 }
 
 export function debugLog(data) {
-  // console.log(`DebugLog: ${data}`);
+  console.log(`DebugLog: ${data}`);
 }
 
 export function getDefaultValue(key, defaultValue){
-  var keyVal = localStorage.getItem(key);
+  let keyVal = localStorage.getItem(key);
   if (keyVal == null) keyVal = defaultValue;
+ 
   return keyVal;
 }
 
@@ -216,6 +231,19 @@ export function saveDefaultValue(key, value){
   localStorage.setItem(key, value);    
 }
 
+export function getEncodedValue(key, defaultValue){
+  let keyVal = localStorage.getItem(`enc-${window.btoa(key)}`);
+  if (keyVal == null) keyVal = defaultValue;
+  return window.atob(keyVal);
+}
+
+export function saveEncodedValue(key, value){
+  localStorage.setItem(`enc-${window.btoa(key)}`, window.btoa(value));
+}
+export function EncodeValue(value)
+{
+  return window.btoa(value);
+}
 export function makeid(length) {
   let result = '';
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -236,8 +264,77 @@ export function filterString(inputString) {
 
 
 Array.prototype.zeroFill = function (len) {
-  for (var i = this.length; i < len; i++) {
+  for (let i = this.length; i < len; i++) {
     this[i] = 0;
   }
   return this;
 };
+   
+   export async function waitForEvents(eventTarget, eventNames, strict) {
+    
+        // Default to document if no eventTarget is provided
+        eventTarget = eventTarget || document;
+    
+        // Convert eventNames to an array if it's not already
+        if (!Array.isArray(eventNames)) {
+            eventNames = String(eventNames).split(',');
+        }
+    
+        // Trim whitespace from event names
+        eventNames = eventNames.map(function(eventName) {
+            return String(eventName).trim();
+        });
+    
+        // Throw an error if no valid event names are provided
+        if (eventNames.length <= 0) {
+            throw new Error('Invalid eventNames');
+        }
+    
+        // Initialize an empty object to store the event objects
+        let eventObjects = {};
+    
+        // Store the index of the last event that was fired
+        let lastEventIndex = -1;
+    
+        // Create an array of promises, one for each event
+        let listeners = eventNames.map(function(eventName, index) {
+    
+            // Return a promise that resolves once event fired
+            return new Promise(function(resolve) {
+    
+                // Define event handler inside promise
+                function waitForEventHandler(e) {
+    
+                    // In strict mode, only resolve the promise when events are fired in order
+                    if (strict && index !== lastEventIndex + 1) {
+                        // If not in order, store the event but don't resolve the promise
+                        eventObjects[e.type] = e;
+                    } else {
+                        // Remove the event listener once the event has fired
+                        eventTarget.removeEventListener(eventName, waitForEventHandler);
+    
+                        // Store the event object in the eventObjects
+                        eventObjects[e.type] = e;
+    
+                        // Update the index of the last fired event
+                        lastEventIndex = index;
+    
+                        // Resolve the promise
+                        resolve();
+                    }
+                }
+    
+                // Add the event listener
+                eventTarget.addEventListener(eventName, waitForEventHandler, false);
+            });
+        });
+    
+        // Return a promise that resolves when all events have fired
+        return Promise.all(listeners).then(function() {
+    
+            // Return event objects in the order they were added
+            return eventNames.map(function(name) {
+                return eventObjects[name];
+            });
+        });
+    }

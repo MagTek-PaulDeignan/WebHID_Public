@@ -11,10 +11,11 @@ DO NOT REMOVE THIS COPYRIGHT
 */
 
 "use strict";
-import * as mt_V5 from "./mt_v5.js";
+import * as mt_V5 from "./API_v5HID.js";
 import * as mt_Utils from "./mt_utils.js";
-import * as mt_RMS_API from "./mt_rms_api.js";
+import * as mt_RMS_API from "./API_rms.js";
 
+let retval = "";
 let _KSN = "";
 let _UIK = "";
 let _FWID = "";
@@ -24,6 +25,7 @@ let _DeviceDetected =false;
 let _HasBLEFirmware = false;
 let _DeviceConfigList = null;
 let  _openTimeDelay = 2000;
+
 export function setDeviceDetected(bval) {
   _DeviceDetected = bval;
 };
@@ -40,7 +42,7 @@ function updateProgress(caption, progress ){
   EmitObject({ Name: "OnRMSProgress", Data: {Caption: caption, Progress: progress }});
 };
 export async function updateDevice() {
-  var bStatus = true;
+  let bStatus = true;
   _DeviceConfigList = null;
   try {
     LogData(`${mt_RMS_API.ProfileName}: Checking for updates...`);
@@ -71,42 +73,42 @@ async function updateAllTags() {
 async function getDeviceInfo() {
   let resp;
   //if in bootlaoder
-  if (window._device.productId == 0x5357)
+  if (window.mt_device_hid.productId == 0x5357)
   {
     LogData(`In Bootloader... `);
-    _KSN = mt_Utils.getDefaultValue("KSN","")
-    _UIK = mt_Utils.getDefaultValue("UIK","")
-    _FWID = mt_Utils.getDefaultValue("FWID","")
-    _BLEFWID = mt_Utils.getDefaultValue("BLEFWID","")
-    _MUT = mt_Utils.getDefaultValue("FWID","")
+    _KSN = mt_Utils.getEncodedValue("KSN","")
+    _UIK = mt_Utils.getEncodedValue("UIK","")
+    _FWID = mt_Utils.getEncodedValue("FWID","")
+    _BLEFWID = mt_Utils.getEncodedValue("BLEFWID","")
+    _MUT = mt_Utils.getEncodedValue("FWID","")
   }
   else
   {
     resp = await mt_V5.sendCommand("0900");
     if (resp.substring(0,2) == "00"){
       _KSN = resp;
-      mt_Utils.saveDefaultValue("KSN",_KSN);
+      mt_Utils.saveEncodedValue("KSN",_KSN);
       
     } 
     resp = await mt_V5.sendCommand("2100");
     if (resp.substring(0,2) == "00"){
       _UIK = resp;
-      mt_Utils.saveDefaultValue("UIK",_UIK);      
+      mt_Utils.saveEncodedValue("UIK",_UIK);      
     } 
     resp = await mt_V5.sendCommand("00013A");
     if (resp.substring(0,2) == "00"){
       _FWID = resp;
-      mt_Utils.saveDefaultValue("FWID",_FWID);      
+      mt_Utils.saveEncodedValue("FWID",_FWID);      
     } 
     resp = await mt_V5.getBLEFWID();
     if (resp.substring(0,2) == "00"){
       _BLEFWID = resp;
-      mt_Utils.saveDefaultValue("BLEFWID",_BLEFWID);      
+      mt_Utils.saveEncodedValue("BLEFWID",_BLEFWID);      
     } 
     resp = await mt_V5.sendCommand("1900");
     if (resp.substring(0,2) == "00"){
       _MUT = resp;
-      mt_Utils.saveDefaultValue("MUT",_MUT);      
+      mt_Utils.saveEncodedValue("MUT",_MUT);      
     } 
   }
   return true;
@@ -114,7 +116,7 @@ async function getDeviceInfo() {
 async function parseRMSCommands(description, messageArray) {
   for (let index = 0; index < messageArray.length; index++) {
     const element = messageArray[index];        
-    var progress = parseInt((index / messageArray.length) * 100);
+    let progress = parseInt((index / messageArray.length) * 100);
     updateProgress(`Loading ${description}`, progress);
     await parseRMSCommand(element);
   }
@@ -138,7 +140,7 @@ async function updateTags(command) {
         DownloadPayload: true,
       };
 
-      var tagsResp = await mt_RMS_API.GetTags(req);      
+      let tagsResp = await mt_RMS_API.GetTags(req);      
     }
 
     switch (tagsResp.ResultCode) {
@@ -196,7 +198,7 @@ async function updateConfig(configname) {
         InterfaceType: "USB",
         DownloadPayload: true,
       };
-      var configResp = await mt_RMS_API.GetConfig(req);      
+      let configResp = await mt_RMS_API.GetConfig(req);      
 
 
     switch (configResp.ResultCode) {
@@ -251,7 +253,7 @@ async function updateFirmware(fwType) {
       DownloadPayload: true,
     };
 
-    var firmwareResp = await mt_RMS_API.GetFirmware(req);
+    let firmwareResp = await mt_RMS_API.GetFirmware(req);
           if(firmwareResp.HasBLEFirmware && fwType.toLowerCase() == "main"){
             _HasBLEFirmware = true;
             //LogData("This reader has BLE firmware");
@@ -294,10 +296,10 @@ async function updateFirmware(fwType) {
 };
 async function parseRMSCommand(message) {
   let Response;
-  var cmd = message.split(",");
+  let cmd = message.split(",");
   switch (cmd[0].toUpperCase()) {
     case "GETDEVINFO":
-      return mt_HID.getDeviceInfo();
+      //return mt_HID.getDeviceInfo();
       break;
     case "SENDCOMMAND":
       Response = await mt_V5.sendCommand(cmd[1]);
@@ -344,7 +346,7 @@ async function parseRMSCommand(message) {
       await mt_V5.closeDevice();
       await mt_V5.openDevice();
       await mt_Utils.wait(_openTimeDelay);
-      if (window._device.opened) _DeviceDetected = true;
+      if (window.mt_device_hid.opened) _DeviceDetected = true;
       break;
     case "APPENDLOG":
       break;
@@ -353,11 +355,11 @@ async function parseRMSCommand(message) {
       break;
     case "GETTAGVALUE":
       let asAscii = (cmd[4] === 'true');
-      var retval = mt_Utils.getTagValue(cmd[1], cmd[2], cmd[3], asAscii);
+      retval = mt_Utils.getTagValue(cmd[1], cmd[2], cmd[3], asAscii);
       LogData(`Get Tags for ${retval}`);
       break;
     case "PARSETLV":
-      var retval = mt_Utils.tlvParser(mt_Utils.hexToBytes(cmd[1]));
+      retval = mt_Utils.tlvParser(mt_Utils.hexToBytes(cmd[1]));
       LogData("PARSETLV", JSON.stringify(retval));
       break;
     default:

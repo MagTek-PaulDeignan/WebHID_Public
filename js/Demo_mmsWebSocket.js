@@ -11,45 +11,20 @@ DO NOT REMOVE THIS COPYRIGHT
 */
 
 import * as mt_Utils from "./mt_utils.js";
-import * as mt_MQTT from "./API_mmsMQTT.js";
+//import * as mt_MMS from "./mt_mms.js";
 import * as mt_UI from "./mt_ui.js";
-import * as mt_MPPG from "./API_mppg.js";
-import * as mt_QMFA from "./qMFAAPI.js";
+import * as mt_WSS from "./API_mmsWebSocket.js";
 import "./mt_events.js";
 
-
 let retval = "";
-let url = mt_Utils.getEncodedValue('MQTTURL','d3NzOi8vZGV2ZWxvcGVyLmRlaWduYW4uY29tOjgwODQvbXF0dA==');
-let devPath = mt_Utils.getEncodedValue('MQTTDevice','');
-let userName = mt_Utils.getEncodedValue('MQTTUser','RGVtb0NsaWVudA==');
-let password = mt_Utils.getEncodedValue('MQTTPassword','ZDNtMENMdjFjMQ==');
-let client = null;
-
-
-const params = new Proxy(new URLSearchParams(window.location.search), {
-  get: (searchParams, prop) => searchParams.get(prop),
-});
-
-let value = params.devpath;
-if (value != null) {
-  devPath = value;
-}
-
-
-
-
-if (userName.length == 0 ) userName = null;
-if (password.length == 0 ) password = null;
+let wsAddress = mt_Utils.getEncodedValue('WSAddress','');
+  
 
 let _contactSeated = false;
 let _AwaitingContactEMV = false;
-
 export let _contactlessDelay = parseInt(mt_Utils.getEncodedValue("ContactlessDelay", "NTAw"));
 export let _openTimeDelay = 1500;
 
-document
-   .querySelector("#ProcessSale")
-   .addEventListener("click", handleProcessSale);
 document
   .querySelector("#deviceOpen")
   .addEventListener("click", handleOpenButton);
@@ -57,136 +32,36 @@ document
   .querySelector("#deviceClose")
   .addEventListener("click", handleCloseButton);
 document
+  .querySelector("#sendCommand")
+  .addEventListener("click", handleSendCommandButton);
+document
   .querySelector("#clearCommand")
   .addEventListener("click", handleClearButton);
 document
-  .querySelector("#saleAmount")
-  .addEventListener("change", SetAutoCheck);
-  
-document.addEventListener("DOMContentLoaded", handleDOMLoaded);
+  .querySelector("#CommandList")
+  .addEventListener("change", mt_UI.FromListToText);
 
-function EmitObject(e_obj) {
-  EventEmitter.emit(e_obj.Name, e_obj);
-};
+  document.addEventListener("DOMContentLoaded", handleDOMLoaded);
+
+// function EmitObject(e_obj) {
+//   EventEmitter.emit(e_obj.Name, e_obj);
+// };
 
 async function handleDOMLoaded() {
-  mt_UI.LogData(`Configured Device: ${devPath}`);
-  handleOpenButton();
-
-  mt_MPPG.setUsername(mt_Utils.getEncodedValue("MPPG_UserName", "VFNZU1BpbG90UFJPRA=="));
-  mt_MPPG.setPassword(mt_Utils.getEncodedValue("MPPG_Password", "UGFzc3dvcmQjMTIzNDU="));
-  mt_MPPG.setCustCode(mt_Utils.getEncodedValue("MPPG_CustCode", "S1Q0NDc0NjI2NA=="));
-  mt_MPPG.setProcessorName(mt_Utils.getEncodedValue("MPPG_ProcessorName", "VFNZUyAtIFBJTE9U"));
-  mt_UI.LogData(`Configured to use: ${mt_MPPG.ProcessorName}`);
-};
+}
 
 async function handleCloseButton() {
-  await mt_MQTT.CloseMQTT();
+  mt_WSS.CloseWS();
   mt_UI.ClearLog();
 }
 async function handleClearButton() {
   mt_UI.ClearLog();
   mt_UI.DeviceDisplay("");
-  window.mt_device_ARQCData = null;  
-  SetAutoCheck();
 }
 
- async function handleProcessSale() {
-  let QMFAChecked = document.getElementById("chk-UseQMFA").checked;
-  if (window.mt_device_ARQCData != null) {
-    let amt = document.getElementById("saleAmount").value;
-    if (amt.length > 0)
-    {
-      if(confirm("Ready To Process Sale?"))
-        {
-          let Amount = {
-            SubTotal: 0,
-            Tax: 0,
-            Tip: 0,
-            CashBack:0
-          }
-    
-          
-          let tax = document.getElementById("saleTax").value;
-          let tip = document.getElementById("saleTip").value;      
-          
-          if(amt.length > 0) Amount.SubTotal = parseFloat(amt);
-          if(tax.length > 0) Amount.Tax = parseFloat(tax);
-          if(tip.length > 0) Amount.Tip = parseFloat(tip);
-    
-          let email;
-          let sms;
-
-          if(QMFAChecked)
-          {
-            email = ""; 
-            sms = "";  
-          }
-          else
-          {
-            email = document.getElementById("receiptEmail").value;
-            sms = document.getElementById("receiptSMS").value;
-          }
-
-            let saleResp = await mt_MPPG.ProcessSale(Amount, email, sms, 6, window.mt_device_ARQCData);  
-
-            if(saleResp.Details.status == "PASS")
-              {
-                let claims = saleResp.Details;
-                claims.MagTranID = saleResp.MagTranID;
-                
-                if(QMFAChecked)
-                {
-                  email = document.getElementById("receiptEmail").value;
-                  sms = document.getElementById("receiptSMS").value;
-      
-                  if(sms.length > 0 || email.length > 0 )
-                  {
-                    window.mt_device_SaleResponse = saleResp;
-                    mt_UI.LogData(`Sending Qwantum MultiFactor Auth Request`);
-                    let mfaResponse = mt_QMFA.TransactionCreate(sms, email, claims)
-                  }
-                  else
-                  {
-                    window.mt_device_SaleResponse = null;
-                  }
-                }
-            }
-                       
-              if (!QMFAChecked)
-              {
-                mt_UI.LogData(`Sale Response Details`);
-                mt_UI.LogData(JSON.stringify(saleResp.Details, null, 2));
-              }
-              await mt_Utils.wait(1000);
-              mt_UI.LogData(`Clearing ARQC`);          
-              window.mt_devicc.ARQCData = null;
-        }
-    }
-    else
-    {
-      mt_UI.LogData(`No Amount Entered`);
-    }
-   } 
-   else 
-   {
-     mt_UI.LogData(`No ARQC Available`);
-     if(confirm("Start Sale Transaction?"))
-     {
-      mt_MQTT.SendCommand("AA008104010010018430100182010AA30981010082010083010184020003861A9C01009F02060000000001009F03060000000000005F2A020840");
-     }
-   }
- }
-
 async function handleOpenButton() {
-  
-  mt_MQTT.setURL(url);
-  mt_MQTT.setUserName(userName);
-  mt_MQTT.setPassword(password);
-  mt_MQTT.setPath(devPath);  
-  mt_MQTT.OpenMQTT();
-  //SetAutoCheck();
-  SetTechnologies(true, true, true);
+  mt_WSS.setURL(wsAddress);
+  mt_WSS.OpenWS();
 }
 
 async function handleSendCommandButton() {
@@ -204,19 +79,22 @@ async function parseCommand(message) {
       //mt_Utils.debugLog("GETDEVINFO " + getDeviceInfo());      
       break;
     case "SENDCOMMAND":
-      mt_MQTT.SendCommand(cmd[1]);
+      mt_WSS.SendCommand(cmd[1]);
+      break;
+    case "PCIRESET":
+      mt_WSS.SendCommand("AA00810401121F0184021F01");      
       break;
     case "GETDEVICELIST":
       devices = getDeviceList();      
       break;
     case "OPENDEVICE":      
-      mt_MQTT.OpenMQTT();      
+      mt_WSS.OpenWS();     
       break;
     case "CLOSEDEVICE":      
-      mt_MQTT.CloseMQTT();
+      mt_WSS.CloseWS();
       break;
     case "WAIT":
-      await mt_Utils.wait(cmd[1]);
+      wait(cmd[1]);
       break;
     case "DETECTDEVICE":
       //window._device = await mt_MMS.openDevice();      
@@ -233,9 +111,6 @@ async function parseCommand(message) {
     case "DISPLAYMESSAGE":
       mt_UI.LogData(cmd[1]);
       break;
-    case "PROCESS_SALE": 
-      handleProcessSale();
-      break;
     default:
       //mt_Utils.debugLog("Unknown Command");
   }
@@ -246,18 +121,6 @@ function ClearAutoCheck() {
   chk.checked = false;
 }
 
-function SetAutoCheck() {
-  let chk = document.getElementById("chk-AutoStart");
-  chk.checked = true;
-}
-
-function SetTechnologies(bEMV, bNFC, bMSR) {
-  
-  document.getElementById("chk-AutoEMV").checked = bEMV;
-  document.getElementById("chk-AutoNFC").checked = bNFC;
-  document.getElementById("chk-AutoMSR").checked = bMSR;
-  
-}
 const deviceConnectLogger = (e) => {
   mt_UI.setUSBConnected("Connected");
 };
@@ -279,70 +142,36 @@ const PINLogger = (e) => {
 };
 
 const trxCompleteLogger = (e) => {
-  //mt_UI.LogData(`${e.Name}: ${e.Data}`);
-  handleProcessSale();
+  mt_UI.LogData(`${e.Name}: ${e.Data}`);
 };
 const displayMessageLogger = (e) => {
-  //mt_UI.LogData(`Display: ${e.Data}`);
+  mt_UI.LogData(`Display: ${e.Data}`);
   mt_UI.DeviceDisplay(e.Data);
 };
-const barcodeLogger = async (e) => {
-  let stringbc = mt_Utils.getTagValue("DF74", "", e.Data, true);
-  let bc = JSON.parse(stringbc);
-  if(bc.Header == "QMFAToken")
-  {
-    mt_UI.LogData("Redeeming Token");
-    
-    
-    let resp = await mt_QMFA.TransactionRedeem(bc.ID,bc.Status.toString(), bc.Reason);    
-  if(resp.status == 0 )
-  {
-    if(window.mt_device_SaleResponse != null)
-      {
-        if (bc.Status == true)
-        {
-          let Outdata = window.mt_device_SaleResponse.Details.customerReceipt.replace(/\\n/g, '\n');
-          mt_UI.LogData(`Receipt:`);
-          mt_UI.LogData(`${Outdata}`);
-          
-          mt_UI.LogData(`The transaction was authorized and it's transaction details were authenticated and verified by the customer.`);  
-        }
-        else
-        {
-          mt_UI.LogData(`The transaction was cancelled because the customer did not verify the authenticity of the transaction details.`);
-        }
-        
-      }
-  }
-  else
-  {
-      mt_UI.LogData(`Error: ${JSON.stringify(resp, null, 2)}`);
-  }
-
-
-  }
-  else
-  {
-    mt_UI.LogData(`Barcode  Data: ${stringbc}`);
-  }
+const barcodeLogger = (e) => {
+  //mt_UI.LogData(`Barcode  Data: ${e.Data}`);
+  mt_UI.LogData(`Barcode  Data: ${mt_Utils.getTagValue("DF74", "", e.Data, true)}`);
 };
 const arqcLogger = (e) => {
-  //mt_UI.LogData(`${e.Source} ARQC Data:  ${e.Data}`);
-
-  window.mt_device_ARQCData = e.Data;
-  window.mt_device_ARQCType = e.Source;  
+  mt_UI.LogData(`${e.Source} ARQC Data:  ${e.Data}`);
+  let TLVs = mt_Utils.tlvParser(e.Data.substring(4));
+   mt_UI.LogData("TLVs---------------------------------");
+   TLVs.forEach(element => {
+     mt_UI.LogData(`${element.tag} : ${element.tagValue} `);    
+   });   
+   mt_UI.LogData("TLVs---------------------------------");
 };
 const batchLogger = (e) => {
-  //mt_UI.LogData(`${e.Source} Batch Data: ${e.Data}`);
+  mt_UI.LogData(`${e.Source} Batch Data: ${e.Data}`);
 };
 const fromDeviceLogger = (e) => {
-  //mt_UI.LogData(`Device Response: ${e.Data.TLVData}`);
+  mt_UI.LogData(`Device Response: ${e.Data.TLVData}`);
 };
 const inputReportLogger = (e) => {
   mt_UI.LogData(`Input Report: ${e.Data}`);
 };
 const errorLogger = (e) => {
-  mt_UI.LogData(`Error: ${e.Source} ${e.Data}`);
+  mt_UI.LogData(`Error: ${e.Source} ${JSON.stringify(e.Data)}`);
 };
 const debugLogger = (e) => {
   mt_UI.LogData(`Error: ${e.Source} ${e.Data}`);
@@ -374,7 +203,7 @@ const contactlessCardDetectedLogger = async (e) => {
     }
     if (!_contactSeated) {
       // We didn't get a contact seated, do start the contactless transaction
-      mt_MQTT.SendCommand("AA008104010010018430100182010AA30981010082010083010184020003861A9C01009F02060000000001009F03060000000000005F2A020840");
+      SendCommand("AA008104010010018430100182010AA30981010082010083010184020003861A9C01009F02060000000001009F03060000000000005F2A020840");
     }
   }
 };
@@ -395,7 +224,7 @@ const contactCardInsertedLogger = (e) => {
     _AwaitingContactEMV = false;
     ClearAutoCheck();
     mt_UI.LogData(`Auto Starting EMV...`);
-    mt_MQTT.SendCommand("AA008104010010018430100182010AA30981010082010183010084020003861A9C01009F02060000000001009F03060000000000005F2A020840");
+    SendCommand("AA008104010010018430100182010AA30981010082010183010084020003861A9C01009F02060000000001009F03060000000000005F2A020840");
   }
 };
 
@@ -411,20 +240,13 @@ const msrSwipeDetectedLogger = (e) => {
   if (_autoStart.checked & chk.checked & (e.Data.toLowerCase() == "idle")) {
     ClearAutoCheck();
     mt_UI.LogData(`Auto Starting MSR...`);
-    mt_MQTT.SendCommand("AA008104010010018430100182010AA30981010182010183010084020003861A9C01009F02060000000001009F03060000000000005F2A020840");
+    SendCommand("AA008104010010018430100182010AA30981010182010183010084020003861A9C01009F02060000000001009F03060000000000005F2A020840");
   }
 };
 
 const userEventLogger = (e) => {
   mt_UI.LogData(`User Event Data: ${e.Name} ${e.Data}`);
 };
-
-const mqttStatus = e => {
-  let topicArray = e.Data.Topic.split('/');
-  let data = e.Data.Message;
-  mt_UI.AddDeviceLink(topicArray[topicArray.length-3], `${topicArray[topicArray.length-2]}`,data, `${window.location.pathname}?devpath=${topicArray[topicArray.length-3]}/${topicArray[topicArray.length-2]}`);
-}
-
 
 // Subscribe to  events
 EventEmitter.on("OnInputReport", inputReportLogger);
@@ -490,4 +312,3 @@ EventEmitter.on("OnError", errorLogger);
 EventEmitter.on("OnPINComplete", PINLogger);
 EventEmitter.on("OnUIDisplayMessage", displayMessageLogger);
 EventEmitter.on("OnDebug", debugLogger);
-EventEmitter.on("OnMQTTStatus", mqttStatus);

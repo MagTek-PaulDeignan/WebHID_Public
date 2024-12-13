@@ -19,16 +19,16 @@ document.querySelector("#btnBack").addEventListener("click", handleBackButton);
 
 async function handleDOMLoaded() {
   let item = document.getElementById("txUserName");
-  item.value = mt_Utils.getDefaultValue("MPPG_UserName", "TSYSPilotPROD");
+  item.value = mt_Utils.getEncodedValue("MPPG_UserName", "VFNZU1BpbG90UFJPRA==");
 
   item = document.getElementById("txPassword");
-  item.value = mt_Utils.getDefaultValue("MPPG_Password", "Password#12345");
+  item.value = mt_Utils.getEncodedValue("MPPG_Password", "UGFzc3dvcmQjMTIzNDU=");
 
   item = document.getElementById("txCustCode");
-  item.value = mt_Utils.getDefaultValue("MPPG_CustCode", "KT44746264");
+  item.value = mt_Utils.getEncodedValue("MPPG_CustCode", "S1Q0NDc0NjI2NA==");
 
   item = document.getElementById("txProcessorName");
-  item.value = mt_Utils.getDefaultValue("MPPG_ProcessorName", "TSYS - PILOT");
+  item.value = mt_Utils.getEncodedValue("MPPG_ProcessorName", "VFNZUyAtIFBJTE9U");
   
 }
 
@@ -38,18 +38,18 @@ async function handleBackButton() {
 
 async function handleSaveButton() {
   let item = document.getElementById("txUserName");
-  mt_Utils.saveDefaultValue("MPPG_UserName", item.value);
+  mt_Utils.saveEncodedValue("MPPG_UserName", item.value);
 
   item = document.getElementById("txPassword");
-  mt_Utils.saveDefaultValue("MPPG_Password", item.value);
+  mt_Utils.saveEncodedValue("MPPG_Password", item.value);
 
   item = document.getElementById("txCustCode");
-  mt_Utils.saveDefaultValue("MPPG_CustCode", item.value);
+  mt_Utils.saveEncodedValue("MPPG_CustCode", item.value);
 
   item = document.getElementById("txProcessorName");
-  mt_Utils.saveDefaultValue("MPPG_ProcessorName", item.value);
+  mt_Utils.saveEncodedValue("MPPG_ProcessorName", item.value);
 
   item = document.getElementById("status");
-  item.innerText = " :Saved"  
+  item.innerText = " : Saved"  
   window.location.href = "index.html";
 }

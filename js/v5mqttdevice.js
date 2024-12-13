@@ -11,7 +11,7 @@ DO NOT REMOVE THIS COPYRIGHT
 */
 
 import * as mt_Utils from "./mt_utils.js";
-import * as mt_MMS from "./API_mmsHID.js";
+import * as mt_Device from "./API_v5HID.js";
 import * as mt_UI from "./mt_ui.js";
 import * as mt_AppSettings from "./config/appsettings.js";
 import mqtt  from "./mqtt.esm.js";
@@ -46,7 +46,7 @@ async function handleDOMLoaded() {
   
   document.getElementById("txFriendlyName").value = friendlyName;
 
-  let devices = await mt_MMS.getDeviceList();
+  let devices = await mt_Device.getDeviceList();
   mt_UI.LogData(`Devices currently attached and allowed:`);
   
   if (devices.length == 0) mt_UI.setUSBConnected("Connect a device");
@@ -71,7 +71,7 @@ async function handleDOMLoaded() {
       retain: true
     }
     
-    client.publish(`${mt_AppSettings.MQTT.MMS_Base_Pub}${devPath}/Status`, 'disconnected', options);
+    client.publish(`${mt_AppSettings.MQTT.V5_Base_Pub}${devPath}/Status`, 'disconnected', options);
     EmitObject({Name:"OnDeviceDisconnect", Device:device});
   });
 
@@ -81,7 +81,7 @@ async function handleDOMLoaded() {
 }
 
 async function handleCloseButton() {
-  mt_MMS.closeDevice();
+  mt_Device.closeDevice();
   mt_UI.ClearLog();
   CloseMQTT();
 }
@@ -89,8 +89,8 @@ async function handleCloseButton() {
 async function handleOpenButton() {
   mt_UI.ClearLog();
   CloseMQTT();
-  mt_MMS.closeDevice();
-  window.mt_device_hid = await mt_MMS.openDevice();
+  mt_Device.closeDevice();
+  window.mt_device_hid = await mt_Device.openDevice();
   
   let devSN = await GetDevSN();
 
@@ -102,14 +102,36 @@ async function handleOpenButton() {
   {
     devPath = `${mt_Utils.filterString(window.mt_device_hid.productName)}/${mt_Utils.filterString(devSN)}`;
   }
+
+  await SetDate();
+  await SetUSBOutChannel();
+
   
   OpenMQTT();
 }
 
 async function GetDevSN(){
   try {
-    let resp = await mt_MMS.sendCommand('AA00810401B5D1018418D10181072B06010401F6098501028704020101018902C100');
-    return mt_Utils.filterString(resp.TLVData.substring(68, 75));
+    let resp = await mt_Device.sendCommand('000103');
+    return mt_Utils.filterString(mt_Utils.hexToASCII(resp.substring(4,18)));
+  } catch (error) {
+    return null;
+  }
+}
+
+async function SetDate(){
+  try {
+    let resp = await mt_Device.sendCommand(mt_Device.calcDateTime());
+    return resp
+  } catch (error) {
+    return null;
+  }
+}
+
+async function SetUSBOutChannel(){
+  try {
+    let resp = await mt_Device.sendCommand('480100');
+    return resp;
   } catch (error) {
     return null;
   }
@@ -134,7 +156,14 @@ const deviceCloseLogger = (e) => {
 const deviceOpenLogger = (e) => {
   mt_UI.setUSBConnected("Opened");
 };
-const fromDeviceLogger = (e) => {
+const DeviceResponseLogger = (e) => {
+  if(client)
+    {
+      let options = {
+        retain: false
+      }
+      client.publish(`${mt_AppSettings.MQTT.V5_Base_Pub}${devPath}/V5Message`, e.Data, options);
+    }
   
 };
 const inputReportLogger = (e) => {
@@ -143,27 +172,29 @@ const inputReportLogger = (e) => {
 const errorLogger = (e) => {
   mt_UI.LogData(`Error: ${e.Source} ${e.Data}`);
 };
-const MMSMessageLogger = (e) => {
+
+const V5MessageLogger = (e) => {
   if(client)
   {
     let options = {
       retain: false
     }
-    client.publish(`${mt_AppSettings.MQTT.MMS_Base_Pub}${devPath}/MMSMessage`, e.Data, options);
+    client.publish(`${mt_AppSettings.MQTT.V5_Base_Pub}${devPath}/V5Message`, e.Data, options);
   }
 };
+
 
 function OpenMQTT(){
   let options = {
     clean: true,
     connectTimeout: 4000,
-    clientId: `MagTekMMSDevice-${mt_Utils.makeid(6)}`,
+    clientId: `MagTekV5Device-${mt_Utils.makeid(6)}`,
     username: userName,
     password: password,
     reconnectPeriod: 1000,
     keepalive: 60,
     will: {
-      topic:`${mt_AppSettings.MQTT.MMS_Base_Pub}${devPath}/Status`,
+      topic:`${mt_AppSettings.MQTT.V5_Base_Pub}${devPath}/Status`,
       retain: true,
       payload:"disconnected"
     }
@@ -182,7 +213,7 @@ function CloseMQTT(){
       retain: true
     }
     
-    client.publish(`${mt_AppSettings.MQTT.MMS_Base_Pub}${devPath}/Status`, 'disconnected', options);
+    client.publish(`${mt_AppSettings.MQTT.V5_Base_Pub}${devPath}/Status`, 'disconnected', options);
     client.end();
     client = null;      
   }
@@ -194,11 +225,13 @@ function onMQTTConnect() {
   let options = {
     retain: true
   }
-  client.unsubscribe(`${mt_AppSettings.MQTT.MMS_Base_Sub}${devPath}/#`, CheckMQTTError)
-  client.publish(`${mt_AppSettings.MQTT.MMS_Base_Pub}${devPath}/Status`, 'connected', options);
-  client.subscribe(`${mt_AppSettings.MQTT.MMS_Base_Sub}${devPath}/#`, CheckMQTTError)
-  mt_UI.LogData(`Connected to: ${mt_AppSettings.MQTT.MMS_Base_Sub}${devPath}`);
-  let path = `${mt_AppSettings.MQTT.MMS_PageURL}${devPath}`
+  
+  client.unsubscribe(`${mt_AppSettings.MQTT.V5_Base_Sub}${devPath}/#`, CheckMQTTError)
+  client.publish(`${mt_AppSettings.MQTT.V5_Base_Pub}${devPath}/Status`, 'connected', options);
+    
+  client.subscribe(`${mt_AppSettings.MQTT.V5_Base_Sub}${devPath}/#`, CheckMQTTError)
+  mt_UI.LogData(`Connected to: ${mt_AppSettings.MQTT.V5_Base_Sub}${devPath}`);
+  let path = `${mt_AppSettings.MQTT.V5_PageURL}${devPath}`
   mt_UI.UpdateQRCodewithLink(path);
 
 };
@@ -213,11 +246,15 @@ function CheckMQTTError (err) {
   }
 };
 
-function onMQTTMessage(topic, message) {
+async function onMQTTMessage(topic, message) {
     let data = message.toString();
-    //console.log(topic + " MMSDevice:: " + data )
-    mt_MMS.sendCommand(data);
+    //console.log(topic + " V5Device:: " + data )
+    let resp = await mt_Device.sendCommand(data);
+    EmitObject({Name:"OnDeviceResponse", Data: resp});
 };
+  
+    
+
 
 
 // Subscribe to  events
@@ -226,6 +263,7 @@ EventEmitter.on("OnDeviceConnect", deviceConnectLogger);
 EventEmitter.on("OnDeviceDisconnect", deviceDisconnectLogger);
 EventEmitter.on("OnDeviceOpen", deviceOpenLogger);
 EventEmitter.on("OnDeviceClose", deviceCloseLogger);
-EventEmitter.on("OnDeviceResponse", fromDeviceLogger);
+EventEmitter.on("OnDeviceResponse", DeviceResponseLogger);
 EventEmitter.on("OnError", errorLogger);
-EventEmitter.on("OnMMSMessage", MMSMessageLogger);
+//EventEmitter.on("OnMMSMessage", MMSMessageLogger);
+EventEmitter.on("OnV5Message", V5MessageLogger);

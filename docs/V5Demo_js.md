@@ -23,14 +23,14 @@ Ensure the following modules are available in your project directory:
 - `mt_v5.js`
 - `mt_hid.js`
 - `mt_rms_v5.js`
-- `mt_rms_api.js`
+- `API_rms.js`
 - `mt_ui.js`
 - `mt_events.js`
 
 ### Configuration
 
 ```javascript
-export var _openTimeDelay = 2000;
+export let _openTimeDelay = 2000;
 
 // Default configuration values for testing; replace with actual values.
 let defaultRMSURL = '';
@@ -65,7 +65,7 @@ Initializes UI components and lists available devices.
 ```javascript
 async function handleDOMLoaded() {
   mt_UI.ClearLog();
-  var devices = await mt_HID.getDeviceList();
+  let devices = await mt_HID.getDeviceList();
   mt_UI.LogData(`Devices currently attached and allowed:`);
   devices.forEach((device) => {
     mt_UI.LogData(`${device.productName}`);

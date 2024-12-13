@@ -96,7 +96,7 @@ export function setPassword(password) {
          }
       }
   
-    var TransactionResponse = await PostProcessTransaction(req);
+    let TransactionResponse = await PostProcessTransaction(req);
      
       return TransactionResponse;
     } 
