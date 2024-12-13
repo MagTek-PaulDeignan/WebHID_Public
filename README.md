@@ -3,4 +3,4 @@
 # WebHID_Public
 Web HID Demo For MagTek Devices
 
-https://rms.magensa.net/Test/HID/index.html
+https://rms.magensa.net/Test/Demo/index.html
