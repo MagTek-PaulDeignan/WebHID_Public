@@ -42,7 +42,7 @@ The Configuration Demo allows developers to:
 4.	Configure contactless reader settings, such as delay settings.
 ________________________________________
 
-## Step-by-Step Integration
+## Step 1: Step-by-Step Integration
 Step 1: Configuring RMS Options
 The RMS (Reader Management System) configuration allows you to set up the necessary API keys and profile names to communicate with Magensa’s RMS services.
 ````javascript
