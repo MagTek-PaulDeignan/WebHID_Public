@@ -10,12 +10,12 @@ DO NOT REMOVE THIS COPYRIGHT
  WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-import * as mt_Device from "./API_ID5G3HID.js";
-import * as mt_Utils from "./mt_utils.js";
+import * as mt_Device from "./MagTek_WebAPI/API_ID5G3HID.js";
+import * as mt_Utils from "./MagTek_WebAPI/mt_utils.js";
 import * as mt_UI from "./mt_ui.js";
-import * as mt_AppSettings from "./config/appsettings.js";
-import mqtt  from "./mqtt.esm.js";
-import "./mt_events.js";
+import * as mt_AppSettings from "./MagTek_WebAPI/config/appsettings.js";
+import mqtt  from "./MagTek_WebAPI/mqtt.esm.js";
+import "./MagTek_WebAPI/mt_events.js";
 
 let url = mt_Utils.getEncodedValue('MQTTURL','d3NzOi8vZGV2ZWxvcGVyLmRlaWduYW4uY29tOjgwODQvbXF0dA==');
 let devPath = mt_Utils.getEncodedValue('MQTTDevice','');

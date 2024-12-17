@@ -10,12 +10,12 @@ DO NOT REMOVE THIS COPYRIGHT
  WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-import * as mt_Utils from "./mt_utils.js";
-import * as mt_MQTT from "./API_mmsMQTT.js";
-import * as mt_UI from "./mt_ui.js";
-import * as mt_MPPG from "./API_mppg.js";
-import * as mt_QMFA from "./qMFAAPI.js";
-import "./mt_events.js";
+import * as mt_Utils from "./MagTek_WebAPI/mt_utils.js";
+import * as mt_MQTT from "./MagTek_WebAPI/API_mmsMQTT.js";
+import * as mt_UI from "./MagTek_WebAPI/mt_ui.js";
+import * as mt_MPPG from "./MagTek_WebAPI/API_mppg.js";
+import * as mt_QMFA from "./MagTek_WebAPI/qMFAAPI.js";
+import "./MagTek_WebAPI/mt_events.js";
 
 
 let retval = "";

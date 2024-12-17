@@ -11,12 +11,12 @@ DO NOT REMOVE THIS COPYRIGHT
 */
 "use strict";
 
-import * as mt_Device from "./API_DynamagHID.js";
-import * as mt_AppSettings from "./config/appsettings.js";
-import * as mt_Utils from "./mt_utils.js";
+import * as mt_Device from "./MagTek_WebAPI/API_DynamagHID.js";
+import * as mt_AppSettings from "./MagTek_WebAPI/config/appsettings.js";
+import * as mt_Utils from "./MagTek_WebAPI/mt_utils.js";
 import * as mt_UI from "./mt_ui.js";
 
-import "./mt_events.js";
+import "./MagTek_WebAPI/mt_events.js";
 
 export let _openTimeDelay = 2000;
 let retval = "";

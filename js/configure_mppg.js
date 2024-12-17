@@ -11,7 +11,7 @@ DO NOT REMOVE THIS COPYRIGHT
 */
 "use strict";
 
-import * as mt_Utils from "./mt_utils.js";
+import * as mt_Utils from "./MagTek_WebAPI/mt_utils.js";
 
 document.addEventListener("DOMContentLoaded", handleDOMLoaded);
 document.querySelector("#btnSave").addEventListener("click", handleSaveButton);

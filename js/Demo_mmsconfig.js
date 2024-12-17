@@ -10,10 +10,10 @@ DO NOT REMOVE THIS COPYRIGHT
  WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-import * as mt_Utils from "./mt_utils.js";
-import * as mt_MMS from "./API_mmsHID.js";
+import * as mt_Utils from "./MagTek_WebAPI/mt_utils.js";
+import * as mt_MMS from "./MagTek_WebAPI/API_mmsHID.js";
 import * as mt_UI from "./mt_ui.js";
-import "./mt_events.js";
+import "./MagTek_WebAPI/mt_events.js";
 
 let retval = "";
 let _contactSeated = false;
