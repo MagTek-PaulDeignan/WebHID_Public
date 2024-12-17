@@ -11,7 +11,7 @@ DO NOT REMOVE THIS COPYRIGHT
 */
 "use strict";
 import * as mt_Utils from "./mt_utils.js";
-import * as MT_Parse from "./API_Dyna MagParse.js";
+import * as MT_Parse from "./API_DynamagParse.js";
 import * as mt_Configs from "./config/DeviceConfig.js";
 import * as mt_AppSettings from "./config/appsettings.js";
 
