@@ -10,8 +10,7 @@ DO NOT REMOVE THIS COPYRIGHT
  WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-import * as mt_MMS from "./API_mmsHID.js";
-import * as mt_HID from "./mt_hid.js";
+import * as mt_HID from "./MagTek_WebAPI/mt_hid.js";
 import * as mt_MQTT from "./API_mmsMQTT.js";
 import * as mt_WSS from "./API_mmsWebSocket.js";
 

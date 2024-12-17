@@ -10,12 +10,12 @@ DO NOT REMOVE THIS COPYRIGHT
  WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-import * as mt_Utils from "./mt_utils.js";
+import * as mt_Utils from "./MagTek_WebAPI/mt_utils.js";
 import * as mt_UI from "./mt_ui.js";
-import * as mt_RMS from "./mt_rms_mms.js";
-import * as mt_RMS_API from "./API_rms.js";
-import * as mt_MMSMQTT_API from "./API_mmsMQTT.js";
-import "./mt_events.js";
+import * as mt_RMS from "./MagTek_WebAPI/mt_rms_mms.js";
+import * as mt_RMS_API from "./MagTek_WebAPI/API_rms.js";
+import * as mt_MMSMQTT_API from "./MagTek_WebAPI/API_mmsMQTT.js";
+import "./MagTek_WebAPI/mt_events.js";
 
 let retval = "";
 let defaultRMSURL = '';

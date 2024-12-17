@@ -10,11 +10,10 @@ DO NOT REMOVE THIS COPYRIGHT
  WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-import * as mt_Utils from "./mt_utils.js";
-//import * as mt_MMS from "./mt_mms.js";
+import * as mt_Utils from "./MagTek_WebAPI/mt_utils.js";
 import * as mt_UI from "./mt_ui.js";
-import * as mt_WSS from "./API_mmsWebSocket.js";
-import "./mt_events.js";
+import * as mt_WSS from "./MagTek_WebAPI/API_mmsWebSocket.js";
+import "./MagTek_WebAPI/mt_events.js";
 
 let retval = "";
 let wsAddress = mt_Utils.getEncodedValue('WSAddress','');

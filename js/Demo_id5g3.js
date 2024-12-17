@@ -11,13 +11,13 @@ DO NOT REMOVE THIS COPYRIGHT
 */
 "use strict";
 
-import * as mt_Utils from "./mt_utils.js";
-import * as mt_V5 from "./mt_v5.js";
-import * as mt_HID from "./mt_hid.js";
-import * as mt_RMS from "./mt_rms_v5.js";
-import * as mt_RMS_API from "./API_rms.js";
+import * as mt_Utils from "./MagTek_WebAPI/mt_utils.js";
+import * as mt_V5 from "./MagTek_WebAPI/mt_v5.js";
+import * as mt_HID from "./MagTek_WebAPI/mt_hid.js";
+import * as mt_RMS from "./MagTek_WebAPI/mt_rms_v5.js";
+import * as mt_RMS_API from "./MagTek_WebAPI/API_rms.js";
 import * as mt_UI from "./mt_ui.js";
-import "./mt_events.js";
+import "./MagTek_WebAPI/mt_events.js";
 
 let retval = "";
 export let _openTimeDelay = 2000;

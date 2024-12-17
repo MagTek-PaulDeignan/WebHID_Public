@@ -10,12 +10,12 @@ DO NOT REMOVE THIS COPYRIGHT
  WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-import * as mt_Utils from "./mt_utils.js";
-import * as mt_MMS from "./API_mmsHID.js";
+import * as mt_Utils from "./MagTek_WebAPI/mt_utils.js";
+import * as mt_Device from "./MagTek_WebAPI/API_mmsHID.js";
 import * as mt_UI from "./mt_ui.js";
-import * as mt_AppSettings from "./config/appsettings.js";
-import mqtt  from "./mqtt.esm.js";
-import "./mt_events.js";
+import * as mt_AppSettings from "./MagTek_WebAPI/config/appsettings.js";
+import mqtt  from "./MagTek_WebAPI/mqtt.esm.js";
+import "./MagTek_WebAPI/mt_events.js";
 
 let url = mt_Utils.getEncodedValue('MQTTURL','d3NzOi8vZGV2ZWxvcGVyLmRlaWduYW4uY29tOjgwODQvbXF0dA==');
 let devPath = mt_Utils.getEncodedValue('MQTTDevice','');
@@ -46,7 +46,7 @@ async function handleDOMLoaded() {
   
   document.getElementById("txFriendlyName").value = friendlyName;
 
-  let devices = await mt_MMS.getDeviceList();
+  let devices = await mt_Device.getDeviceList();
   mt_UI.LogData(`Devices currently attached and allowed:`);
   
   if (devices.length == 0) mt_UI.setUSBConnected("Connect a device");
@@ -81,7 +81,7 @@ async function handleDOMLoaded() {
 }
 
 async function handleCloseButton() {
-  mt_MMS.closeDevice();
+  mt_Device.closeDevice();
   mt_UI.ClearLog();
   CloseMQTT();
 }
@@ -89,8 +89,8 @@ async function handleCloseButton() {
 async function handleOpenButton() {
   mt_UI.ClearLog();
   CloseMQTT();
-  mt_MMS.closeDevice();
-  window.mt_device_hid = await mt_MMS.openDevice();
+  mt_Device.closeDevice();
+  window.mt_device_hid = await mt_Device.openDevice();
   
   let devSN = await GetDevSN();
 
@@ -108,7 +108,7 @@ async function handleOpenButton() {
 
 async function GetDevSN(){
   try {
-    let resp = await mt_MMS.sendCommand('AA00810401B5D1018418D10181072B06010401F6098501028704020101018902C100');
+    let resp = await mt_Device.sendCommand('AA00810401B5D1018418D10181072B06010401F6098501028704020101018902C100');
     return mt_Utils.filterString(resp.TLVData.substring(68, 75));
   } catch (error) {
     return null;
@@ -216,7 +216,7 @@ function CheckMQTTError (err) {
 function onMQTTMessage(topic, message) {
     let data = message.toString();
     //console.log(topic + " MMSDevice:: " + data )
-    mt_MMS.sendCommand(data);
+    mt_Device.sendCommand(data);
 };
 
 
