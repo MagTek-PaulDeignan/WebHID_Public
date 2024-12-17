@@ -12,7 +12,7 @@ DO NOT REMOVE THIS COPYRIGHT
 
 import * as mt_Utils from "./MagTek_WebAPI/mt_utils.js";
 import * as mt_MQTT from "./MagTek_WebAPI/API_mmsMQTT.js";
-import * as mt_UI from "./MagTek_WebAPI/mt_ui.js";
+import * as mt_UI from "./mt_ui.js";
 import * as mt_MPPG from "./MagTek_WebAPI/API_mppg.js";
 import * as mt_QMFA from "./MagTek_WebAPI/qMFAAPI.js";
 import "./MagTek_WebAPI/mt_events.js";
