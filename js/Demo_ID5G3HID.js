@@ -173,7 +173,17 @@ const errorLogger = (e) => {
 
 
 const V5MSRSwipeLogger = (e) =>{
-  mt_UI.LogData(`MSR Swiped ${e.Name}`);
+  mt_UI.LogData(`MSR Swiped`);
+  mt_UI.LogData(`${JSON.stringify(e.Data,null, 2)}`);  
+}
+
+const QwantumSwipeLogger = (e) =>{
+  mt_UI.LogData(`Qwantum Swiped`);
+  mt_UI.LogData(`${JSON.stringify(e.Data,null, 2)}`);  
+}
+
+const QwantumPushLogger = (e) =>{
+  mt_UI.LogData(`Qwantum Button Pushed`);
   mt_UI.LogData(`${JSON.stringify(e.Data,null, 2)}`);  
 }
 
@@ -189,4 +199,6 @@ EventEmitter.on("OnDeviceClose", deviceCloseLogger);
 EventEmitter.on("OnError", errorLogger);
 EventEmitter.on("OnV5DeviceResponse", fromV5DeviceLogger);
 EventEmitter.on("OnV5MSRSwipe", V5MSRSwipeLogger);
+EventEmitter.on("OnQwantumSwipe", QwantumSwipeLogger);
+EventEmitter.on("OnQwantumPush", QwantumPushLogger);
 //EventEmitter.on("OnInputReport", inputReportLogger);

@@ -165,8 +165,39 @@ let _msg =  msg.substring(14, (_packetLen*2)+2);
 }
 
 export function ParseID5G3MSR(buffer) {
+  let _resp = ParseID5MSRMode(buffer);
+  return _resp;
+}
+
+
+function ParseID5MSRMode(buffer)
+{
+
+  let _resp = null;
+  let cardArray = mt_Utils.hexToASCIIRemoveNull(buffer).split("|");
+  
+  switch (cardArray[0]) {
+    case "M001":
+      _resp = ParseNormalMode(buffer);
+      break;
+    case "Q001":
+      _resp = ParseQwantumSwipe(buffer);
+      break;
+    case "Q002":
+      _resp = ParseQwantumPush(buffer);
+      break;
+    default:
+      EmitObject({ Name: "OnError", Source:"ID5G3", Data: "Unknown MSR Mode" });      
+      break;
+  }
+  return _resp;
+}
+
+function ParseNormalMode(buffer)
+{
   let newBuff = "";
   let endsWith = buffer.substring(buffer.length -2, buffer.length)
+  
   if (endsWith == "0D")
   {
     newBuff = buffer.substring(0, buffer.length -2)
@@ -179,6 +210,7 @@ export function ParseID5G3MSR(buffer) {
   let cardArray = mt_Utils.hexToASCIIRemoveNull(newBuff).split("|");
 
   let _card  = {
+    Mode: cardArray[0],
     EncodeType: "00",
     MagnePrintStatus: cardArray[7],
     MagnePrintData: cardArray[8] ,
@@ -217,7 +249,94 @@ export function ParseID5G3MSR(buffer) {
     Card: _card,
     Device: _device,
   };
-  
   EmitObject({ Name: "OnV5MSRSwipe", Data: _resp});
   return _resp;
+
+}
+
+function ParseQwantumSwipe(buffer)
+{
+  let newBuff = "";
+  let endsWith = buffer.substring(buffer.length -2, buffer.length)
+  
+  if (endsWith == "0D")
+  {
+    newBuff = buffer.substring(0, buffer.length -2)
+  }
+  else
+  {
+    newBuff = buffer;
+  }
+  
+  let cardArray = mt_Utils.hexToASCIIRemoveNull(newBuff).split("|");
+
+  let _card  = {
+    Mode: cardArray[0],
+    TokenStatus: cardArray[3],
+    TokenData: cardArray[4],
+    QwantumData: cardArray[6],
+    Data: mt_Utils.hexToASCIIRemoveNull(buffer),
+  }
+
+  let _device  = {
+    SerialNumber: cardArray[7],
+    KeySerialNumber: cardArray[1],
+    KeyInfo: cardArray[2],
+    SessionID: cardArray[5],
+    MACKeyInfo: cardArray[8],    
+    MACData: cardArray[10],
+    Transport: "Swipe"
+  }
+
+  let _resp = {
+    Card: _card,
+    Device: _device,
+  };
+  EmitObject({ Name: "OnQwantumSwipe", Data: _resp});
+  return _resp;
+  
+
+}
+function ParseQwantumPush(buffer)
+{
+  let newBuff = "";
+  let endsWith = buffer.substring(buffer.length -2, buffer.length)
+  
+  if (endsWith == "0D")
+  {
+    newBuff = buffer.substring(0, buffer.length -2)
+  }
+  else
+  {
+    newBuff = buffer;
+  }
+  
+  let cardArray = mt_Utils.hexToASCIIRemoveNull(newBuff).split("|");
+
+  let _card  = {
+    Mode: cardArray[0],
+    TokenStatus: "NA",
+    TokenData: "NA",
+    QwantumData: cardArray[4],
+    Data: mt_Utils.hexToASCIIRemoveNull(buffer),
+  }
+
+  let _device  = {
+    SerialNumber: cardArray[5],
+    KeySerialNumber: cardArray[1],
+    KeyInfo: cardArray[2],
+    SessionID: cardArray[3],
+    MACKeyInfo: cardArray[6],    
+    MACData: cardArray[8],
+    Transport: "ButtonPush"
+  }
+
+  let _resp = {
+    Card: _card,
+    Device: _device,
+  };
+  
+  EmitObject({ Name: "OnQwantumPush", Data: _resp});
+  return _resp;
+
 }
