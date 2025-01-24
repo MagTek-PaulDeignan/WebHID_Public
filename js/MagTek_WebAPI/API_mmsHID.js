@@ -66,6 +66,7 @@ async function sendMMSCommand(cmdToSend) {
   );
   for (let index = 0; index < commands.length; index++) {
     await window.mt_device_hid.sendReport(0, new Uint8Array(commands[index]));
+    EmitObject({Name:"OnDeviceSendProgress", Total:commands.length, Progress:index});
   }
   Response = await waitForDeviceResponse();
   return Response;

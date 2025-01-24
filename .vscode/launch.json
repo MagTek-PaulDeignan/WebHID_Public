@@ -7,6 +7,7 @@
       "name": "Launch Chrome against localhost",
       "url": "http://localhost:5500",
       "webRoot": "${workspaceFolder}"
+      
     },
     {
       "name": "C/C++ Runner: Debug Session",

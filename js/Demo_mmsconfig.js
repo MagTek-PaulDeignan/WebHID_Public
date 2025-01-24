@@ -293,6 +293,10 @@ async function parseCommand(message) {
       retval = mt_Utils.tlvParser(cmd[1]);
       mt_UI.LogData(JSON.stringify(retval));
       break;
+    case "PARSEMMS":
+      retval = mt_Utils.MMSParser(cmd[1]);
+      mt_UI.LogData(JSON.stringify(retval));
+      break;
     case "DISPLAYMESSAGE":
       mt_UI.LogData(cmd[1]);
       break;
