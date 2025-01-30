@@ -155,7 +155,7 @@ async function handleClearButton() {
                        
               if (!QMFAChecked)
               {
-                mt_UI.LogData(`Sale Response Details`);
+                mt_UI.LogData(`Transaction Response Details`);
                 mt_UI.LogData(JSON.stringify(saleResp.Details, null, 2));
               }
               await mt_Utils.wait(1000);

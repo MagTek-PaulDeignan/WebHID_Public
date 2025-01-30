@@ -15,7 +15,6 @@ import * as mt_MQTT from "./MagTek_WebAPI/API_mmsMQTT.js";
 import * as mt_UI from "./mt_ui.js";
 import * as mt_Unigate from "./MagTek_WebAPI/API_Unigate.js";
 import * as mt_QMFA from "./MagTek_WebAPI/qMFAAPI.js";
-import * as mt_XML2JSON from "./MagTek_WebAPI/mt_xml2json.js";
 import "./MagTek_WebAPI/mt_events.js";
 
 
@@ -94,8 +93,6 @@ async function handleClearButton() {
 
  async function handleProcessSale() {
   let QMFAChecked = document.getElementById("chk-UseQMFA").checked;
-  //let dictionary = {};
-
   if (window.mt_device_ARQCData != null) {
     let amt = document.getElementById("saleAmount").value;
     if (amt.length > 0)
@@ -106,7 +103,7 @@ async function handleClearButton() {
             SubTotal: 0,
             Tax: 0,
             Tip: 0,
-            CashBack:0
+            CashBack: 0
           }
     
           
@@ -117,38 +114,18 @@ async function handleClearButton() {
           if(tax.length > 0) Amount.Tax = parseFloat(tax);
           if(tip.length > 0) Amount.Tip = parseFloat(tip);
     
-          let email;
-          let sms;
-
-          if(QMFAChecked)
-          {
-            email = ""; 
-            sms = "";  
-          }
-          else
-          {
-            email = document.getElementById("receiptEmail").value;
-            sms = document.getElementById("receiptSMS").value;
-          }
-
-            let saleResp = await mt_Unigate.ProcessSale(Amount, window.mt_device_ARQCData);  
+          let email = document.getElementById("receiptEmail").value;
+          let sms = document.getElementById("receiptSMS").value;
+          
+            let saleResp = await mt_Unigate.ProcessARQCTransaction(Amount, window.mt_device_ARQCData, null, "SALE", "EMV", "Credit", false);  
 
             if(saleResp.transactionOutput != null)
               {
-                
-                //mt_XML2JSON.XmltoDict(saleResp.transactionOutput.transactionOutputDetails[0].value, dictionary);      
-                //let claims = dictionary;
                 let claims = saleResp.Details;
                 claims.magTranID = saleResp.magTranID;
-
-                //saleResp.Details = dictionary;
                 window.mt_device_SaleResponse = saleResp;
-                
                 if(QMFAChecked)
                 {
-                  email = document.getElementById("receiptEmail").value;
-                  sms = document.getElementById("receiptSMS").value;
-      
                   if(sms.length > 0 || email.length > 0 )
                   {
                     window.mt_device_SaleResponse = saleResp;
@@ -177,15 +154,15 @@ async function handleClearButton() {
                   }
 
                   mt_UI.LogData(``);
-                  mt_UI.LogData(`======================Sale Response Details======================`);
+                  mt_UI.LogData(`======================Transaction Response Details======================`);
                   mt_UI.LogData(JSON.stringify(saleResp, null, 2));
-                  mt_UI.LogData(`======================Sale Response Details======================`);                
+                  mt_UI.LogData(`======================Transaction Response Details======================`);                
 
-                  mt_UI.LogData(``);
-                  let Outdata = saleResp.Details.customerReceipt.replace(/\\n/g, '\n');
-                  mt_UI.LogData(`============================Receipt=============================`);
-                  mt_UI.LogData(`${Outdata}`);
-                  mt_UI.LogData(`============================Receipt============================`);
+                  //mt_UI.LogData(``);
+                  //let Outdata = saleResp.Details.customerReceipt.replace(/\\n/g, '\n');
+                  //mt_UI.LogData(`============================Receipt=============================`);
+                  //mt_UI.LogData(`${Outdata}`);
+                  //mt_UI.LogData(`============================Receipt============================`);
 
               }
               await mt_Utils.wait(1000);
@@ -200,11 +177,8 @@ async function handleClearButton() {
    } 
    else 
    {
-     mt_UI.LogData(`No ARQC Available`);
-     //if(confirm("Start Sale Transaction?"))
-     {
-      mt_MQTT.SendCommand("AA008104010010018430100182010AA30981010082010083010184020003861A9C01009F02060000000001009F03060000000000005F2A020840");
-     }
+     mt_UI.LogData(`No ARQC Available - Starting Transaction`);
+     mt_MQTT.SendCommand("AA008104010010018430100182010AA30981010082010083010184020003861A9C01009F02060000000001009F03060000000000005F2A020840");
    }
  }
 
@@ -309,11 +283,9 @@ const PINLogger = (e) => {
 };
 
 const trxCompleteLogger = (e) => {
-  //mt_UI.LogData(`${e.Name}: ${e.Data}`);
   handleProcessSale();
 };
 const displayMessageLogger = (e) => {
-  //mt_UI.LogData(`Display: ${e.Data}`);
   mt_UI.DeviceDisplay(e.Data);
 };
 const barcodeLogger = async (e) => {
@@ -357,16 +329,12 @@ const barcodeLogger = async (e) => {
   }
 };
 const arqcLogger = (e) => {
-  //mt_UI.LogData(`${e.Source} ARQC Data:  ${e.Data}`);
-
   window.mt_device_ARQCData = e.Data;
   window.mt_device_ARQCType = e.Source;  
 };
 const batchLogger = (e) => {
-  //mt_UI.LogData(`${e.Source} Batch Data: ${e.Data}`);
 };
 const fromDeviceLogger = (e) => {
-  //mt_UI.LogData(`Device Response: ${e.Data.TLVData}`);
 };
 const inputReportLogger = (e) => {
   mt_UI.LogData(`Input Report: ${e.Data}`);
@@ -399,8 +367,11 @@ const contactlessCardDetectedLogger = async (e) => {
     mt_UI.LogData(`Auto Starting...`);
     if (chkEMV.checked) {
       _AwaitingContactEMV = true;
-      mt_UI.LogData(`Delaying Contactless ${_contactlessDelay}ms`);
-      await mt_Utils.wait(_contactlessDelay);
+      if(_contactlessDelay > 0)
+      {
+        mt_UI.LogData(`Delaying Contactless ${_contactlessDelay}ms`);
+        await mt_Utils.wait(_contactlessDelay);  
+      }
     }
     if (!_contactSeated) {
       // We didn't get a contact seated, do start the contactless transaction

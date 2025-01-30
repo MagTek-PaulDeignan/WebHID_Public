@@ -113,6 +113,9 @@ async function parseCommand(message) {
     case "SENDCOMMAND":
       mt_MMSMQTT_API.SendCommand(cmd[1]);
       break;
+    case "SENDBASE64COMMAND":
+      mt_MMSMQTT_API.sendBase64Command(cmd[1]);
+      break;
     case "PCIRESET":
       mt_MMSMQTT_API.SendCommand("AA00810401121F0184021F01");      
       break;

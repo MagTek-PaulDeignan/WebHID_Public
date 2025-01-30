@@ -102,6 +102,7 @@ async function handleSendCommandButton() {
 
 async function parseCommand(message) {
   let Response;
+  let hexData = null;
   let cmd = message.split(",");
   switch (cmd[0].toUpperCase()) {
     case "GETAPPVERSION":
@@ -112,7 +113,11 @@ async function parseCommand(message) {
       break;
     case "SENDCOMMAND":
       Response = await mt_MMS.sendCommand(cmd[1]);
-      mt_UI.LogData(Response.HexString)
+      //mt_UI.LogData(Response.HexString)
+      break;
+    case "SENDBASE64COMMAND":
+      Response = await mt_MMS.sendBase64Command(cmd[1]);
+      //mt_UI.LogData(Response.HexString)
       break;
     case "PCIRESET":
       Response = await mt_MMS.sendCommand("AA00810401121F0184021F01");      
@@ -222,8 +227,16 @@ async function parseCommand(message) {
       if(mt_RMS_API.BaseURL.length > 0 && mt_RMS_API.APIKey.length > 0 && mt_RMS_API.ProfileName.length > 0){
         await mt_RMS.updateDevice();
       }else{
-        mt_UI.LogData(`Please set APIKey and ProfileName`);      
+        mt_UI.LogData(`Please set APIKey and ProfileName`);
       }
+      break;
+    case "HEXTOBASE64":
+      let b64Data = mt_Utils.hexToBase64(cmd[1])
+      mt_UI.LogData(b64Data);
+      break;
+    case "BASE64TOHEX":
+      hexData = mt_Utils.base64ToHex(cmd[1])
+      mt_UI.LogData(hexData);
       break;
     default:
       //mt_Utils.debugLog("Unknown Command");

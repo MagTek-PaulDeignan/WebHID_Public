@@ -10,7 +10,40 @@ DO NOT REMOVE THIS COPYRIGHT
  WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-  export function toHexString(byteArray) {
+function byteArrayToBase64(byteArray) {
+  // Convert the byte array to a binary string
+  const binaryString = Array.from(byteArray)
+      .map(byte => String.fromCharCode(byte))
+      .join('');
+  
+  // Use `btoa` to convert the binary string to Base64
+  return btoa(binaryString);
+}
+
+function base64ToByteArray(base64) {
+  // Decode Base64 to a binary string
+  const binaryString = atob(base64);
+  // Create a Uint8Array to hold the byte values
+  const byteArray = new Uint8Array(binaryString.length);
+ 
+  // Map each character in the binary string to its byte value
+  for (let i = 0; i < binaryString.length; i++) {
+      byteArray[i] = binaryString.charCodeAt(i);
+  }
+  
+  return byteArray;
+}
+export function hexToBase64(hexstring){
+  let bytearray = hexToBytes(hexstring);
+  return byteArrayToBase64(bytearray);
+}
+
+export function base64ToHex(b64string){
+  let bytearray = base64ToByteArray(b64string);
+  return toHexString(bytearray);
+}
+
+export function toHexString(byteArray) {
   return Array.prototype.map
     .call(byteArray, function (byte) {
       return ("0" + (byte & 0xff).toString(16)).toUpperCase().slice(-2);
@@ -222,6 +255,14 @@ export function getTagValue(tagName, defaultTagValue, tlvData, asASCII) {
   }
   
 }
+
+export function sanitizeHexData(hexdata) {
+  // Regular expression to match only hexadecimal characters
+  const hexOnlyRegex = /[^0-9a-fA-F]/g;
+  // Remove all non-hexadecimal characters
+  return hexdata.replace(hexOnlyRegex, "");
+}
+
 
 export function removeSpaces(str) {
   return str.replace(/\s+/g, "");
@@ -444,4 +485,15 @@ Array.prototype.zeroFill = function (len) {
         }
       }
       return result;
+    }
+
+    export function getObjectKeyLen(obj){
+      try 
+      {
+        return Object.keys(obj).length  
+      } catch (error) 
+      {
+        return 0;
+      }
+      
     }

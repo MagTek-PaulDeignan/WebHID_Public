@@ -1,6 +1,15 @@
-//let replacements = FetchNames(`https://rms.magensa.net/test/MagensaNormalizedFieldNames.json`);
+let replacements = {};
 
-function parseXml(xml) 
+const networkNamePath = `https://rms.magensa.net/test/MagensaNormalizedFieldNames.json`;
+const localReplacements = {
+   hostReferenceNumber:"MagensaProcessor_ReferenceNumber",
+   responseCode:"MagensaProcessor_ResponseCode",
+   transactionTimestamp:"MagensaProcessor_Timestamp",
+   status: "MagensaProcessor_Status"
+ }  
+
+
+async function parseXml(xml) 
 {
   var dom = null;
   if (window.DOMParser) 
@@ -14,12 +23,12 @@ function parseXml(xml)
     return dom;
 }
 
-function parseTheDOM(node, func) 
+async function parseTheDOM(node, func) 
 {
    func(node);
    node = node.firstChild;
    while (node) {
-     parseTheDOM(node, func);
+     await parseTheDOM(node, func);
      node = node.nextSibling;
    }
  }
@@ -33,46 +42,47 @@ function sanitizeXMLData(data)
   return xmlDoc;
 }
 
-export function XmltoDict(xml, dictionary)
+export async function XmltoDict(xml, dictionary)
 {   
-  
-  let dom = parseXml(sanitizeXMLData(xml));
-  parseTheDOM(dom, function(node) 
+  //console.log(`dict size ${dictionary}`);
+  replacements = await FetchNames(networkNamePath);
+  let dom = await parseXml(sanitizeXMLData(xml));
+  //console.log(`DOM ${JSON.stringify(dom)}`);
+  await parseTheDOM(dom, async function(node) 
+
   {
+    //console.log(`node ${JSON.stringify(node)}`);
+
     if (node.nodeType == 1 && node.childElementCount == 0 )
     {
+      
+
       if (node.nodeName == "Payload")
       {
-        XmltoDict(node.textContent, dictionary);
+        await XmltoDict(node.textContent, dictionary);
       }
       else
       {
+        //console.log(`details- ${normalizeNames(node.nodeName)} ${node.textContent}`);
         dictionary[normalizeNames(node.nodeName)] = node.textContent;
       }              
     } 
   }
 );
-  return true;
+
+//console.log(`details- ${JSON.stringify(dictionary)}`);
+return true;
 }
 
 async function FetchNames(jsonUrl){
-  const response = await fetch(jsonUrl);
-  if (!response.ok) {
-      throw new Error(`Failed to fetch JSON file: ${response.statusText}`);
-  }
-  // Parse the JSON data
-  return await response.json();
+  try 
+  {
+    const response = await fetch(jsonUrl);
+    if (response.ok) return await response.json();
+  } 
+  catch (error) {}
+  return localReplacements;
 }
-
-
- const replacements =
- {
-   hostReferenceNumber:"MagensaProcessor_ReferenceNumber",
-   responseCode:"MagensaProcessor_ResponseCode",
-   transactionTimestamp:"MagensaProcessor_Timestamp",
-   status: "MagensaProcessor_Status"
- }  
-
 
 function normalizeNames(name) {
   if (replacements.hasOwnProperty(name)) 

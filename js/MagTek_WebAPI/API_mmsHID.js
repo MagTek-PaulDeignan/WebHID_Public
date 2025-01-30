@@ -29,6 +29,9 @@ export async function getDeviceList() {
   devices = mt_Configs.filterDevices(devices, _filters);
   return devices;
 }
+export async function sendBase64Command(cmdToSendB64) {
+  return await sendCommand(mt_Utils.base64ToHex(cmdToSendB64));
+}
 
 export async function sendCommand(cmdToSend) {
   let cmdResp = "";
@@ -50,7 +53,8 @@ export async function sendCommand(cmdToSend) {
       });
       return 0;
     }
-    cmdResp = await sendMMSCommand(mt_Utils.removeSpaces(cmdToSend));
+    
+    cmdResp = await sendMMSCommand(mt_Utils.sanitizeHexData(cmdToSend));
     return cmdResp;
   } catch (error) {
     EmitObject({ Name: "OnError", Source: "SendCommand", Data: error });

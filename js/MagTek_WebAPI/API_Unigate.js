@@ -12,8 +12,7 @@ DO NOT REMOVE THIS COPYRIGHT
 
 "use strict";
 import * as mt_XML2JSON from "./mt_xml2json.js";
-
-export let BaseURL = "https://svc1.magensa.net/Unigate";
+export let BaseURL = "https://svc1.magensa.net/Unigate/";
 export let ProcessorName = "TSYS - Pilot";
 
 export let CustCode = "";
@@ -55,49 +54,46 @@ export function setPassword(password) {
   Password = password;
 }
 
-  export async function ProcessSale(amount, arqc) {
+  export async function ProcessARQCTransaction(amount, arqc, transactionID = Date.now().toString(), transType = "SALE", paymentMode = "EMV", paymentType = "Credit", addDetails = false) {
     try {
        
    let req = {
-      customerTransactionID: Date.now().toString(),
+      customerTransactionID: transactionID,
       transactionInput: {
-        transactionType: "SALE",
-        amount: amount.SubTotal,
-        processorName: "TSYS - PILOT"
-        },
-     
+        transactionType: transType,
+        amount: amount.SubTotal + amount.Tax + amount.Tip + amount.CashBack,
+        processorName: ProcessorName
+        },     
       dataInput: {
         encryptedData: {
           dataType: "ARQC",
           data: arqc
         },
-        paymentMode: "EMV"
+        paymentMode: paymentMode,
+        paymentType: paymentType
       }
    }
+
+
      
-      let TransactionResponse = await PostProcessTransaction(req);
-      try 
-        {
-          let details = {};
-          //mt_XML2JSON.XmltoDict(TransactionResponse.transactionOutput.transactionOutputDetails[0].value, details);    
-          mt_XML2JSON.XmltoDict(TransactionResponse.transactionOutput.transactionOutputDetails[0].value, details);    
-          TransactionResponse.Details = details;    
-        } 
-        catch (error) 
-        {
+      let TransactionResponse = await PostProcessTransaction(req);      
       
-        }
+      
+      if (addDetails)
+      {
+        // here we will parse the processor http response.  It needs to extract the XML data from the HTTP response and then convert
+        // that data to a "Dictionary" object called Details.
+        let details = {};          
+        let bstatus = await mt_XML2JSON.XmltoDict(TransactionResponse.transactionOutput.transactionOutputDetails[0].value, details);    
+        if(bstatus)  TransactionResponse.Details = details;        
+      }
       return TransactionResponse;
-    
     } 
-    catch (error) 
-    {
-      return error;
-    }
+    catch (error) {return error};    
   };
  
   async function PostProcessTransaction(request) {
-    const url = BaseURL + "/api/Transaction/EMV";
+    let url =  `${BaseURL}api/Transaction/EMV`;
     try 
     {
       return await postRequest(url, JSON.stringify(request));
