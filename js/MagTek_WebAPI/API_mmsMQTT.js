@@ -57,6 +57,11 @@ function EmitObject(e_obj) {
   EventEmitter.emit(e_obj.Name, e_obj);
 };
 
+export async function sendBase64Command(cmdToSendB64) {
+  return await SendCommand(mt_Utils.base64ToHex(cmdToSendB64));
+}
+
+
 export async function SendCommand(cmdHexString) {
     window.mt_device_response = null
     _client.publish(`${mt_AppSettings.MQTT.MMS_Base_Sub}${_devPath}`, cmdHexString);

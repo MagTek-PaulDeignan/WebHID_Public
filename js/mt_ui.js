@@ -18,21 +18,25 @@ export function updateProgressBar(caption, progress) {
     const progressContainer = document.getElementById("progressContainer");
     const progressBar = document.getElementById("progressBar");
   
-    if (progress < 0) {
-      updDeviceContainer.style.visibility = "hidden";
-      progressContainer.style.visibility = "hidden";
-      progressBar.style.visibility = "hidden";
-    } 
-    else 
+    if (progressBar != null)
     {
-      updDeviceContainer.style.visibility = "visible";
-      progressContainer.style.visibility = "visible";
-      progressBar.style.visibility = "visible";
-      updDeviceContainer.getElementsByTagName("P")[0].textContent = caption;
-      progressBar.ariaValueNow = progress;
-      progressBar.style.width = `${progress}%`;
-      progressBar.textContent = `${caption} ${progress}%`;
-    }  
+      if (progress < 0) 
+      {
+        updDeviceContainer.style.visibility = "hidden";
+        progressContainer.style.visibility = "hidden";
+        progressBar.style.visibility = "hidden";
+      } 
+      else 
+      {
+        updDeviceContainer.style.visibility = "visible";
+        progressContainer.style.visibility = "visible";
+        progressBar.style.visibility = "visible";
+        updDeviceContainer.getElementsByTagName("P")[0].textContent = caption;
+        progressBar.ariaValueNow = progress;
+        progressBar.style.width = `${progress}%`;
+        progressBar.textContent = `${caption} ${progress}%`;
+      }  
+    }
   } 
   catch (error) 
   {

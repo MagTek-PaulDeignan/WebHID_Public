@@ -16,6 +16,7 @@ import * as mt_UI from "./mt_ui.js";
 import * as mt_RMS from "./MagTek_WebAPI/mt_rms_mms.js";
 import * as mt_RMS_API from "./MagTek_WebAPI/API_rms.js";
 import "./MagTek_WebAPI/mt_events.js";
+import * as mt_XML2JSON from "./MagTek_WebAPI/mt_xml2json.js";
 
 let defaultRMSURL = '';
 let defaultRMSAPIKey = '';
@@ -101,6 +102,7 @@ async function handleSendCommandButton() {
 
 async function parseCommand(message) {
   let Response;
+  let hexData = null;
   let cmd = message.split(",");
   switch (cmd[0].toUpperCase()) {
     case "GETAPPVERSION":
@@ -111,7 +113,11 @@ async function parseCommand(message) {
       break;
     case "SENDCOMMAND":
       Response = await mt_MMS.sendCommand(cmd[1]);
-      mt_UI.LogData(Response.HexString)
+      //mt_UI.LogData(Response.HexString)
+      break;
+    case "SENDBASE64COMMAND":
+      Response = await mt_MMS.sendBase64Command(cmd[1]);
+      //mt_UI.LogData(Response.HexString)
       break;
     case "PCIRESET":
       Response = await mt_MMS.sendCommand("AA00810401121F0184021F01");      
@@ -142,9 +148,59 @@ async function parseCommand(message) {
       retval = mt_Utils.tlvParser(cmd[1]);
       mt_UI.LogData(JSON.stringify(retval));
       break;
+    case "XML2JSON":
+      let dictionary = {};
+      dictionary = mt_XML2JSON.XmltoDict(cmd[1]);      
+      for (var key in dictionary) {
+        if (dictionary.hasOwnProperty(key))
+          {
+            mt_UI.LogData(`${key}: ${dictionary[key]}` );
+          }
+      }
+      break;
     case "PARSEMMS":
-      retval = mt_Utils.MMSParser(cmd[1]);
+      retval = mt_Utils.newMMSParser(cmd[1]);
       mt_UI.LogData(JSON.stringify(retval));
+      let offset = 8;
+      switch (retval.MsgType) {
+        case "01":
+          offset = 8;
+          break;
+        case "02":
+          offset = 12;
+          break;
+        case "81":
+          offset = 8;
+          break;
+        case "82":
+          offset = 0;
+          break;
+        default:
+          offset = 8;
+          break;
+      }
+
+      
+      let TLVs = mt_Utils.newtlvParse(retval.TLVData.substring(offset));      
+      //let TLVs = mt_Utils.newtlvParse(retval.HexString.substring(16));      
+      TLVs.forEach(element => {
+      mt_UI.LogData(`${element.tag} : ${element.tagValue} `);    
+      //mt_UI.LogData(`${element.tag} :`);    
+
+
+      let innerTLVs = mt_Utils.newtlvParse(element.tagValue);  
+      if(innerTLVs.length == 0 )
+      {
+        mt_UI.LogData(`${element.tag} ─> ${element.tagValue} `);    
+      }
+      else
+      {
+        mt_UI.LogData(`${element.tag}  ──┐`);   
+        innerTLVs.forEach(el => {
+          mt_UI.LogData(`           └─>${el.tag} ─> ${el.tagValue} `);   
+        })
+      }
+      });   
       break;
     
     case "DISPLAYMESSAGE":
@@ -171,8 +227,16 @@ async function parseCommand(message) {
       if(mt_RMS_API.BaseURL.length > 0 && mt_RMS_API.APIKey.length > 0 && mt_RMS_API.ProfileName.length > 0){
         await mt_RMS.updateDevice();
       }else{
-        mt_UI.LogData(`Please set APIKey and ProfileName`);      
+        mt_UI.LogData(`Please set APIKey and ProfileName`);
       }
+      break;
+    case "HEXTOBASE64":
+      let b64Data = mt_Utils.hexToBase64(cmd[1])
+      mt_UI.LogData(b64Data);
+      break;
+    case "BASE64TOHEX":
+      hexData = mt_Utils.base64ToHex(cmd[1])
+      mt_UI.LogData(hexData);
       break;
     default:
       //mt_Utils.debugLog("Unknown Command");
@@ -228,8 +292,14 @@ const displayMessageLogger = (e) => {
   mt_UI.DeviceDisplay(e.Data);
 };
 const barcodeLogger = (e) => {
-  //mt_UI.LogData(`Barcode  Data: ${e.Data}`);
-  mt_UI.LogData(`Barcode  Data: ${mt_Utils.getTagValue("DF74", "", e.Data, true)}`);
+  let bcData = "";
+  bcData = mt_Utils.getTagValue("DF74", "", e.Data, true);
+  mt_UI.LogData(`Barcode  Data: ${bcData}`);
+  if (bcData.toLowerCase().startsWith('http'))
+  {
+    mt_UI.LogData(`Opening: ${bcData}` );
+    window.open(bcData, '_blank');
+  }
 };
 const arqcLogger = (e) => {
   mt_UI.LogData(`${e.Source} ARQC Data:  ${e.Data}`);
@@ -244,7 +314,20 @@ const batchLogger = (e) => {
   mt_UI.LogData(`${e.Source} Batch Data: ${e.Data}`);
 };
 const fromDeviceLogger = (e) => {
-  //mt_UI.LogData(`Device Response: ${e.Data.HexString}`);
+  mt_UI.LogData(`Device Response: ${e.Data.HexString}`);
+    //this is to demo opening web pages from a URI that was read via NFC 
+    let retData = mt_Utils.getTagValue("DF7A", "", e.Data.TLVData.substring(38), false)
+    if(retData.length > 0 )
+    {
+        let StartPos = retData.indexOf("5504");
+        if(StartPos > 0 )
+        {
+            let len = parseInt(retData.substring(StartPos-2,StartPos),16)*2 - 2;
+            let uri = mt_Utils.hexToASCII(retData.substring(StartPos+4, StartPos+4 + len));
+            mt_UI.LogData(`Opening: ${uri}` );
+            window.open(`https://${uri}`, '_blank');
+        }
+    }
 };
 const inputReportLogger = (e) => {
   mt_UI.LogData(`Input Report: ${e.Data}`);
@@ -285,7 +368,6 @@ const contactlessCardDetectedLogger = async (e) => {
     if (!_contactSeated) {
       _AwaitingContactEMV = false;
       // We didn't get a contact seated, do start the contactless transaction
-      //mt_MMS.sendCommand("AA008104010010018430100182010AA30981010082010083010184020003861A9C01009F02060000000001009F03060000000000005F2A020840");      
       mt_MMS.sendCommand("AA00810401031001843D1001820178A3098101008201008301038402020386279C01009F02060000000001009F03060000000000005F2A0208405F3601029F150200009F530100");
     }
   }
@@ -374,6 +456,15 @@ const displayFirmwareLoadStatusLogger = (e) => {
 };
 
 
+const displayProgressLogger = (e) => {
+  let progress = parseInt((e.Progress / e.Total) * 100);
+
+  mt_UI.updateProgressBar("Sending Command", progress);
+  if(e.Progress == (e.Total-1)){
+    mt_UI.updateProgressBar("",-1);  
+  }
+};
+
 
 // Subscribe to  events
 EventEmitter.on("OnInputReport", inputReportLogger);
@@ -446,3 +537,5 @@ EventEmitter.on("OnFileFromDevice", fileLogger);
 EventEmitter.on("OnRMSLogData", displayRMSLogger);
 EventEmitter.on("OnRMSProgress", displayRMSProgressLogger);
 EventEmitter.on("OnFirmwareLoadStatus", displayFirmwareLoadStatusLogger);
+
+EventEmitter.on("OnDeviceSendProgress", displayProgressLogger);

@@ -155,12 +155,12 @@ async function handleClearButton() {
                        
               if (!QMFAChecked)
               {
-                mt_UI.LogData(`Sale Response Details`);
+                mt_UI.LogData(`Transaction Response Details`);
                 mt_UI.LogData(JSON.stringify(saleResp.Details, null, 2));
               }
               await mt_Utils.wait(1000);
               mt_UI.LogData(`Clearing ARQC`);          
-              window.mt_devicc.ARQCData = null;
+              window.mt_device_ARQCData = null;
         }
     }
     else
@@ -171,7 +171,7 @@ async function handleClearButton() {
    else 
    {
      mt_UI.LogData(`No ARQC Available`);
-     if(confirm("Start Sale Transaction?"))
+     //if(confirm("Start Sale Transaction?"))
      {
       mt_MQTT.SendCommand("AA008104010010018430100182010AA30981010082010083010184020003861A9C01009F02060000000001009F03060000000000005F2A020840");
      }

@@ -10,6 +10,39 @@ DO NOT REMOVE THIS COPYRIGHT
  WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
+function byteArrayToBase64(byteArray) {
+  // Convert the byte array to a binary string
+  const binaryString = Array.from(byteArray)
+      .map(byte => String.fromCharCode(byte))
+      .join('');
+  
+  // Use `btoa` to convert the binary string to Base64
+  return btoa(binaryString);
+}
+
+function base64ToByteArray(base64) {
+  // Decode Base64 to a binary string
+  const binaryString = atob(base64);
+  // Create a Uint8Array to hold the byte values
+  const byteArray = new Uint8Array(binaryString.length);
+ 
+  // Map each character in the binary string to its byte value
+  for (let i = 0; i < binaryString.length; i++) {
+      byteArray[i] = binaryString.charCodeAt(i);
+  }
+  
+  return byteArray;
+}
+export function hexToBase64(hexstring){
+  let bytearray = hexToBytes(hexstring);
+  return byteArrayToBase64(bytearray);
+}
+
+export function base64ToHex(b64string){
+  let bytearray = base64ToByteArray(b64string);
+  return toHexString(bytearray);
+}
+
 export function toHexString(byteArray) {
   return Array.prototype.map
     .call(byteArray, function (byte) {
@@ -101,6 +134,20 @@ export function MMSParser(hexdata) {
 return MMSMessage;
 }
 
+export function newMMSParser(hexdata) {
+  let Msg = hexToBytes(hexdata);
+  const MMSMessage = {
+    MsgHeader: makeHex(Msg[0], 2),
+    MsgVersion: makeHex(Msg[1], 2),
+    MsgType: makeHex(Msg[4], 2),
+    RefNum: makeHex(Msg[5], 2),
+    CmdID: makeHex((Msg[6] << 8) | Msg[7], 4),
+    TLVData: toHexString(Msg.slice(8, Msg.length)),
+    HexString: hexdata
+}
+return MMSMessage;
+}
+
 
 export function tlvParser(hexdata) {
   let data = hexToBytes(hexdata);
@@ -166,16 +213,20 @@ export function tlvParser(hexdata) {
         let endIndex =
           iTLV + lengthValue > dataLength ? dataLength : iTLV + lengthValue;
         let len = endIndex - iTLV;
-        let valueBytes =
-          len > 0 ? toHexString(data.slice(iTLV, iTLV + len)) : "";
+        let valueBytes = len > 0 ? toHexString(data.slice(iTLV, iTLV + len)) : "";
         result.push({
           tag: tagBytes,
           tagLength: !lengthValue ? valueBytes.length + 1 / 2 : lengthValue,
           tagValue: valueBytes,
         });
+        
         if (!((tagByte & constructedFlag) == constructedFlag)) {
           iTLV += lengthValue;
         }
+        // else
+        // {
+        //   iTLV += lengthValue;
+        // }
       }
       bTag = true;
     }
@@ -204,6 +255,14 @@ export function getTagValue(tagName, defaultTagValue, tlvData, asASCII) {
   }
   
 }
+
+export function sanitizeHexData(hexdata) {
+  // Regular expression to match only hexadecimal characters
+  const hexOnlyRegex = /[^0-9a-fA-F]/g;
+  // Remove all non-hexadecimal characters
+  return hexdata.replace(hexOnlyRegex, "");
+}
+
 
 export function removeSpaces(str) {
   return str.replace(/\s+/g, "");
@@ -337,4 +396,104 @@ Array.prototype.zeroFill = function (len) {
                 return eventObjects[name];
             });
         });
+    }
+
+
+
+    
+
+    export function newtlvParse(hexdata) {
+      let data = hexToBytes(hexdata);
+      const dataLength = data.length;
+      const moreTagBytesFlag1 = 0x1f;
+      const moreTagBytesFlag2 = 0x80;
+      const constructedFlag = 0x20;
+      const moreLengthFlag = 0x80;
+      const oneByteLengthMask = 0x7f;
+    
+      let result = [];
+      let iTLV = 0;
+      let iTag;
+      let bTag = true;
+      let byteValue;
+      let lengthValue;
+      let tagBytes = null;
+      let TagBuffer = [];
+    
+      while (iTLV < dataLength) {
+        byteValue = data[iTLV];
+    
+        if (bTag) {
+          iTag = 0;
+          let bMoreTagBytes = true;
+    
+          if (byteValue === 0) {
+            //First byte of tag cannot be zero.
+            break;
+          }
+    
+          while (bMoreTagBytes && iTLV < dataLength) {
+            byteValue = data[iTLV];
+            iTLV++;
+            TagBuffer[iTag] = byteValue;
+            bMoreTagBytes =
+              iTag === 0
+                ? (byteValue & moreTagBytesFlag1) == moreTagBytesFlag1
+                : (byteValue & moreTagBytesFlag2) == moreTagBytesFlag2;
+            iTag++;
+          }
+          tagBytes = toHexString(TagBuffer.slice(0, iTag));
+          bTag = false;
+        } else {
+          lengthValue = 0;
+          if ((byteValue & moreLengthFlag) == moreLengthFlag) {
+            let nLengthBytes = byteValue & oneByteLengthMask;
+            iTLV++;
+            let iLen = 0;
+            while (iLen < nLengthBytes && iTLV < dataLength) {
+              byteValue = data[iTLV];
+              iTLV++;
+              lengthValue = ((lengthValue & 0x000000ff) << 8) + byteValue;
+              iLen++;
+            }
+          } else {
+            lengthValue = byteValue & oneByteLengthMask;
+            iTLV++;
+          }
+    
+          if (tagBytes) {
+            let tagByte = TagBuffer[0];
+            let endIndex =
+              iTLV + lengthValue > dataLength ? dataLength : iTLV + lengthValue;
+            let len = endIndex - iTLV;
+            let valueBytes = len > 0 ? toHexString(data.slice(iTLV, iTLV + len)) : "";
+            result.push({
+              tag: tagBytes,
+              tagLength: !lengthValue ? valueBytes.length + 1 / 2 : lengthValue,
+              tagValue: valueBytes,
+            });
+            
+            if (!((tagByte & constructedFlag) == constructedFlag)) {
+              iTLV += lengthValue;
+            }
+            else
+            {
+                iTLV += lengthValue;
+            }
+          }
+          bTag = true;
+        }
+      }
+      return result;
+    }
+
+    export function getObjectKeyLen(obj){
+      try 
+      {
+        return Object.keys(obj).length  
+      } catch (error) 
+      {
+        return 0;
+      }
+      
     }

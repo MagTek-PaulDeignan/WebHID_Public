@@ -1,0 +1,111 @@
+.PINPad {
+    display: inline-block;
+    border-radius: 15px;
+    padding: 4px 4px 4px 4px;
+    font-size: 48px;
+	background: rgba(0, 0, 0, 0);    
+    border: 1px solid #363b5e;
+    user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -webkit-user-select: none;
+    font-family: sans-serif;
+  }
+  
+  .PINPad__text {
+    margin: 10px auto 10px auto;
+    padding: 10px;
+    display: block;
+    width: 90%;
+    font-size: 0.5em;
+    text-align: center;
+    letter-spacing: 0.2em;
+    background: rgba(210, 18, 66, 1);
+    border: none;
+    border-radius: 10px;
+    outline: none;
+    cursor: default;
+    color: #FFFFFF;
+  }
+  
+  .PINPad__text--error {
+    color: #901818;
+    background: #ffb3b3;
+    animation-name: loginError;
+    animation-duration: 0.5s;
+    animation-iteration-count: 2;
+  }
+  
+  @keyframes loginError {
+    25% {
+      transform: translateX(-3px);
+    }
+    75% {
+      transform: translateX(3px);
+    }
+  }
+  
+  @-moz-keyframes loginError {
+    25% {
+      transform: translateX(-3px);
+    }
+    75% {
+      transform: translateX(3px);
+    }
+  }
+  
+  .PINPad__key {
+    width: 100px;
+    height: 100px;
+    margin: 10px;
+    background: rgba(210, 18, 66, 1);
+    color: #FFFFFF;
+    border-radius: 40%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  
+  .PINPad__key:active {
+    background: rgba(0, 0, 0, 0.35);
+  }
+  
+
+  .PINPad__Enterkey {
+    width: 100px;
+    height: 100px;
+    margin: 10px;
+    background: #035a03;
+    color: #FFFFFF;
+    border-radius: 40%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  
+  .PINPad__Enterkey:active {
+    background: rgba(0, 0, 0, 0.35);
+  }
+  
+  .PINPad__Backkey {
+    width: 100px;
+    height: 100px;
+    margin: 10px;
+    background: #f5f542;
+    color: #FFFFFF;
+    border-radius: 40%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  
+  .PINPad__Backkey:active {
+    background: rgba(0, 0, 0, 0.35);
+  }
+  

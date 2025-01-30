@@ -6,7 +6,9 @@
       "request": "launch",
       "name": "Launch Chrome against localhost",
       "url": "http://localhost:5500",
-      "webRoot": "${workspaceFolder}"
+      "webRoot": "${workspaceFolder}",
+      "runtimeArgs": ["--disable-web-security"]
+      
     },
     {
       "name": "C/C++ Runner: Debug Session",
