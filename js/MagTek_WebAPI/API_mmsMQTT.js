@@ -42,7 +42,10 @@ export function setPath(Path) {
  */
 export function setUserName(UserName) {
   _userName = UserName;
-  if (UserName.length == 0 ) _userName = null;
+  if(UserName != null){
+    if (UserName.length == 0 ) _userName = null;
+  }
+  
 };
 
 /**
@@ -50,7 +53,10 @@ export function setUserName(UserName) {
  */
 export function setPassword(Password) {
   _password = Password;
-  if (Password.length == 0 ) _password = null;
+  if(Password != null){
+    if (Password.length == 0 ) _password = null;
+  }
+  
 };
 
 function EmitObject(e_obj) {

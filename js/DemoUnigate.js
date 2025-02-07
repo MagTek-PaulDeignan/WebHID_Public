@@ -85,6 +85,8 @@ async function handleProcessSale() {
   mt_Unigate.setPassword(password);
   mt_Unigate.setCustCode(custCode);
   mt_Unigate.setProcessorName(processorName);
+
+  let BasicAuth = mt_Unigate.getBasicAuth();
   
 
 
@@ -100,10 +102,24 @@ async function handleProcessSale() {
           
           if(saleAmount.length > 0) Amount.SubTotal = parseFloat(saleAmount);
     
-            let saleResp = await mt_Unigate.ProcessARQCTransaction(Amount, arqc, null, transactionType, "EMV", "Credit", true);  
+            let saleResp = await mt_Unigate.ProcessARQCTransaction(Amount, arqc, undefined, transactionType, "EMV", "Credit", true);  
 
+            if(!saleResp.status.ok){
+              mt_UI.LogData(`====================== ${transactionType} Basic Auth ======================`);
+              mt_UI.LogData(`Authorization: ${BasicAuth}`);
+              mt_UI.LogData(`====================== ${transactionType} Basic Auth  ======================`);
+              mt_UI.LogData(``);
+              mt_UI.LogData(`====================== ${transactionType} Response Failure Details ======================`);
+              mt_UI.LogData(JSON.stringify(saleResp, null, 2));
+              mt_UI.LogData(`====================== ${transactionType} Response Failure  Details ======================`);                
+              return;
+            }
+            mt_UI.LogData(`====================== ${transactionType} Basic Auth ======================`);
+            mt_UI.LogData(`Authorization: ${BasicAuth}`);
+            mt_UI.LogData(`====================== ${transactionType} Basic Auth  ======================`);
+            mt_UI.LogData(``);
             mt_UI.LogData(`====================== ${transactionType} Response Details ======================`);
-            mt_UI.LogData(JSON.stringify(saleResp, null, 2));
+            mt_UI.LogData(JSON.stringify(saleResp.data, null, 2));
             mt_UI.LogData(`====================== ${transactionType} Response Details ======================`);                
 
                 if(mt_Utils.getObjectKeyLen(saleResp.Details) > 0)                

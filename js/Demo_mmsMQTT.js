@@ -26,10 +26,10 @@ let defaultRMSProfileName = '';
 let url = mt_Utils.getEncodedValue('MQTTURL','d3NzOi8vZGV2ZWxvcGVyLmRlaWduYW4uY29tOjgwODQvbXF0dA==');
 let devPath = mt_Utils.getEncodedValue('MQTTDevice','');
 let userName = mt_Utils.getEncodedValue('MQTTUser','RGVtb0NsaWVudA==');
-if (userName.length == 0 ) userName = null;
+//if (userName.length == 0 ) userName = null;
 
 let password = mt_Utils.getEncodedValue('MQTTPassword','ZDNtMENMdjFjMQ==');
-if (password.length == 0 ) password = null;
+//if (password.length == 0 ) password = null;
 
 
 const params = new Proxy(new URLSearchParams(window.location.search), {

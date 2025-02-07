@@ -117,18 +117,18 @@ async function handleClearButton() {
           let email = document.getElementById("receiptEmail").value;
           let sms = document.getElementById("receiptSMS").value;
           
-            let saleResp = await mt_Unigate.ProcessARQCTransaction(Amount, window.mt_device_ARQCData, null, "SALE", "EMV", "Credit", false);  
+            let saleResp = await mt_Unigate.ProcessARQCTransaction(Amount, window.mt_device_ARQCData, undefined, "SALE", "EMV", "Credit", true);  
 
-            if(saleResp.transactionOutput != null)
+            if(saleResp.status.code == 200 )
               {
-                let claims = saleResp.Details;
-                claims.magTranID = saleResp.magTranID;
-                window.mt_device_SaleResponse = saleResp;
+                let claims = saleResp.data.Details;
+                claims.magTranID = saleResp.data.magTranID;
+                window.mt_device_SaleResponse = saleResp.data;
                 if(QMFAChecked)
                 {
                   if(sms.length > 0 || email.length > 0 )
                   {
-                    window.mt_device_SaleResponse = saleResp;
+                    window.mt_device_SaleResponse = saleResp.data;
                     mt_UI.LogData(`Sending Qwantum MultiFactor Auth Request`);
                     let mfaResponse = mt_QMFA.TransactionCreate(sms, email, claims)
                   }
@@ -141,13 +141,13 @@ async function handleClearButton() {
                        
               if (!QMFAChecked)
               {
-                if(Object.keys(saleResp.Details).length  > 0 )
+                if(Object.keys(saleResp.data.Details).length  > 0 )
                   {
                     mt_UI.LogData(`=====================Processor Response KVPs=====================`);
-                    for (var key in saleResp.Details) {
-                      if (saleResp.Details.hasOwnProperty(key))
+                    for (var key in saleResp.data.Details) {
+                      if (saleResp.data.Details.hasOwnProperty(key))
                         {
-                          mt_UI.LogData(`${key}: ${saleResp.Details[key]}` );
+                          mt_UI.LogData(`${key}: ${saleResp.data.Details[key]}` );
                         }
                     }
                     mt_UI.LogData(`======================Processor Response KVPs======================`);
@@ -155,7 +155,7 @@ async function handleClearButton() {
 
                   mt_UI.LogData(``);
                   mt_UI.LogData(`======================Transaction Response Details======================`);
-                  mt_UI.LogData(JSON.stringify(saleResp, null, 2));
+                  mt_UI.LogData(JSON.stringify(saleResp.data, null, 2));
                   mt_UI.LogData(`======================Transaction Response Details======================`);                
 
                   //mt_UI.LogData(``);

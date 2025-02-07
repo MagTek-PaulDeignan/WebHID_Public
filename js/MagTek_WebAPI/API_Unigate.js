@@ -54,6 +54,11 @@ export function setPassword(password) {
   Password = password;
 }
 
+export function getBasicAuth() {
+  let retString = `Basic ${btoa(`${CustCode}/${Username}:${Password}`)}`
+  return retString;
+}
+
   export async function ProcessARQCTransaction(amount, arqc, transactionID = Date.now().toString(), transType = "SALE", paymentMode = "EMV", paymentType = "Credit", addDetails = false) {
     try {
        
@@ -78,15 +83,28 @@ export function setPassword(password) {
      
       let TransactionResponse = await PostProcessTransaction(req);      
       
-      
-      if (addDetails)
+      if(TransactionResponse.status.ok == true)
       {
+        if (addDetails)
+        {
         // here we will parse the processor http response.  It needs to extract the XML data from the HTTP response and then convert
         // that data to a "Dictionary" object called Details.
         let details = {};          
-        let bstatus = await mt_XML2JSON.XmltoDict(TransactionResponse.transactionOutput.transactionOutputDetails[0].value, details);    
-        if(bstatus)  TransactionResponse.Details = details;        
-      }
+        let bstatus = await mt_XML2JSON.KVPtoDict(TransactionResponse.data.dataOutput.additionalOutputData,details);
+        if(bstatus){
+          //remove them from additionalOutputData because they were moved into 'details'
+          TransactionResponse.data.dataOutput.additionalOutputData = null;
+        } 
+        
+        bstatus = await mt_XML2JSON.XmltoDict(TransactionResponse.data.transactionOutput.transactionOutputDetails[0].value, details);    
+        if(bstatus){
+          //add the values to 'details'
+          TransactionResponse.data.Details = details;        
+          //remove them from transactionOutputDetails because they were moved into 'details'
+          TransactionResponse.data.transactionOutput.transactionOutputDetails = null;
+        } 
+        }
+    }
       return TransactionResponse;
     } 
     catch (error) {return error};    
@@ -116,7 +134,20 @@ export function setPassword(password) {
           "Authorization": getBasicAuth() 
         }),
       });
-      return await response.json();
+      
+      let json = await response.json();
+      
+      let resp = 
+      {
+        status: {
+          ok: response.ok,
+          text: response.statusText,
+          code: response.status,
+        },
+        data: json
+      }
+      return resp;
+      
     } 
     catch (error) 
     {
@@ -124,7 +155,4 @@ export function setPassword(password) {
     }
   }
 
-  function getBasicAuth() {
-    let retString = `Basic ${btoa(`${CustCode}/${Username}:${Password}`)}`
-    return retString;
-  }
+  

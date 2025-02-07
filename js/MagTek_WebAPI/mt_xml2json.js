@@ -69,9 +69,22 @@ export async function XmltoDict(xml, dictionary)
     } 
   }
 );
-
-//console.log(`details- ${JSON.stringify(dictionary)}`);
 return true;
+}
+
+export async function KVPtoDict(kvpArray, dictionary)
+{
+  let rc = false;
+  if(kvpArray.length > 0)
+    {
+      rc = true;
+      kvpArray.forEach(element => {
+        dictionary[normalizeNames(element["key"])] = element["value"];
+      }
+    )
+    }
+    return rc;
+  
 }
 
 async function FetchNames(jsonUrl){
