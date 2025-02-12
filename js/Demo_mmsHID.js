@@ -220,12 +220,9 @@ async function parseCommand(message) {
 
       
       let TLVs = mt_Utils.newtlvParse(retval.TLVData.substring(offset));      
-      //let TLVs = mt_Utils.newtlvParse(retval.HexString.substring(16));      
       TLVs.forEach(element => {
       mt_UI.LogData(`${element.tag} : ${element.tagValue} `);    
-      //mt_UI.LogData(`${element.tag} :`);    
-
-
+     
       let innerTLVs = mt_Utils.newtlvParse(element.tagValue);  
       if(innerTLVs.length == 0 )
       {
@@ -253,29 +250,7 @@ async function parseCommand(message) {
       mt_UI.LogData(fw);
       break;
     case "UPDATEDEVICE":
-      let startTime = Date.now();
-      mt_RMS_API.setURL(mt_Utils.getEncodedValue('baseURL',defaultRMSURL));
-      mt_RMS_API.setAPIKey(mt_Utils.getEncodedValue('APIKey',defaultRMSAPIKey));
-      mt_RMS_API.setProfileName(mt_Utils.getEncodedValue('ProfileName',defaultRMSProfileName));
-      
-      ShowDeviceResponses = false;
-      fw = await mt_MMS.GetDeviceFWID();
-      sn = await mt_MMS.GetDeviceSN();
-      ShowDeviceResponses = true;
-
-      //fw = '1000009712-AB1-PRD';
-
-      if(mt_RMS_API.BaseURL.length > 0 && mt_RMS_API.APIKey.length > 0 && mt_RMS_API.ProfileName.length > 0){        
-        await updateFirmwareRMS(fw,sn);
-        await updateAllTags(fw,sn);
-        let endTime = Date.now();
-        let executionTimeMs = endTime - startTime;
-        let executionTimeSec = executionTimeMs / 1000;
-        mt_UI.LogData(`Execution time: ${executionTimeSec} seconds`);
-  
-      }else{
-        mt_UI.LogData(`Please set APIKey and ProfileName`);
-      }
+      updateDevice(); 
       break;
     case "HEXTOBASE64":
       let b64Data = mt_Utils.hexToBase64(cmd[1])
@@ -561,33 +536,59 @@ switch (e.Data) {
   }
 }
 
+async function updateDevice(){
+  let startTime = Date.now();
+  mt_RMS_API.setURL(mt_Utils.getEncodedValue('baseURL',defaultRMSURL));
+  mt_RMS_API.setAPIKey(mt_Utils.getEncodedValue('APIKey',defaultRMSAPIKey));
+  mt_RMS_API.setProfileName(mt_Utils.getEncodedValue('ProfileName',defaultRMSProfileName));
+  
+  ShowDeviceResponses = false;
+  let fw = await mt_MMS.GetDeviceFWID();
+  let sn = await mt_MMS.GetDeviceSN();
+  ShowDeviceResponses = true;
 
+  //fw = '1000009712-AB1-PRD';
 
-async function updateFirmwareRMS(fwID, deviceSN) {
+  if(mt_RMS_API.BaseURL.length > 0 && mt_RMS_API.APIKey.length > 0 && mt_RMS_API.ProfileName.length > 0){        
+    await updateFirmwareRMS(fw,sn);
+    await updateAllTags(fw,sn);
+    let endTime = Date.now();
+    let executionTimeMs = endTime - startTime;
+    let executionTimeSec = executionTimeMs / 1000;
+    mt_UI.LogData(`Execution time: ${executionTimeSec} seconds`);
+
+  }
+  else
+  {
+    mt_UI.LogData(`Please set APIKey and ProfileName`);
+  }
+}
+
+async function updateFirmwareRMS(fwID, deviceSN, interfaceType = 'USB', downloadPayload = true) {
   try {
     
-    mt_UI.LogData(`Checking firmware...`);
+    mt_UI.LogData(`Checking Firmware...`);
     let req = {
       ProfileName: mt_RMS_API.ProfileName,      
       FirmwareID: fwID,
-      InterfaceType: "USB",
-      DownloadPayload: true,
+      InterfaceType: interfaceType,
+      DownloadPayload: downloadPayload,
       DeviceSerialNumber: deviceSN
     };
 
     let firmwareResp = await mt_RMS_API.GetFirmware(req);
            if(firmwareResp.data.HasBLEFirmware){
              //_HasBLEFirmware = true;
-             mt_UI.LogData("This reader has BLE firmware");
+             //mt_UI.LogData("This reader has BLE firmware");
            } 
            if(firmwareResp.data.DeviceConfigs != null){
              //_DeviceConfigList = firmwareResp.DeviceConfigs;
-             mt_UI.LogData("This reader has device configs");
+             //mt_UI.LogData("This reader has device configs");
            } 
 
     switch (firmwareResp.data.ResultCode) {
       case 0:
-        mt_UI.LogData(`The firmware has an update available!`);
+        mt_UI.LogData(`The ${firmwareResp.data.Description} has an update available!`);
         if (firmwareResp.data.Commands.length > 0) {
           if(firmwareResp.data.ReleaseNotes.length > 0 ) mt_UI.LogData(firmwareResp.data.ReleaseNotes);
           //if(firmwareResp.data.HasBLEFirmware && fwType.toLowerCase() == "main"){
@@ -603,10 +604,10 @@ async function updateFirmwareRMS(fwID, deviceSN) {
         }
         break;
       case 1:
-        mt_UI.LogData(`The firmware is up to date.`);
+        mt_UI.LogData(`The ${firmwareResp.data.Description} is up to date.`);
         break;
       case 2:
-        mt_UI.LogData(`The firmware is up to date.`);
+        mt_UI.LogData(`The ${firmwareResp.data.Description} is up to date.`);
         break;
       default:
         mt_UI.LogData(`${firmwareResp.data.Result}`);
@@ -635,7 +636,6 @@ async function updateAllTags(fw,sn) {
    "AA0081040108D8218408D825810400000900"
    ];
    
-
    
   for (let index = 0; index < updateCommands.length; index++) {
     
@@ -650,30 +650,24 @@ async function updateAllTags(fw,sn) {
 };
 
 
-async function updateMMSTags(fw, sn, response) {
+async function updateMMSTags(fw, sn, response, downloadPayload = true, rawCommands = true)  {
   try {
     let tagsResp = null;
       let ver = null;
       let strVersion = mt_Utils.getEncodedValue("RMSVersion","");
       strVersion.length > 0 ? ver = parseInt(strVersion) : ver = null;
-
-
-    
     if (response.HexString.length > 16) {
       
       let req = {
-        Authentication: null,
         ProfileName: mt_RMS_API.ProfileName,
-        ConfigurationName: null,
         Version: ver,
-        UIK: null,
         TerminalConfiguration: response.HexString,
         BillingLabel: mt_Utils.getEncodedValue("RMSBillingLabel","V0VCIERlbW8gVGVzdA=="),
         InterfaceType: mt_Utils.getEncodedValue("RMSInterface","VVNC"),
-        DownloadPayload: true,
+        DownloadPayload: downloadPayload,
         FirmwareID: fw,
         DeviceSerialNumber: sn,
-        RawCommands : "true"
+        RawCommands : rawCommands
     };
       tagsResp = await mt_RMS_API.GetTags(req);      
     }
@@ -682,16 +676,16 @@ async function updateMMSTags(fw, sn, response) {
       case -2:        
         break;
       case 0:
-        //LogData(`The ${tagsResp.Description} has an update available!`);
+        mt_UI.LogData(`The ${tagsResp.data.Description} has an update available!`);
         if (tagsResp.data.Commands.length > 0) {
           await parseCommands(tagsResp.data.Description, tagsResp.data.Commands);
         }
         break;
       case 1:
-        mt_UI.LogData(`The ${tagsResp.data.Description} are up to date.`);
+        mt_UI.LogData(`The ${tagsResp.data.Description} is up to date.`);
         break;
       case 2:
-        mt_UI.LogData(`The ${tagsResp.data.Description} are up to date.`);
+        mt_UI.LogData(`The ${tagsResp.data.Description} is up to date.`);
         break;
       default:
         mt_UI.LogData(`${tagsResp.data.Result} ${tagsResp.data.ResultCode}`);

@@ -152,10 +152,10 @@ async function updateTags(command) {
         }
         break;
       case 1:
-        LogData(`The ${tagsResp.Description} are up to date.`);
+        LogData(`The ${tagsResp.Description} is up to date.`);
         break;
       case 2:
-        LogData(`The ${tagsResp.Description} are up to date.`);
+        LogData(`The ${tagsResp.Description} is up to date.`);
         break;
       default:
         LogData(`${tagsResp.Result}`);
