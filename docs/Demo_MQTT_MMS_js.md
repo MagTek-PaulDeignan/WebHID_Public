@@ -31,7 +31,7 @@ This documentation outlines the key components, functionalities, and usage guide
 1. **JavaScript Modules**:
    - `mt_Utils.js`: Utility functions for encoding, delays, and tag value parsing.
    - `mt_UI.js`: Handles UI updates such as logs and display messages.
-   - `mt_rms_mms.js`: For device management tasks such as firmware updates.
+   
    - `API_rms.js`: Manages RMS API interactions.
    - `API_mmsMQTT.js`: MQTT API for device communication.
 

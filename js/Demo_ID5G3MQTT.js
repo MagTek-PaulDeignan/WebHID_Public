@@ -12,7 +12,7 @@ DO NOT REMOVE THIS COPYRIGHT
 
 import * as mt_Utils from "./MagTek_WebAPI/mt_utils.js";
 import * as mt_UI from "./mt_ui.js";
-import * as mt_RMS from "./MagTek_WebAPI/mt_rms_mms.js";
+
 import * as mt_RMS_API from "./MagTek_WebAPI/API_rms.js";
 import * as mt_MQTT_API from "./MagTek_WebAPI/API_ID5G3MQTT.js";
 import "./MagTek_WebAPI/mt_events.js";
@@ -176,12 +176,12 @@ async function parseCommand(message) {
       fw = await mt_MQTT_API.GetDeviceFWID();
       sn = await mt_MQTT_API.GetDeviceSN();
 
-      mt_RMS.setFWID(fw);
-      mt_RMS.setDeviceSN(sn);
+      //mt_RMS.setFWID(fw);
+      //mt_RMS.setDeviceSN(sn);
       
       if(mt_RMS_API.BaseURL.length > 0 && mt_RMS_API.APIKey.length > 0 && mt_RMS_API.ProfileName.length > 0)
       {
-        await mt_RMS.updateDevice();
+        //await mt_RMS.updateDevice();
       }
       else
       {

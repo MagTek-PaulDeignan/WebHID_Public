@@ -156,12 +156,10 @@ export function FromListToText(event) {
     link.id = `dev-${type}${name}`;
     link.href = url;
     link.textContent = name;
-    //link.target = "_blank"; // Opens link in a new tab
     link.style.display = "inline-flex";
     link.prepend(imgOnline);    
     link.prepend(img);
     if (status == "disconnected"){
-      //link.hidden = true;
       link.hidden = !bShowOffline;
     }
     else
@@ -195,3 +193,10 @@ export function FromListToText(event) {
    } catch (error) { }
    }
  
+   export function PrintTLVs(TLVs){
+    LogData("TLVs---------------------------------");
+    TLVs.forEach(element => {
+      LogData(`${element.tag} : ${element.tagValue} `);    
+    });   
+    LogData("TLVs---------------------------------");
+   }

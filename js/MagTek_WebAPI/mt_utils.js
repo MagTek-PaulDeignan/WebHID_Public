@@ -10,27 +10,19 @@ DO NOT REMOVE THIS COPYRIGHT
  WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-function byteArrayToBase64(byteArray) {
-  // Convert the byte array to a binary string
+export function byteArrayToBase64(byteArray) {
   const binaryString = Array.from(byteArray)
       .map(byte => String.fromCharCode(byte))
       .join('');
-  
-  // Use `btoa` to convert the binary string to Base64
   return btoa(binaryString);
 }
 
-function base64ToByteArray(base64) {
-  // Decode Base64 to a binary string
+export function base64ToByteArray(base64) {
   const binaryString = atob(base64);
-  // Create a Uint8Array to hold the byte values
   const byteArray = new Uint8Array(binaryString.length);
- 
-  // Map each character in the binary string to its byte value
   for (let i = 0; i < binaryString.length; i++) {
       byteArray[i] = binaryString.charCodeAt(i);
   }
-  
   return byteArray;
 }
 export function hexToBase64(hexstring){
@@ -497,3 +489,18 @@ Array.prototype.zeroFill = function (len) {
       }
       
     }
+
+    export async function sha256(data, asHex = false) {
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      if(asHex) return toHexString(hashArray);
+      return hashArray;
+    }
+    
+    export function getFileExtension(filename) {
+      if (typeof filename !== 'string' || filename.lastIndexOf('.') === -1) {
+        return ""; // Handle cases with no extension or invalid input
+      }
+      return filename.slice(filename.lastIndexOf('.') + 1);
+    }
+    

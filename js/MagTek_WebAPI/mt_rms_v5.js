@@ -124,6 +124,7 @@ async function parseRMSCommands(description, messageArray) {
 };
 async function updateTags(command) {
   try {
+    let tagsResp = null;
     let cmdResp = await mt_V5.sendExtCommand(command);
     if (cmdResp.length > 16) {
       let req = {
@@ -140,7 +141,7 @@ async function updateTags(command) {
         DownloadPayload: true,
       };
 
-      let tagsResp = await mt_RMS_API.GetTags(req);      
+      tagsResp = await mt_RMS_API.GetTags(req);      
     }
 
     switch (tagsResp.ResultCode) {

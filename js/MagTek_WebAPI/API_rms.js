@@ -77,7 +77,18 @@ export let ProfileName =  ""
           APIKey: apiKey,
         }),
       });
-      return await response.json();
+      //return await response.json();
+      let json = await response.json();
+      let resp = {
+        status: {
+          ok: response.ok,
+          text: response.statusText,
+          code: response.status,
+        },
+        data: json
+      }
+      return resp;
+
     } catch (error) {
       return error;
     }

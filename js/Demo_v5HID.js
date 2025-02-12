@@ -261,11 +261,7 @@ const barcodeLogger = (e) => {
 const arqcLogger = (e) => {
   mt_UI.LogData(`${e.Source} ARQC Data:  ${e.Data}`);
   let TLVs = mt_Utils.tlvParser(e.Data.substring(4));
-   mt_UI.LogData("TLVs---------------------------------");
-   TLVs.forEach(element => {
-     mt_UI.LogData(`${element.tag} : ${element.tagValue} `);    
-   });   
-   mt_UI.LogData("TLVs---------------------------------");
+   mt_UI.PrintTLVs(TLVs);
 };
 const batchLogger = (e) => {
   mt_UI.LogData(`${e.Source} Batch Data: ${e.Data}`);

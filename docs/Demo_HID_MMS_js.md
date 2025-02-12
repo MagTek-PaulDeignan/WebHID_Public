@@ -45,15 +45,12 @@ Devices supported include:
    - File: `./mt_ui.js`
    - Handles UI updates, logging, and status display.
 
-4. mt_RMS:
-   - File: `./mt_rms_mms.js`
-   - Interfaces with the RMS for device firmware updates.
 
-5. mt_RMS_API:
+4. mt_RMS_API:
    - File: `./API_rms.js`
    - API for RMS configuration and communication.
 
-6. Event Management:
+5. Event Management:
    - File: `./mt_events.js`
    - Adds event emitter functionality for device interactions and logging.
 

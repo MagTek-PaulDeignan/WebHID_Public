@@ -12,7 +12,7 @@ DO NOT REMOVE THIS COPYRIGHT
 
 import * as mt_Utils from "./MagTek_WebAPI/mt_utils.js";
 import * as mt_UI from "./mt_ui.js";
-import * as mt_RMS from "./MagTek_WebAPI/mt_rms_mms.js";
+//import * as mt_RMS from "./MagTek_WebAPI/mt_rms_mms.js";
 import * as mt_RMS_API from "./MagTek_WebAPI/API_rms.js";
 import * as mt_V5MQTT_API from "./MagTek_WebAPI/API_v5MQTT.js";
 import "./MagTek_WebAPI/mt_events.js";
@@ -180,12 +180,12 @@ async function parseCommand(message) {
       fw = await mt_V5MQTT_API.GetDeviceFWID();
       sn = await mt_V5MQTT_API.GetDeviceSN();
 
-      mt_RMS.setFWID(fw);
-      mt_RMS.setDeviceSN(sn);
+      //mt_RMS.setFWID(fw);
+      //mt_RMS.setDeviceSN(sn);
       
       if(mt_RMS_API.BaseURL.length > 0 && mt_RMS_API.APIKey.length > 0 && mt_RMS_API.ProfileName.length > 0)
       {
-        await mt_RMS.updateDevice();
+        //await mt_RMS.updateDevice();
       }
       else
       {
@@ -229,12 +229,7 @@ const PINLogger = (e) => {
   mt_UI.LogData(`${e.Name}: EPB:${e.Data.EPB} KSN:${e.Data.KSN} Encryption Type:${e.Data.EncType} PIN Block Format: ${e.Data.PBF} TLV: ${e.Data.TLV}`);
 
   let TLVs = mt_Utils.tlvParser(e.Data.TLV.substring(24));
-  mt_UI.LogData("TLVs---------------------------------");
-  TLVs.forEach(element => {
-    mt_UI.LogData(`${element.tag} : ${element.tagValue} `);    
-  });   
-  mt_UI.LogData("TLVs---------------------------------");
-
+  mt_UI.PrintTLVs(TLVs);
 };
 
 const trxCompleteLogger = (e) => {
@@ -307,11 +302,8 @@ const displayUserSelectionLogger = (e) =>{
 const arqcLogger = (e) => {
   mt_UI.LogData(`${e.Source} ARQC Data:  ${e.Data}`);
   let TLVs = mt_Utils.tlvParser(e.Data.substring(4));
-   mt_UI.LogData("TLVs---------------------------------");
-   TLVs.forEach(element => {
-     mt_UI.LogData(`${element.tag} : ${element.tagValue} `);    
-   });   
-   mt_UI.LogData("TLVs---------------------------------");
+   mt_UI.PrintTLVs(TLVs);
+
 };
 const batchLogger = (e) => {
   mt_UI.LogData(`${e.Source} Batch Data: ${e.Data}`);
