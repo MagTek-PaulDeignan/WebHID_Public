@@ -69,7 +69,7 @@ export async function sendBase64Command(cmdToSendB64) {
 
 
 export async function SendCommand(cmdHexString) {
-    window.mt_device_response = null
+    window.mt_device_response = null;    
     _client.publish(`${mt_AppSettings.MQTT.MMS_Base_Sub}${_devPath}`, cmdHexString);
     let Resp = await waitForDeviceResponse();
     return Resp;

@@ -31,7 +31,7 @@ export async function GetLoadFimrwarefromByteArray(fileType, byteArray){
   let CmdInfo = `${Header}8104${CmdRequest}${CmdCounter}${CmdID}`;
 
   let FileHex = mt_Utils.toHexString(byteArray);
-  let FileLen = `83${mt_Utils.makeHex(byteArray.length,6)}`;
+  let FileLen = `83${mt_Utils.makeHex(byteArray.length, 6)}`;
   let FileTypeHex = mt_Utils.makeHex(fileType,4);
   let CmdData = `${CmdID}${ProgressInd}8502${FileTypeHex}8620${SHA}${AutoCommit}87${FileLen}${FileHex}`
   let CmdLen = `83${mt_Utils.makeHex(CmdData.length / 2, 6)}`;
@@ -43,3 +43,75 @@ export async function GetLoadFimrwarefromByteArray(fileType, byteArray){
   }
   return resp;
 }
+
+
+export async function getImgFromPenData(imageData, width = 320, height = 240, penWidth = 2, backColor = 'white', penColor = 'black', imgType = 'image/png', imgQuality = 1, canvasName){
+  let lineStart = true;
+  let lineEnd = false;
+  let xPos;
+  let yPos;
+  let coord;
+  let i = 0;
+  let canvas;
+  try {
+      
+    if(canvasName == undefined)
+    {
+      canvas = document.createElement('canvas');
+    }else
+    {
+      canvas = document.getElementsByName(canvasName);
+    }
+      canvas = document.createElement('canvas');
+      canvas.height = height;
+      canvas.width = width;
+      //canvas.border
+      const ctx = canvas.getContext("2d");
+      ctx.strokeStyle = penColor;
+      ctx.fillStyle = backColor;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.lineWidth = penWidth;
+      
+      
+      while (i < imageData.length)
+      {
+          coord = imageData.substring(i, i + 8);
+          xPos = mt_Utils.hexToNumber(coord.substring(0,4));
+          yPos = mt_Utils.hexToNumber(coord.substring(4,8));
+      
+         if (coord == 'FFFFFFFF') lineEnd = true;    
+      
+         //middle part
+         if (!lineStart && !lineEnd)
+          {
+              ctx.lineTo(xPos, yPos);
+              //console.log(`${xPos} : ${xPos} :  ${coord}`);
+          }
+          
+          if (lineStart )
+          {
+              ctx.beginPath();
+              ctx.moveTo(xPos, yPos);
+              ctx.lineTo(xPos, yPos);
+              //ctx.stroke();
+              lineStart = false;    
+              //console.log(`begin of line`);
+          }
+          
+          if (lineEnd )
+          {
+              ctx.stroke();
+              lineEnd = false;
+              lineStart = true; 
+              //console.log(`end of line`);   
+          }    
+          i += 8;    
+  
+      }
+      return canvas.toDataURL(imgType, imgQuality);    
+  } catch (error) 
+  {
+      return error;    
+  }
+  }
+  

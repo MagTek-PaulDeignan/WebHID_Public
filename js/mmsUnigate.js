@@ -117,7 +117,7 @@ async function handleClearButton() {
           let email = document.getElementById("receiptEmail").value;
           let sms = document.getElementById("receiptSMS").value;
           
-            let saleResp = await mt_Unigate.ProcessARQCTransaction(Amount, window.mt_device_ARQCData, undefined, "SALE", "EMV", "Credit", true);  
+            let saleResp = await mt_Unigate.ProcessARQCTransaction(Amount, window.mt_device_ARQCData, undefined, "SALE", "Credit", true);  
 
             if(saleResp.status.code == 200 )
               {
@@ -313,7 +313,6 @@ const barcodeLogger = async (e) => {
         {
           mt_UI.LogData(`The transaction was cancelled because the customer did not verify the authenticity of the transaction details.`);
         }
-        
       }
   }
   else
@@ -321,13 +320,13 @@ const barcodeLogger = async (e) => {
       mt_UI.LogData(`Error: ${JSON.stringify(resp, null, 2)}`);
   }
 
-
   }
   else
   {
     mt_UI.LogData(`Barcode  Data: ${stringbc}`);
   }
 };
+
 const arqcLogger = (e) => {
   window.mt_device_ARQCData = e.Data;
   window.mt_device_ARQCType = e.Source;  

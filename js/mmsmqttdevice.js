@@ -137,9 +137,9 @@ const deviceOpenLogger = (e) => {
 const fromDeviceLogger = (e) => {
   
 };
-const inputReportLogger = (e) => {
-  mt_UI.LogData(`Input Report: ${e.Data}`);
-};
+// const inputReportLogger = (e) => {
+//   mt_UI.LogData(`Input Report: ${e.Data}`);
+// };
 const errorLogger = (e) => {
   mt_UI.LogData(`Error: ${e.Source} ${e.Data}`);
 };
@@ -214,14 +214,13 @@ function CheckMQTTError (err) {
 };
 
 function onMQTTMessage(topic, message) {
-    let data = message.toString();
-    //console.log(topic + " MMSDevice:: " + data )
+    let data = message.toString();    
     mt_Device.sendCommand(data);
 };
 
 
 // Subscribe to  events
-EventEmitter.on("OnInputReport", inputReportLogger);
+//EventEmitter.on("OnInputReport", inputReportLogger);
 EventEmitter.on("OnDeviceConnect", deviceConnectLogger);
 EventEmitter.on("OnDeviceDisconnect", deviceDisconnectLogger);
 EventEmitter.on("OnDeviceOpen", deviceOpenLogger);

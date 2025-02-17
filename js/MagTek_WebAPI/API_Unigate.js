@@ -11,6 +11,8 @@ DO NOT REMOVE THIS COPYRIGHT
 */
 
 "use strict";
+import * as mt_Utils from "./mt_utils.js";
+
 import * as mt_XML2JSON from "./mt_xml2json.js";
 export let BaseURL = "https://svc1.magensa.net/Unigate/";
 export let ProcessorName = "TSYS - Pilot";
@@ -59,9 +61,20 @@ export function getBasicAuth() {
   return retString;
 }
 
-  export async function ProcessARQCTransaction(amount, arqc, transactionID = Date.now().toString(), transType = "SALE", paymentMode = "EMV", paymentType = "Credit", addDetails = false) {
+  export async function ProcessARQCTransaction(amount, arqc, transactionID = Date.now().toString(), transType = "SALE", paymentType = "Credit", addDetails = true) {
     try {
-       
+
+    let FallBack = mt_Utils.getTagValue('DFDF53', '00', arqc.substring(4), false);
+    let PaymentMode = "EMV";
+      switch (FallBack) {
+        case '01':
+          PaymentMode = 'MagStripe'
+          break;
+        default:
+          PaymentMode = 'EMV';
+          break;
+        }
+      
    let req = {
       customerTransactionID: transactionID,
       transactionInput: {
@@ -74,7 +87,7 @@ export function getBasicAuth() {
           dataType: "ARQC",
           data: arqc
         },
-        paymentMode: paymentMode,
+        paymentMode: PaymentMode,
         paymentType: paymentType
       }
    }

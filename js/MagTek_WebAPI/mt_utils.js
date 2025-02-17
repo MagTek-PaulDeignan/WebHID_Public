@@ -87,6 +87,10 @@ export function hexToDecIPv4(hexString) {
   return str;
 }
 
+export function hexToNumber(hexString) {
+  return parseInt(hexString, 16);
+}
+
 
 export function hexToASCIInulltoNewLine(hexString) {
   let str = "";
@@ -282,9 +286,15 @@ export function saveDefaultValue(key, value){
   localStorage.setItem(key, value);    
 }
 
-export function getEncodedValue(key, defaultValue){
+export function getEncodedValue(key, defaultValue, isEncoded = true){
   let keyVal = localStorage.getItem(`enc-${window.btoa(key)}`);
-  if (keyVal == null) keyVal = defaultValue;
+  if (keyVal == null){
+    keyVal = defaultValue;
+    if(!isEncoded)
+    {
+      return keyVal;    
+    }
+  } 
   return window.atob(keyVal);
 }
 
@@ -502,5 +512,29 @@ Array.prototype.zeroFill = function (len) {
         return ""; // Handle cases with no extension or invalid input
       }
       return filename.slice(filename.lastIndexOf('.') + 1);
+    }
+    
+
+    export async function FetchCommandsfromURL(commandURL){
+      let response = undefined;
+      try 
+      {
+        response = await fetch(commandURL);
+
+        let json = await response.json();
+        let resp = {
+          status: {
+            ok: response.ok,
+            text: response.statusText,
+            code: response.status,
+          },
+          data: json
+        }
+        return resp;
+      } 
+      catch (error) {
+        return error;
+      }
+      
     }
     

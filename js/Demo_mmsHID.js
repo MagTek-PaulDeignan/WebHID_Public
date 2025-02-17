@@ -13,7 +13,6 @@ DO NOT REMOVE THIS COPYRIGHT
 import * as mt_Utils from "./MagTek_WebAPI/mt_utils.js";
 import * as mt_MMS from "./MagTek_WebAPI/API_mmsHID.js";
 import * as mt_UI from "./mt_ui.js";
-//import * as mt_RMS from "./MagTek_WebAPI/mt_rms_mms.js";
 import * as mt_RMS_API from "./MagTek_WebAPI/API_rms.js";
 import "./MagTek_WebAPI/mt_events.js";
 import * as mt_XML2JSON from "./MagTek_WebAPI/mt_xml2json.js";
@@ -56,6 +55,7 @@ function EmitObject(e_obj) {
 };
 
 async function handleDOMLoaded() {
+  
   let devices = await mt_MMS.getDeviceList();
   mt_UI.LogData(`Devices currently attached and allowed:`);
   
@@ -87,6 +87,9 @@ async function handleCloseButton() {
   mt_UI.DeviceDisplay("");
 }
 async function handleClearButton() {
+  
+  let imgData = document.getElementById('imagedata');
+  imgData.innerHTML = "";
   mt_UI.ClearLog();
   mt_UI.DeviceDisplay("");
   document.getElementById("fileInput").value = null;  
@@ -150,10 +153,6 @@ async function parseCommand(message) {
       window.mt_device_hid = await mt_MMS.closeDevice();
       break;
     case "WAIT":
-      //mt_UI.LogData(`Waiting ${cmd[1]/1000} seconds...`);
-      //await mt_Utils.wait(cmd[1]);
-      //mt_UI.LogData(`Done Waiting`);
-
       _DeviceDetected = false;
       let numSecs = parseInt((cmd[1] /1000),10);
       let numQseconds = parseInt((numSecs * 4),10)
@@ -167,11 +166,9 @@ async function parseCommand(message) {
       if(_DeviceDetected){
         updateProgress(``, 100)
         await mt_Utils.wait(1000);
-      }
-
+      }      
       break;
     case "DETECTDEVICE":
-      //window.mt_device_hid = await mt_MMS.openDevice();    
       await mt_MMS.closeDevice();
       await mt_MMS.openDevice();
       await mt_Utils.wait(_openTimeDelay);
@@ -249,8 +246,11 @@ async function parseCommand(message) {
       fw = await mt_MMS.GetDeviceFWID();
       mt_UI.LogData(fw);
       break;
-    case "UPDATEDEVICE":
-      updateDevice(); 
+    case "UPDATEFIRMWARERMS":
+      updateFirmwareRMS(); 
+      break;
+    case "UPDATETAGSRMS":
+      updateTagsRMS(); 
       break;
     case "HEXTOBASE64":
       let b64Data = mt_Utils.hexToBase64(cmd[1])
@@ -291,6 +291,28 @@ const deviceOpenLogger = (e) => {
 };
 const dataLogger = (e) => {
   mt_UI.LogData(`Received Data: ${e.Name}: ${e.Data}`);
+};
+
+const hostActionCompleteLogger = async (e) => {
+  
+  
+  let tag82 = mt_Utils.getTagValue("82", "", e.Data, false);
+  
+
+  switch (tag82) {
+    case "01010101":  //Sig Cap complete
+      mt_UI.LogData(`Getting Signature`);
+      let tag83 = mt_Utils.getTagValue("83", "", e.Data, false);
+      ShowDeviceResponses = false;
+      //this function will have the device return a file via the onFile event
+      await mt_MMS.sendCommand(`AA0081040109D821840BD8218104${tag83}870101`);
+      ShowDeviceResponses = true;
+      break;
+    default:
+      mt_UI.LogData(`Host Action: ${e.Name}: ${e.Data}`);
+      mt_UI.LogData(`Unhandled hostActionComplete: ${tag82}`);
+      break;
+  }
 };
 
 const NFCUIDLogger = (e) => {
@@ -439,8 +461,30 @@ const userEventLogger = (e) => {
   mt_UI.LogData(`User Event Data: ${e.Name} ${e.Data}`);
 };
 
-const fileLogger = (e) => {
-  //mt_UI.LogData(`File: ${e.Data.HexString}`);
+const fileLogger = async (e) => {
+  let tag84 = mt_Utils.getTagValue("84", "", e.Data.TLVData.substring(8), false);
+  let tagC1 = mt_Utils.getTagValue("C1", "", tag84.substring(16), false);
+
+  switch (tagC1) {
+    case '01000000':  //  Signature Capture File
+      let tagCE = mt_Utils.getTagValue("CE", "", tag84.substring(16), false);
+      let tag81 = mt_Utils.getTagValue("81", "000000FD00000078", tagCE, false);
+      let tag82 = mt_Utils.getTagValue("82", "", tagCE, false);
+      let imageWidth = mt_Utils.hexToNumber(tag81.substring(0,8));
+      let imageHeight = mt_Utils.hexToNumber(tag81.substring(8,16));
+      let image  = await mt_MMS_Commands.getImgFromPenData(tag82,imageWidth,imageHeight, 3, 'white', 'black','image/png', 1);
+      let img = document.createElement('img');
+      img.alt = 'signature';
+      img.setAttribute('src', image);
+      let imgData = document.getElementById('imagedata');
+      imgData.append(img);
+      break;
+  
+    default:
+      mt_UI.LogData(`File: ${e.Data.HexString}`);
+      break;
+  }
+
 };
 
 
@@ -450,7 +494,7 @@ async function handleFileUpload(event) {
     const file = event.target.files[0];
     const ext = mt_Utils.getFileExtension(file.name);
     switch (ext.toLowerCase()) {
-       case "txt", "script":
+       case "txt": case "script":
         await parseScriptFile(file);
         break;
       case "fw-boot":
@@ -483,6 +527,8 @@ async function parseFirmwareFile(file, fileType = 1){
     reader.onload = async function(e) {
       const firmwareBuffer = new Uint8Array(reader.result);
       let response =  await mt_MMS_Commands.GetLoadFimrwarefromByteArray(fileType, firmwareBuffer);
+        mt_UI.LogData(`commit ${response.commitCmd}`);
+        mt_UI.LogData(`fw ${response.firmwareCmd}`);
       window.mt_device_CommitCmd = response.commitCmd;
       mt_MMS.sendCommand(response.firmwareCmd);
     };
@@ -536,7 +582,7 @@ switch (e.Data) {
   }
 }
 
-async function updateDevice(){
+async function updateFirmwareRMS(){
   let startTime = Date.now();
   mt_RMS_API.setURL(mt_Utils.getEncodedValue('baseURL',defaultRMSURL));
   mt_RMS_API.setAPIKey(mt_Utils.getEncodedValue('APIKey',defaultRMSAPIKey));
@@ -547,15 +593,15 @@ async function updateDevice(){
   let sn = await mt_MMS.GetDeviceSN();
   ShowDeviceResponses = true;
 
-  //fw = '1000009712-AB1-PRD';
-
-  if(mt_RMS_API.BaseURL.length > 0 && mt_RMS_API.APIKey.length > 0 && mt_RMS_API.ProfileName.length > 0){        
-    await updateFirmwareRMS(fw,sn);
-    await updateAllTags(fw,sn);
+    if(mt_RMS_API.BaseURL.length > 0 && mt_RMS_API.APIKey.length > 0 && mt_RMS_API.ProfileName.length > 0){        
+    await updateFirmwareRMSWebAPI(fw,sn);    
     let endTime = Date.now();
     let executionTimeMs = endTime - startTime;
     let executionTimeSec = executionTimeMs / 1000;
     mt_UI.LogData(`Execution time: ${executionTimeSec} seconds`);
+    ShowDeviceResponses = false;
+    await mt_MMS.sendCommand('AA0081040155180384081803810100820114');
+    ShowDeviceResponses = true;
 
   }
   else
@@ -564,10 +610,55 @@ async function updateDevice(){
   }
 }
 
-async function updateFirmwareRMS(fwID, deviceSN, interfaceType = 'USB', downloadPayload = true) {
+async function updateTagsRMS(){
+  let startTime = Date.now();
+  mt_RMS_API.setURL(mt_Utils.getEncodedValue('baseURL',defaultRMSURL));
+  mt_RMS_API.setAPIKey(mt_Utils.getEncodedValue('APIKey',defaultRMSAPIKey));
+  mt_RMS_API.setProfileName(mt_Utils.getEncodedValue('ProfileName',defaultRMSProfileName));
+  
+  ShowDeviceResponses = false;
+  let fw = await mt_MMS.GetDeviceFWID();
+  let sn = await mt_MMS.GetDeviceSN();
+  ShowDeviceResponses = true;
+
+  if(mt_RMS_API.BaseURL.length > 0 && mt_RMS_API.APIKey.length > 0 && mt_RMS_API.ProfileName.length > 0){            
+    await updateAllTagsRMS(fw,sn);
+    let endTime = Date.now();
+    let executionTimeMs = endTime - startTime;
+    let executionTimeSec = executionTimeMs / 1000;
+    mt_UI.LogData(`Execution time: ${executionTimeSec} seconds`);
+  }
+  else
+  {
+    mt_UI.LogData(`Please set APIKey and ProfileName`);
+  }
+}
+
+async function updateFirmwareRMSWebAPI(fwID, deviceSN, interfaceType = 'USB', downloadPayload = true) {
   try {
-    
     mt_UI.LogData(`Checking Firmware...`);
+       
+    
+    
+    let strVersion = mt_Utils.getEncodedValue("RMSVersion","");    
+
+    if(strVersion == '0'  &&  fwID.substring(0,10) == '1000009712'){
+      fwID = '1000009712-AB1-PRD';
+      mt_UI.LogData(`Forcing Firmware Update`);
+    } 
+    ShowDeviceResponses = false;
+    //Sending Please Wait
+    //await mt_MMS.sendCommand('AA008104015518038408180381010082010E');
+    //await mt_MMS.sendCommand( mt_Utils.base64ToHex(updatingFWBitmap));
+    //let cmds = await mt_Utils.FetchCommandsfromURL("../cmds/DisplayLoadingFirmwareBMP.txt");
+    let cmds = await mt_Utils.FetchCommandsfromURL("cmds/DisplayLoadingFirmware.txt");
+
+    if (cmds.status.ok){
+      await parseCommands('Firmware Update', cmds.data);
+    }
+    
+    ShowDeviceResponses = true;
+
     let req = {
       ProfileName: mt_RMS_API.ProfileName,      
       FirmwareID: fwID,
@@ -578,12 +669,8 @@ async function updateFirmwareRMS(fwID, deviceSN, interfaceType = 'USB', download
 
     let firmwareResp = await mt_RMS_API.GetFirmware(req);
            if(firmwareResp.data.HasBLEFirmware){
-             //_HasBLEFirmware = true;
-             //mt_UI.LogData("This reader has BLE firmware");
            } 
            if(firmwareResp.data.DeviceConfigs != null){
-             //_DeviceConfigList = firmwareResp.DeviceConfigs;
-             //mt_UI.LogData("This reader has device configs");
            } 
 
     switch (firmwareResp.data.ResultCode) {
@@ -591,13 +678,10 @@ async function updateFirmwareRMS(fwID, deviceSN, interfaceType = 'USB', download
         mt_UI.LogData(`The ${firmwareResp.data.Description} has an update available!`);
         if (firmwareResp.data.Commands.length > 0) {
           if(firmwareResp.data.ReleaseNotes.length > 0 ) mt_UI.LogData(firmwareResp.data.ReleaseNotes);
-          //if(firmwareResp.data.HasBLEFirmware && fwType.toLowerCase() == "main"){
             if(firmwareResp.data.HasBLEFirmware){
-            //_HasBLEFirmware = true;
             mt_UI.LogData("This reader has BLE firmware");
           } 
           if(firmwareResp.data.DeviceConfigs != null){
-            //_DeviceConfigList = firmwareResp.data.DeviceConfigs;
             mt_UI.LogData("This reader has device configs");
           } 
           await parseCommands(firmwareResp.data.Description, firmwareResp.data.Commands);
@@ -619,7 +703,7 @@ async function updateFirmwareRMS(fwID, deviceSN, interfaceType = 'USB', download
   }
 };
 
-async function updateAllTags(fw,sn) {
+async function updateAllTagsRMS(fw,sn) {
   mt_UI.LogData(`Checking Tags and CAPKs...`);
   let bStatus = false;
   let resp = "";
@@ -635,16 +719,13 @@ async function updateAllTags(fw,sn) {
    "AA0081040108D8218408D825810400000800",
    "AA0081040108D8218408D825810400000900"
    ];
-   
-   
-  for (let index = 0; index < updateCommands.length; index++) {
-    
+
+   for (let index = 0; index < updateCommands.length; index++) {
     ShowDeviceResponses = false;
     resp = await mt_MMS.sendCommand(updateCommands[index]);
     ShowDeviceResponses = true;
     bStatus = await updateMMSTags(fw, sn, resp);
   }
-  
   mt_UI.LogData(`Done Loading Tags and CAPKs...`);
   return bStatus;
 };
@@ -744,7 +825,7 @@ EventEmitter.on("OnPowerEvent", dataLogger);
 EventEmitter.on("OnTransactionComplete", trxCompleteLogger);
 EventEmitter.on("OnTransactionHostAction", dataLogger);
 
-EventEmitter.on("OnUIHostActionComplete", dataLogger);
+EventEmitter.on("OnUIHostActionComplete", hostActionCompleteLogger);
 EventEmitter.on("OnUIHostActionRequest", dataLogger);
 EventEmitter.on("OnUIInformationUpdate", dataLogger);
 

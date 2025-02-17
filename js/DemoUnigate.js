@@ -99,34 +99,19 @@ async function handleProcessSale() {
             CashBack:0
           }
 
-          let FallBack = mt_Utils.getTagValue('DFDF53', '00', arqc.substring(4), false);
-          let PaymentMode = "EMV";
-          switch (FallBack) {
-              case '01':
-                PaymentMode = 'MagStripe'
-                break;
-            default:
-                PaymentMode = 'EMV';
-                break;
-          }
-
           if(saleAmount.length > 0) Amount.SubTotal = parseFloat(saleAmount);
     
-            let saleResp = await mt_Unigate.ProcessARQCTransaction(Amount, arqc, undefined, transactionType, PaymentMode, "Credit", false);  
+            let saleResp = await mt_Unigate.ProcessARQCTransaction(Amount, arqc, undefined, transactionType, "Credit", true);  
 
             if(!saleResp.status.ok){
-              mt_UI.LogData(`====================== ${transactionType} Basic Auth ======================`);
               mt_UI.LogData(`Authorization: ${BasicAuth}`);
-              mt_UI.LogData(`====================== ${transactionType} Basic Auth  ======================`);
               mt_UI.LogData(``);
               mt_UI.LogData(`====================== ${transactionType} Response Failure Details ======================`);
               mt_UI.LogData(JSON.stringify(saleResp, null, 2));
               mt_UI.LogData(`====================== ${transactionType} Response Failure  Details ======================`);                
               return;
             }
-            mt_UI.LogData(`====================== ${transactionType} Basic Auth ======================`);
             mt_UI.LogData(`Authorization: ${BasicAuth}`);
-            mt_UI.LogData(`====================== ${transactionType} Basic Auth  ======================`);
             mt_UI.LogData(``);
             mt_UI.LogData(`====================== ${transactionType} Response Details ======================`);
             mt_UI.LogData(JSON.stringify(saleResp.data, null, 2));

@@ -16,6 +16,7 @@ import * as mt_Utils from "./MagTek_WebAPI/mt_utils.js";
 document.addEventListener("DOMContentLoaded", handleDOMLoaded);
 document.querySelector("#btnSave").addEventListener("click", handleSaveButton);
 document.querySelector("#btnBack").addEventListener("click", handleBackButton);
+
 let ShowOffline = "false";
 
 async function handleDOMLoaded() {
@@ -51,7 +52,6 @@ async function handleDOMLoaded() {
 
   item = document.getElementById("txContactlessDelay");
   item.value = mt_Utils.getEncodedValue("ContactlessDelay", "NTAw");
-  
   
   ShowOffline = mt_Utils.getEncodedValue("ShowOffline", "ZmFsc2U=");
   item = document.getElementById("chk-ShowOffline");

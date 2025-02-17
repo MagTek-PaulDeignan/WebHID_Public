@@ -471,7 +471,6 @@ function parseNotificationFromDevice(Msg) {
         EmitObject({ Name: "OnUIDisplayMessage", Data: Message });
         break;
       case "1805":
-        console.log(`1805- ${Msg.HexString}`)
         NotifyDetail = Msg.TLVData;
         EmitObject({ Name: "OnUIHostActionComplete", Data: NotifyDetail });
         break;

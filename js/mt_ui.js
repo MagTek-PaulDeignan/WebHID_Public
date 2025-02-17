@@ -200,3 +200,18 @@ export function FromListToText(event) {
     });   
     LogData("TLVs---------------------------------");
    }
+
+
+   // Function to show the loading spinner
+export function showSpinner() {
+  const loadingSpinner = document.getElementById('loading-spinner');
+  //loadingSpinner.style.display = 'block';
+  loadingSpinner.style.visibility = "visible";
+}
+
+// Function to hide the loading spinner
+export function hideSpinner() {
+  const loadingSpinner = document.getElementById('loading-spinner');
+  //loadingSpinner.style.display = 'none';
+  loadingSpinner.style.visibility = "hidden";
+}
