@@ -1,0 +1,5 @@
+[
+"DISPLAYMESSAGE,Updating Device",
+"UpdateFirmwareRMS",
+"DISPLAYMESSAGE,All Done"
+]

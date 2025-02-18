@@ -517,11 +517,17 @@ Array.prototype.zeroFill = function (len) {
 
     export async function FetchCommandsfromURL(commandURL){
       let response = undefined;
+      let json;
       try 
       {
+        
+        
         response = await fetch(commandURL);
+        if (response.status == 200){
+          json = await response.json();
+        }
 
-        let json = await response.json();
+        
         let resp = {
           status: {
             ok: response.ok,

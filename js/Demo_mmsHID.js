@@ -285,9 +285,13 @@ const deviceCloseLogger = (e) => {
   mt_UI.setUSBConnected("Closed");
   _DeviceDetected = false;
 };
-const deviceOpenLogger = (e) => {
+const deviceOpenLogger = async (e) => {
   mt_UI.setUSBConnected("Opened");
   _DeviceDetected = true;
+   let cmds = await mt_Utils.FetchCommandsfromURL("cmds/onOpen.txt");
+   if (cmds.status.ok){
+     await parseCommands('Updating Device', cmds.data);
+   }
 };
 const dataLogger = (e) => {
   mt_UI.LogData(`Received Data: ${e.Name}: ${e.Data}`);
@@ -308,6 +312,9 @@ const hostActionCompleteLogger = async (e) => {
       await mt_MMS.sendCommand(`AA0081040109D821840BD8218104${tag83}870101`);
       ShowDeviceResponses = true;
       break;
+    case "05040100": //Playing Sound
+      mt_UI.LogData(`Done Playing Sound`);
+      break;
     default:
       mt_UI.LogData(`Host Action: ${e.Name}: ${e.Data}`);
       mt_UI.LogData(`Unhandled hostActionComplete: ${tag82}`);
@@ -315,10 +322,10 @@ const hostActionCompleteLogger = async (e) => {
   }
 };
 
-const NFCUIDLogger = (e) => {
+const NFCUIDLogger = async (e) => {
   mt_UI.LogData(`Received NFC UID : ${e.Name}: ${e.Data}`);
-  mt_MMS.sendCommand("AA00810401641100840B1100810160820100830100");
-  mt_MMS.sendCommand("AA00810401671100840D110081033A04278201008301FF");
+  let resp = await mt_MMS.sendCommand("AA00810401641100840B1100810160820100830100");
+  resp = await mt_MMS.sendCommand("AA00810401671100840D110081033A04278201008301FF");
 };
 
 
@@ -481,7 +488,8 @@ const fileLogger = async (e) => {
       break;
   
     default:
-      mt_UI.LogData(`File: ${e.Data.HexString}`);
+      //mt_UI.LogData(`File: ${tagC1} - ${e.Data.HexString}`);
+      //console.log(`File: ${tagC1} - ${e.Data.HexString}`);
       break;
   }
 
@@ -648,9 +656,7 @@ async function updateFirmwareRMSWebAPI(fwID, deviceSN, interfaceType = 'USB', do
     } 
     ShowDeviceResponses = false;
     //Sending Please Wait
-    //await mt_MMS.sendCommand('AA008104015518038408180381010082010E');
-    //await mt_MMS.sendCommand( mt_Utils.base64ToHex(updatingFWBitmap));
-    //let cmds = await mt_Utils.FetchCommandsfromURL("../cmds/DisplayLoadingFirmwareBMP.txt");
+    //await mt_MMS.sendCommand('AA008104015518038408180381010082010E');    
     let cmds = await mt_Utils.FetchCommandsfromURL("cmds/DisplayLoadingFirmware.txt");
 
     if (cmds.status.ok){
@@ -778,8 +784,6 @@ async function updateMMSTags(fw, sn, response, downloadPayload = true, rawComman
     return error;
   }
 };
-
-
 
 // Subscribe to  events
 EventEmitter.on("OnInputReport", inputReportLogger);

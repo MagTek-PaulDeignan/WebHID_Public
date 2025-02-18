@@ -97,7 +97,8 @@ async function handleClearButton() {
     let amt = document.getElementById("saleAmount").value;
     if (amt.length > 0)
     {
-      if(confirm("Ready To Process Sale?"))
+      //if(confirm("Ready To Process Sale?"))
+      if(true)
         {
           let Amount = {
             SubTotal: 0,
@@ -161,17 +162,23 @@ async function handleClearButton() {
                   mt_UI.LogData(`======================Transaction Response Details======================`);
                   mt_UI.LogData(JSON.stringify(saleResp.data, null, 2));
                   mt_UI.LogData(`======================Transaction Response Details======================`);                
-
-                  //mt_UI.LogData(``);
-                  //let Outdata = saleResp.Details.customerReceipt.replace(/\\n/g, '\n');
-                  //mt_UI.LogData(`============================Receipt=============================`);
-                  //mt_UI.LogData(`${Outdata}`);
-                  //mt_UI.LogData(`============================Receipt============================`);
-
               }
-              await mt_Utils.wait(1000);
+              
+              if( saleResp.data.transactionOutput.isTransactionApproved)
+              {
+                await mt_MQTT.SendCommand(`AA0081040155180384081803810100820103`);
+              }else
+              {
+                await mt_MQTT.SendCommand(`AA0081040155180384081803810100820107`);
+              }
+              await mt_Utils.wait(2000);
+              let cmds = await mt_Utils.FetchCommandsfromURL("cmds/vendingCmds.txt");
+              if (cmds.status.ok){
+                await parseCommands('Update', cmds.data);
+              }
               mt_UI.LogData(`Clearing ARQC`);          
-              window.mt_device_ARQCData = null;              
+              window.mt_device_ARQCData = null;
+              
 
         }
     }
@@ -196,7 +203,22 @@ async function handleOpenButton() {
   mt_MQTT.OpenMQTT();
   //SetAutoCheck();
   SetTechnologies(true, true, true);
+  let cmds = await mt_Utils.FetchCommandsfromURL("cmds/vendingCmds.txt");
+  if (cmds.status.ok){
+    await parseCommands('Update', cmds.data);
+  }
 }
+
+async function parseCommands(description, messageArray) {
+  for (let index = 0; index < messageArray.length; index++) 
+  {
+    let progress = parseInt((index / messageArray.length) * 100);
+    mt_UI.updateProgressBar(`Loading ${description}`, progress);
+    await parseCommand(messageArray[index]);
+  }
+  mt_UI.updateProgressBar(`Done Loading ${description}...`, 100);
+};
+
 
 async function handleSendCommandButton() {
   const data = document.getElementById("sendData");
@@ -214,6 +236,9 @@ async function parseCommand(message) {
       break;
     case "SENDCOMMAND":
       mt_MQTT.SendCommand(cmd[1]);
+      break;
+    case "SENDBASE64COMMAND":
+      mt_MQTT.sendBase64Command(cmd[1]);
       break;
     case "GETDEVICELIST":
       devices = getDeviceList();      
@@ -351,12 +376,46 @@ const debugLogger = (e) => {
   mt_UI.LogData(`Error: ${e.Source} ${e.Data}`);
 };
 const touchUpLogger = (e) => {
-   let chk = document.getElementById("chk-AutoTouch");
-   if (chk.checked) {
-     mt_UI.LogData(`Touch Up: X: ${e.Data.Xpos} Y: ${e.Data.Ypos}`);
-   }
+  // let chk = document.getElementById("chk-AutoTouch");
+  // if (chk.checked) {
+  //   mt_UI.LogData(`Touch Up: X: ${e.Data.Xpos} Y: ${e.Data.Ypos}`);
+  // }
+prcocessTouch(e.Data.Xpos, e.Data.Ypos);
 };
 
+function prcocessTouch(x, y){
+  let buttonpressed = 0;
+  if(x > 0 && x < 159 && y > 20 && y < 120)  buttonpressed = 1;
+  if(x > 159 && x < 321 && y > 20 && y < 120)  buttonpressed = 2;
+  if(x > 0 && x < 159 && y > 119 && y < 241)  buttonpressed = 3;
+  if(x > 159 && x < 321 && y > 119 && y < 241)  buttonpressed = 4;
+  
+  switch (buttonpressed) {
+    case 1:
+      mt_UI.LogData(`Charging card for $5.50`);
+      document.getElementById("saleAmount").value = '5.50';
+      handleProcessSale();
+      break;
+    case 2:
+      mt_UI.LogData(`Charging card for $7.50`);
+      document.getElementById("saleAmount").value = '7.50';
+      handleProcessSale();
+      break;
+    case 3:
+      mt_UI.LogData(`Charging card for $10.50`);
+      document.getElementById("saleAmount").value = '10.50';
+      handleProcessSale();
+      break;
+    case 4:
+      mt_UI.LogData(`Charging card for $15.50`);
+      document.getElementById("saleAmount").value = '15.50';
+      handleProcessSale();
+      break
+    default:
+      mt_UI.LogData(`nothing happens when this areae is pressed`);
+      break;
+  }
+  }
   
 const touchDownLogger = (e) => {
   let chk = document.getElementById("chk-AutoTouch");
@@ -499,3 +558,6 @@ EventEmitter.on("OnPINComplete", PINLogger);
 EventEmitter.on("OnUIDisplayMessage", displayMessageLogger);
 EventEmitter.on("OnDebug", debugLogger);
 EventEmitter.on("OnMQTTStatus", mqttStatus);
+
+
+

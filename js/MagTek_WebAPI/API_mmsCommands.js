@@ -64,8 +64,7 @@ export async function getImgFromPenData(imageData, width = 320, height = 240, pe
     }
       canvas = document.createElement('canvas');
       canvas.height = height;
-      canvas.width = width;
-      //canvas.border
+      canvas.width = width;      
       const ctx = canvas.getContext("2d");
       ctx.strokeStyle = penColor;
       ctx.fillStyle = backColor;
@@ -85,7 +84,7 @@ export async function getImgFromPenData(imageData, width = 320, height = 240, pe
          if (!lineStart && !lineEnd)
           {
               ctx.lineTo(xPos, yPos);
-              //console.log(`${xPos} : ${xPos} :  ${coord}`);
+              //console.log(`${xPos} : ${yPos} :  ${coord}`);
           }
           
           if (lineStart )
