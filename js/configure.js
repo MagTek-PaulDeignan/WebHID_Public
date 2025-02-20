@@ -1,6 +1,6 @@
 /* 
 DO NOT REMOVE THIS COPYRIGHT
- Copyright 2020-2024 MagTek, Inc, Paul Deignan.
+ Copyright 2020-2025 MagTek, Inc, Paul Deignan.
  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), 
  to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
  and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
@@ -21,15 +21,13 @@ let ShowOffline = "false";
 
 async function handleDOMLoaded() {
   let item = document.getElementById("txAPIKey");
-  item.value = mt_Utils.getEncodedValue("APIKey", "TVRQdWJsaWMtQUVFQ0Q0NEEtODc1NS00QUEwLUFENTgtNTNDMzNGQkJCNEE4");
+  item.value = mt_Utils.getEncodedValue("RMSAPIKey", "TVRQdWJsaWMtQUVFQ0Q0NEEtODc1NS00QUEwLUFENTgtNTNDMzNGQkJCNEE4");
   
-
   item = document.getElementById("txProfileName");
-  item.value = mt_Utils.getEncodedValue("ProfileName", "TWFnVGVrX1Byb2R1Y3Rpb24=");
-  
+  item.value = mt_Utils.getEncodedValue("RMSProfileName", "TWFnVGVrX1Byb2R1Y3Rpb24=");
 
   item = document.getElementById("txURL");
-  item.value = mt_Utils.getEncodedValue("baseURL", "aHR0cHM6Ly9ybXMubWFnZW5zYS5uZXQvUmVhZGVyU3VwcG9ydC9GaXJtd2FyZVVwZGF0ZS12Mi9hcGk=");
+  item.value = mt_Utils.getEncodedValue("RMSBaseURL", "https://svc1.magensa.net/rms/api",false);
 
   item = document.getElementById("txVersion");
   item.value = mt_Utils.getEncodedValue("RMSVersion", "");
@@ -65,13 +63,13 @@ async function handleBackButton() {
 
 async function handleSaveButton() {
   let item = document.getElementById("txAPIKey");  
-  mt_Utils.saveEncodedValue("APIKey", item.value);
+  mt_Utils.saveEncodedValue("RMSAPIKey", item.value);
 
   item = document.getElementById("txProfileName");
-  mt_Utils.saveEncodedValue("ProfileName", item.value);
+  mt_Utils.saveEncodedValue("RMSProfileName", item.value);
 
   item = document.getElementById("txURL");
-  mt_Utils.saveEncodedValue("baseURL", item.value);
+  mt_Utils.saveEncodedValue("RMSBaseURL", item.value);
   
   item = document.getElementById("txVersion");
   mt_Utils.saveEncodedValue("RMSVersion", item.value);
