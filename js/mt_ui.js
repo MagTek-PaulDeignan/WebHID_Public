@@ -215,3 +215,11 @@ export function hideSpinner() {
   //loadingSpinner.style.display = 'none';
   loadingSpinner.style.visibility = "hidden";
 }
+
+export function CheckForHID(){
+  if (!navigator.hid)
+  {
+    LogData("This Browser/OS does not support WEB HID");
+    LogData("See: https://developer.mozilla.org/en-US/docs/Web/API/WebHID_API#browser_compatibility");
+  } 
+}

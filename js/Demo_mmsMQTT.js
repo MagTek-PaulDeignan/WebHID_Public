@@ -513,8 +513,7 @@ async function updateFirmwareRMSWebAPI(fwID, deviceSN, interfaceType = 'USB', do
     } 
     
     ShowDeviceResponses = false;
-    //Sending Please Wait
-    //await mt_MMSMQTT_API.SendCommand('AA008104015518038408180381010082010E');
+        //Sending Please Wait
         let cmds = await mt_Utils.FetchCommandsfromURL("cmds/DisplayLoadingFirmware.txt");
         if (cmds.status.ok){
           await parseCommands('Firmware Update', cmds.data);

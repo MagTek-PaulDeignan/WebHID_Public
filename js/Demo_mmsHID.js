@@ -55,7 +55,7 @@ function EmitObject(e_obj) {
 };
 
 async function handleDOMLoaded() {
-  
+  mt_UI.CheckForHID();
   let devices = await mt_MMS.getDeviceList();
   mt_UI.LogData(`Devices currently attached and allowed:`);
   
@@ -96,6 +96,7 @@ async function handleClearButton() {
 }
 
 async function handleOpenButton() {
+  mt_UI.CheckForHID();
   window.mt_device_hid = await mt_MMS.openDevice();
 }
 
@@ -488,8 +489,8 @@ const fileLogger = async (e) => {
       break;
   
     default:
-      //mt_UI.LogData(`File: ${tagC1} - ${e.Data.HexString}`);
-      //console.log(`File: ${tagC1} - ${e.Data.HexString}`);
+      mt_UI.LogData(`File: ${tagC1} - ${e.Data.HexString}`);
+      
       break;
   }
 
