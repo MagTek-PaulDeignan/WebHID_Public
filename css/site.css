@@ -1,4 +1,4 @@
-.background-shade{
+.background-shade {
     position: absolute;
     background-color: rgba(0, 0, 0, 0.637);
     left: 0;
@@ -9,9 +9,7 @@
 
 footer {
     margin-bottom: 0;
-    padding-bottom:10px;
-    
-    
+    padding-bottom:10px;    
 }
 
 body {
@@ -60,7 +58,6 @@ h1 {
     border-left-color:rgba(210, 18, 66, 1);
     border-right-color:rgba(210, 18, 66, 1);
     border-top-color:rgba(210, 18, 66, 1);
-    
     --bs-btn-border-color: rgba(147, 149, 152, 1);
     --bs-btn-hover-bg:rgba(147, 149, 152, 1);
     --bs-btn-bg:rgba(147, 149, 152, 1);
@@ -75,3 +72,22 @@ h1 {
 .progress-bar-striped {
     --bs-progress-bar-bg:rgba(210, 18, 66, 1);
 }
+
+.spinner {
+    border: 6px solid rgba(210, 18, 66, 1);
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border-left-color: rgba(255, 255, 255, 1);
+    animation: spin 1s linear infinite;
+  }
+  
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+  

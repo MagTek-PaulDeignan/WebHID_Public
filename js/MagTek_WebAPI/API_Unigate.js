@@ -1,6 +1,6 @@
 /* 
 DO NOT REMOVE THIS COPYRIGHT
- Copyright 2020-2024 MagTek, Inc, Paul Deignan.
+ Copyright 2020-2025 MagTek, Inc, Paul Deignan.
  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), 
  to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
  and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
@@ -11,6 +11,7 @@ DO NOT REMOVE THIS COPYRIGHT
 */
 
 "use strict";
+import * as mt_Utils from "./mt_utils.js";
 import * as mt_XML2JSON from "./mt_xml2json.js";
 export let BaseURL = "https://svc1.magensa.net/Unigate/";
 export let ProcessorName = "TSYS - Pilot";
@@ -54,9 +55,26 @@ export function setPassword(password) {
   Password = password;
 }
 
-  export async function ProcessARQCTransaction(amount, arqc, transactionID = Date.now().toString(), transType = "SALE", paymentMode = "EMV", paymentType = "Credit", addDetails = false) {
+
+export function getBasicAuth() {
+  let retString = `Basic ${btoa(`${CustCode}/${Username}:${Password}`)}`
+  return retString;
+}
+
+  export async function ProcessARQCTransaction(amount, arqc, transactionID = Date.now().toString(), transType = "SALE", paymentType = "Credit", addDetails = true) {
     try {
-       
+
+    let FallBack = mt_Utils.getTagValue('DFDF53', '00', arqc.substring(4), false);
+    let PaymentMode = "EMV";
+      switch (FallBack) {
+        case '01':
+          PaymentMode = 'MagStripe'
+          break;
+        default:
+          PaymentMode = 'EMV';
+          break;
+        }
+      
    let req = {
       customerTransactionID: transactionID,
       transactionInput: {
@@ -69,7 +87,7 @@ export function setPassword(password) {
           dataType: "ARQC",
           data: arqc
         },
-        paymentMode: paymentMode,
+        paymentMode: PaymentMode,
         paymentType: paymentType
       }
    }
@@ -78,15 +96,28 @@ export function setPassword(password) {
      
       let TransactionResponse = await PostProcessTransaction(req);      
       
-      
-      if (addDetails)
+      if(TransactionResponse.status.ok == true)
       {
+        if (addDetails)
+        {
         // here we will parse the processor http response.  It needs to extract the XML data from the HTTP response and then convert
         // that data to a "Dictionary" object called Details.
         let details = {};          
-        let bstatus = await mt_XML2JSON.XmltoDict(TransactionResponse.transactionOutput.transactionOutputDetails[0].value, details);    
-        if(bstatus)  TransactionResponse.Details = details;        
-      }
+        let bstatus = await mt_XML2JSON.KVPtoDict(TransactionResponse.data.dataOutput.additionalOutputData,details);
+        if(bstatus){
+          //remove them from additionalOutputData because they were moved into 'details'
+          TransactionResponse.data.dataOutput.additionalOutputData = null;
+        } 
+        
+        bstatus = await mt_XML2JSON.XmltoDict(TransactionResponse.data.transactionOutput.transactionOutputDetails[0].value, details);    
+        if(bstatus){
+          //add the values to 'details'
+          TransactionResponse.data.Details = details;        
+          //remove them from transactionOutputDetails because they were moved into 'details'
+          TransactionResponse.data.transactionOutput.transactionOutputDetails = null;
+        } 
+        }
+    }
       return TransactionResponse;
     } 
     catch (error) {return error};    
@@ -116,7 +147,20 @@ export function setPassword(password) {
           "Authorization": getBasicAuth() 
         }),
       });
-      return await response.json();
+      
+      let json = await response.json();
+      
+      let resp = 
+      {
+        status: {
+          ok: response.ok,
+          text: response.statusText,
+          code: response.status,
+        },
+        data: json
+      }
+      return resp;
+      
     } 
     catch (error) 
     {
@@ -124,7 +168,4 @@ export function setPassword(password) {
     }
   }
 
-  function getBasicAuth() {
-    let retString = `Basic ${btoa(`${CustCode}/${Username}:${Password}`)}`
-    return retString;
-  }
+  

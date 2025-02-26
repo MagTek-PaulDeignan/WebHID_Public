@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!-- 
 DO NOT REMOVE THIS COPYRIGHT
-Copyright 2020-2024 MagTek, Inc., Paul Deignan
+Copyright 2020-2025 MagTek, Inc., Paul Deignan
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), 
 to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
 and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
@@ -28,10 +28,11 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
       </a>
     </div>
     <div class="container">
-      <h1>HID MMS Demo</h1>
+      <h1>HID MMS Demo</h1>      
     </div>
     <div class="container">
       <div id="DeviceDisplay">WELCOME</div>
+      <div id="imagedata"></div>
       <textarea class="form-control" name="LogData" id="LogData" rows="12"></textarea>
       <div class="form-group container-left">
         <img id="USBStatus" src="./images/usb-disconnected.png"><span id="lblUSBStatus">Disconnected</span>
@@ -43,29 +44,29 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
 
       <div class="form-group" id="autoStartOptions">
         <input type="checkbox" id="chk-AutoStart" name="AutoStart" value=""><label for="chk-AutoStart">Auto Start</label>
-         <br> 
+        <br> 
         <input type="checkbox" id="chk-AutoEMV" name="AutoEMV" value=""><label for="chk-AutoEMV">EMV</label>
         <input type="checkbox" id="chk-AutoNFC" name="AutoNFC" value=""><label for="chk-AutoNFC">NFC</label>
         <input type="checkbox" id="chk-AutoMSR" name="AutoMSR" value=""><label for="chk-AutoMSR">MSR</label>
-        <!-- <input type="checkbox" id="chk-AutoTouch" name="AutoTouch" value="" hidden="true"><label for="chk-AutoTouch" hidden="true">Touch</label> -->
-        <input type="checkbox" id="chk-AutoTouch" name="AutoTouch" value=""><label for="chk-AutoTouch">Touch</label>
+        <input type="checkbox" id="chk-AutoTouch" name="AutoTouch" value="" hidden="true"><label for="chk-AutoTouch" hidden="true">Touch</label>        
         <hr>
         <div id="updDeviceContainer" class="container" style.visibility ='hidden'>      
           <p></p> 
           <div id="progressContainer" class="progress" style.visibility ='hidden'>
             <div id="progressBar" style.visibility ='hidden' class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width:0%">
-            </div>
+            </div>            
           </div>
+          
         </div>
         <label for="sendData">Command Data</label>
         <input type="text" class="form-control" name="sendData" id="sendData" aria-describedby="helpId"
-          value="SENDCOMMAND,AA00810401001001842B100182013CA3098101018201018301018402000386159C01009F02060000000001009F0306000000000000">
+          value="SENDCOMMAND,AA008104010010018430100182013CA30981010182010183010184020003861A9C01009F02060000000001009F03060000000000005F2A020840">
         <button class="btn btn-primary" id="sendCommand">Send Command</button>
       </div>
       <div class="form-group shadow-textarea">
         <label for="CommandList"></label>
           <select class="form-control-3" name="CommandList" id="CommandList">
-          <option value="SENDCOMMAND,AA00810401001001842B100182013CA3098101018201018301018402000386159C01009F02060000000001009F0306000000000000">
+          <option value="SENDCOMMAND,AA008104010010018430100182013CA30981010182010183010184020003861A9C01009F02060000000001009F03060000000000005F2A020840">
             START EMV</option>
           <option value="SENDCOMMAND,AA0081040113100884021008">CANCEL EMV</option>
           <option value="SENDCOMMAND,AA00810401121F0184021F01">Reset Device</option>
@@ -110,7 +111,6 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
           <option value="UPDATEDEVICE">Update Device</option>
           <option value="SENDCOMMAND,AA008104010610018442100182013CA30E81010082010083010084030000018402000386279C01009F02060000000001009F03060000000000005F2A0208405F3601029F150200009F530100">Manual Entry</option>
           <option value="SENDCOMMAND,AA008104010618018405180181011E">Request Signature</option>
-          
         </select>
       </div>
     </div>

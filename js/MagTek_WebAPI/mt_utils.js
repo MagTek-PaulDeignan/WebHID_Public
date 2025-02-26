@@ -1,6 +1,6 @@
 /* 
 DO NOT REMOVE THIS COPYRIGHT
- Copyright 2020-2024 MagTek, Inc, Paul Deignan.
+ Copyright 2020-2025 MagTek, Inc, Paul Deignan.
  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), 
  to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
  and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
@@ -10,27 +10,19 @@ DO NOT REMOVE THIS COPYRIGHT
  WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-function byteArrayToBase64(byteArray) {
-  // Convert the byte array to a binary string
+export function byteArrayToBase64(byteArray) {
   const binaryString = Array.from(byteArray)
       .map(byte => String.fromCharCode(byte))
       .join('');
-  
-  // Use `btoa` to convert the binary string to Base64
   return btoa(binaryString);
 }
 
-function base64ToByteArray(base64) {
-  // Decode Base64 to a binary string
+export function base64ToByteArray(base64) {
   const binaryString = atob(base64);
-  // Create a Uint8Array to hold the byte values
   const byteArray = new Uint8Array(binaryString.length);
- 
-  // Map each character in the binary string to its byte value
   for (let i = 0; i < binaryString.length; i++) {
       byteArray[i] = binaryString.charCodeAt(i);
   }
-  
   return byteArray;
 }
 export function hexToBase64(hexstring){
@@ -93,6 +85,10 @@ export function hexToDecIPv4(hexString) {
     if (n < (hexString.length - 2)) str += ".";
   }
   return str;
+}
+
+export function hexToNumber(hexString) {
+  return parseInt(hexString, 16);
 }
 
 
@@ -290,9 +286,15 @@ export function saveDefaultValue(key, value){
   localStorage.setItem(key, value);    
 }
 
-export function getEncodedValue(key, defaultValue){
+export function getEncodedValue(key, defaultValue, isEncoded = true){
   let keyVal = localStorage.getItem(`enc-${window.btoa(key)}`);
-  if (keyVal == null) keyVal = defaultValue;
+  if (keyVal == null){
+    keyVal = defaultValue;
+    if(!isEncoded)
+    {
+      return keyVal;    
+    }
+  } 
   return window.atob(keyVal);
 }
 
@@ -495,5 +497,49 @@ Array.prototype.zeroFill = function (len) {
       {
         return 0;
       }
+    }
+
+    export async function sha256(data, asHex = false) {
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      if(asHex) return toHexString(hashArray);
+      return hashArray;
+    }
+    
+    export function getFileExtension(filename) {
+      if (typeof filename !== 'string' || filename.lastIndexOf('.') === -1) {
+        return ""; // Handle cases with no extension or invalid input
+      }
+      return filename.slice(filename.lastIndexOf('.') + 1);
+    }
+    
+
+    export async function FetchCommandsfromURL(commandURL){
+      let response = undefined;
+      let json;
+      try 
+      {
+        
+        
+        response = await fetch(commandURL);
+        if (response.status == 200){
+          json = await response.json();
+        }
+
+        
+        let resp = {
+          status: {
+            ok: response.ok,
+            text: response.statusText,
+            code: response.status,
+          },
+          data: json
+        }
+        return resp;
+      } 
+      catch (error) {
+        return error;
+      }
       
     }
+    

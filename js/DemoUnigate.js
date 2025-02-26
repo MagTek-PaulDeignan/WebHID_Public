@@ -1,6 +1,6 @@
 /* 
 DO NOT REMOVE THIS COPYRIGHT
- Copyright 2020-2024 MagTek, Inc, Paul Deignan.
+ Copyright 2020-2025 MagTek, Inc, Paul Deignan.
  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), 
  to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
  and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
@@ -85,6 +85,7 @@ async function handleProcessSale() {
   mt_Unigate.setPassword(password);
   mt_Unigate.setCustCode(custCode);
   mt_Unigate.setProcessorName(processorName);
+  let BasicAuth = mt_Unigate.getBasicAuth();
   
 
 
@@ -97,13 +98,23 @@ async function handleProcessSale() {
             CashBack:0
           }
 
-          
+
           if(saleAmount.length > 0) Amount.SubTotal = parseFloat(saleAmount);
     
-            let saleResp = await mt_Unigate.ProcessARQCTransaction(Amount, arqc, null, transactionType, "EMV", "Credit", true);  
+            let saleResp = await mt_Unigate.ProcessARQCTransaction(Amount, arqc, undefined, transactionType, "Credit", true);  
 
+            if(!saleResp.status.ok){
+              mt_UI.LogData(`Authorization: ${BasicAuth}`);
+              mt_UI.LogData(``);
+              mt_UI.LogData(`====================== ${transactionType} Response Failure Details ======================`);
+              mt_UI.LogData(JSON.stringify(saleResp, null, 2));
+              mt_UI.LogData(`====================== ${transactionType} Response Failure  Details ======================`);                
+              return;
+            }
+            mt_UI.LogData(`Authorization: ${BasicAuth}`);
+            mt_UI.LogData(``);
             mt_UI.LogData(`====================== ${transactionType} Response Details ======================`);
-            mt_UI.LogData(JSON.stringify(saleResp, null, 2));
+            mt_UI.LogData(JSON.stringify(saleResp.data, null, 2));
             mt_UI.LogData(`====================== ${transactionType} Response Details ======================`);                
 
                 if(mt_Utils.getObjectKeyLen(saleResp.Details) > 0)                

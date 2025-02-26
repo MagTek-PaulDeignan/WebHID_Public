@@ -45,15 +45,12 @@ Devices supported include:
    - File: `./mt_ui.js`
    - Handles UI updates, logging, and status display.
 
-4. mt_RMS:
-   - File: `./mt_rms_mms.js`
-   - Interfaces with the RMS for device firmware updates.
 
-5. mt_RMS_API:
+4. mt_RMS_API:
    - File: `./API_rms.js`
    - API for RMS configuration and communication.
 
-6. Event Management:
+5. Event Management:
    - File: `./mt_events.js`
    - Adds event emitter functionality for device interactions and logging.
 
@@ -112,7 +109,7 @@ Dropdown menu with pre-defined commands:
 
 ```html
 <select class="form-control-3" name="CommandList" id="CommandList">
-  <option value="SENDCOMMAND,AA00810401001001842B100182013CA3098101018201018301018402000386159C01009F02060000000001009F0306000000000000">START EMV</option>
+  <option value="SENDCOMMAND,AA008104010010018430100182013CA30981010182010183010184020003861A9C01009F02060000000001009F03060000000000005F2A020840">START EMV</option>
   <!-- Additional options here -->
 </select>
 ```
@@ -199,7 +196,7 @@ Commands entered by the user are processed through the `parseCommand` function, 
 ## License
 
 ```plaintext
-Copyright 2020-2024 MagTek, Inc., Paul Deignan
+Copyright 2020-2025 MagTek, Inc., Paul Deignan
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions: The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ```

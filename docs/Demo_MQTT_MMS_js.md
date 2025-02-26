@@ -31,7 +31,7 @@ This documentation outlines the key components, functionalities, and usage guide
 1. **JavaScript Modules**:
    - `mt_Utils.js`: Utility functions for encoding, delays, and tag value parsing.
    - `mt_UI.js`: Handles UI updates such as logs and display messages.
-   - `mt_rms_mms.js`: For device management tasks such as firmware updates.
+   
    - `API_rms.js`: Manages RMS API interactions.
    - `API_mmsMQTT.js`: MQTT API for device communication.
 
@@ -187,7 +187,7 @@ The system uses an event-driven architecture to respond to device actions and st
 Sends a pre-defined command to initiate an EMV transaction.
 
 ```javascript
-SENDCOMMAND,AA00810401001001842B100182013CA3098101018201018301018402000386159C01009F02060000000001009F0306000000000000
+SENDCOMMAND,AA008104010010018430100182013CA30981010182010183010184020003861A9C01009F02060000000001009F03060000000000005F2A020840
 ```
 
 ### Retrieve Device Serial Number
@@ -202,7 +202,7 @@ parseCommand("GETDEVICESN");
 ## License
 
 ```plaintext
-Copyright 2020-2024 MagTek, Inc., Paul Deignan
+Copyright 2020-2025 MagTek, Inc., Paul Deignan
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions: The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ```

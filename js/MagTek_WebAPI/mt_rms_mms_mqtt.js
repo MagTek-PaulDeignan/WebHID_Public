@@ -1,6 +1,6 @@
 /* 
 DO NOT REMOVE THIS COPYRIGHT
- Copyright 2020-2024 MagTek, Inc, Paul Deignan.
+ Copyright 2020-2025 MagTek, Inc, Paul Deignan.
  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), 
  to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
  and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
@@ -133,11 +133,9 @@ async function updateMMSTags(command) {
     let cmdResp = await mt_mms.sendCommand(command);    
     if (cmdResp.HexString.length > 16) {
       let req = {
-        Authentication: null,
         ProfileName: mt_RMS_API.ProfileName,
         ConfigurationName: null,
         Version: ver,
-        UIK: null,
         TerminalConfiguration: cmdResp.HexString,
         BillingLabel: mt_Utils.getEncodedValue("RMSBillingLabel","V0VCIERlbW8gVGVzdA=="),
         InterfaceType: mt_Utils.getEncodedValue("RMSInterface","VVNC"),
@@ -153,19 +151,19 @@ async function updateMMSTags(command) {
       case -2:        
         break;
       case 0:
-        //LogData(`The ${tagsResp.Description} has an update available!`);
+        LogData(`   The ${tagsResp.data.Description} has an update available!`);
         if (tagsResp.Commands.length > 0) {
           await parseRMSCommands(tagsResp.Description, tagsResp.Commands);
         }
         break;
       case 1:
-        LogData(`The ${tagsResp.Description} are up to date.`);
+        LogData(`   The ${tagsResp.data.Description} is up to date.`);
         break;
       case 2:
-        LogData(`The ${tagsResp.Description} are up to date.`);
+        LogData(`   The ${tagsResp.data.Description} is up to date.`);
         break;
       default:
-        LogData(`${tagsResp.Result} ${tagsResp.ResultCode}`);
+        LogData(`   ${tagsResp.data.Result} ${tagsResp.data.ResultCode}`);
         break;
     }
     return true;

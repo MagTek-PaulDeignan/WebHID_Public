@@ -1,13 +1,7 @@
 let replacements = {};
 
 const networkNamePath = `https://rms.magensa.net/test/MagensaNormalizedFieldNames.json`;
-const localReplacements = {
-   hostReferenceNumber:"MagensaProcessor_ReferenceNumber",
-   responseCode:"MagensaProcessor_ResponseCode",
-   transactionTimestamp:"MagensaProcessor_Timestamp",
-   status: "MagensaProcessor_Status"
- }  
-
+const localReplacements = {};  
 
 async function parseXml(xml) 
 {
@@ -44,34 +38,41 @@ function sanitizeXMLData(data)
 
 export async function XmltoDict(xml, dictionary)
 {   
-  //console.log(`dict size ${dictionary}`);
   replacements = await FetchNames(networkNamePath);
   let dom = await parseXml(sanitizeXMLData(xml));
-  //console.log(`DOM ${JSON.stringify(dom)}`);
   await parseTheDOM(dom, async function(node) 
 
   {
-    //console.log(`node ${JSON.stringify(node)}`);
-
     if (node.nodeType == 1 && node.childElementCount == 0 )
     {
-      
-
       if (node.nodeName == "Payload")
       {
         await XmltoDict(node.textContent, dictionary);
       }
       else
       {
-        //console.log(`details- ${normalizeNames(node.nodeName)} ${node.textContent}`);
+
         dictionary[normalizeNames(node.nodeName)] = node.textContent;
       }              
     } 
   }
 );
-
-//console.log(`details- ${JSON.stringify(dictionary)}`);
 return true;
+}
+
+export async function KVPtoDict(kvpArray, dictionary)
+{
+  let rc = false;
+  if(kvpArray.length > 0)
+    {
+      rc = true;
+      kvpArray.forEach(element => {
+        dictionary[normalizeNames(element["key"])] = element["value"];
+      }
+    )
+    }
+    return rc;
+  
 }
 
 async function FetchNames(jsonUrl){

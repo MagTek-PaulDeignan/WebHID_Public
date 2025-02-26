@@ -17,5 +17,3 @@ export const App = {
     ResponseDelay: 5,
     OpenTimeDelay: 2000
 }
-
-

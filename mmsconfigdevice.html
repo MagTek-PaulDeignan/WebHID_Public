@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!-- 
 DO NOT REMOVE THIS COPYRIGHT
-Copyright 2020-2024 MagTek, Inc., Paul Deignan
+Copyright 2020-2025 MagTek, Inc., Paul Deignan
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), 
 to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
 and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
@@ -72,6 +72,8 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
         </div>
         <br>
         <div>
+          <button class="btn btn-primary" id="getCSR">Get CSR</button>
+          <button class="btn btn-primary" id="getCertificate">Get Certificate</button>
           <button class="btn btn-primary" id="loadTLS">Load TLS Trust Config</button>
           <button class="btn btn-primary" id="loadNoTLS">Load No_TLS Trust Config</button>
           <button class="btn btn-primary" id="ResetDevice">Reset Device</button>
@@ -92,13 +94,13 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
         </div>
         <label for="sendData">Command Data</label>
         <input type="text" class="form-control" name="sendData" id="sendData" aria-describedby="helpId"
-          value="SENDCOMMAND,AA00810401001001842B100182013CA3098101018201018301018402000386159C01009F02060000000001009F0306000000000000">
+          value="SENDCOMMAND,AA008104010010018430100182013CA30981010182010183010184020003861A9C01009F02060000000001009F03060000000000005F2A020840">
         <button class="btn btn-primary" id="sendCommand">Send Command</button>
       </div>
       <div class="form-group shadow-textarea">
         <label for="CommandList"></label>
           <select class="form-control-3" name="CommandList" id="CommandList">
-          <option value="SENDCOMMAND,AA00810401001001842B100182013CA3098101018201018301018402000386159C01009F02060000000001009F0306000000000000">
+          <option value="SENDCOMMAND,AA008104010010018430100182013CA30981010182010183010184020003861A9C01009F02060000000001009F03060000000000005F2A020840">
             START EMV</option>
           <option value="SENDCOMMAND,AA0081040113100884021008">CANCEL EMV</option>
           <option value="SENDCOMMAND,AA00810401121F0184021F01">Reset Device</option>

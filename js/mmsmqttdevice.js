@@ -1,6 +1,6 @@
 /* 
 DO NOT REMOVE THIS COPYRIGHT
- Copyright 2020-2024 MagTek, Inc, Paul Deignan.
+ Copyright 2020-2025 MagTek, Inc, Paul Deignan.
  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), 
  to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
  and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
@@ -137,9 +137,9 @@ const deviceOpenLogger = (e) => {
 const fromDeviceLogger = (e) => {
   
 };
-const inputReportLogger = (e) => {
-  mt_UI.LogData(`Input Report: ${e.Data}`);
-};
+// const inputReportLogger = (e) => {
+//   mt_UI.LogData(`Input Report: ${e.Data}`);
+// };
 const errorLogger = (e) => {
   mt_UI.LogData(`Error: ${e.Source} ${e.Data}`);
 };
@@ -214,14 +214,13 @@ function CheckMQTTError (err) {
 };
 
 function onMQTTMessage(topic, message) {
-    let data = message.toString();
-    //console.log(topic + " MMSDevice:: " + data )
+    let data = message.toString();    
     mt_Device.sendCommand(data);
 };
 
 
 // Subscribe to  events
-EventEmitter.on("OnInputReport", inputReportLogger);
+//EventEmitter.on("OnInputReport", inputReportLogger);
 EventEmitter.on("OnDeviceConnect", deviceConnectLogger);
 EventEmitter.on("OnDeviceDisconnect", deviceDisconnectLogger);
 EventEmitter.on("OnDeviceOpen", deviceOpenLogger);

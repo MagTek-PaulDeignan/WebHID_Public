@@ -1,6 +1,6 @@
 /* 
 DO NOT REMOVE THIS COPYRIGHT
- Copyright 2020-2024 MagTek, Inc, Paul Deignan.
+ Copyright 2020-2025 MagTek, Inc, Paul Deignan.
  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), 
  to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
  and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
@@ -124,6 +124,7 @@ async function parseRMSCommands(description, messageArray) {
 };
 async function updateTags(command) {
   try {
+    let tagsResp = null;
     let cmdResp = await mt_V5.sendExtCommand(command);
     if (cmdResp.length > 16) {
       let req = {
@@ -140,7 +141,7 @@ async function updateTags(command) {
         DownloadPayload: true,
       };
 
-      let tagsResp = await mt_RMS_API.GetTags(req);      
+      tagsResp = await mt_RMS_API.GetTags(req);      
     }
 
     switch (tagsResp.ResultCode) {
@@ -151,10 +152,10 @@ async function updateTags(command) {
         }
         break;
       case 1:
-        LogData(`The ${tagsResp.Description} are up to date.`);
+        LogData(`The ${tagsResp.Description} is up to date.`);
         break;
       case 2:
-        LogData(`The ${tagsResp.Description} are up to date.`);
+        LogData(`The ${tagsResp.Description} is up to date.`);
         break;
       default:
         LogData(`${tagsResp.Result}`);

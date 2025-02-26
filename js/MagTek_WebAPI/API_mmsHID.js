@@ -1,6 +1,6 @@
 /* 
 DO NOT REMOVE THIS COPYRIGHT
- Copyright 2020-2024 MagTek, Inc, Paul Deignan.
+ Copyright 2020-2025 MagTek, Inc, Paul Deignan.
  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), 
  to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
  and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
@@ -35,7 +35,7 @@ export async function sendBase64Command(cmdToSendB64) {
 
 export async function sendCommand(cmdToSend) {
   let cmdResp = "";
-  window.mt_device_response = null;
+  window.mt_device_response = undefined;
   try {
     if (window.mt_device_hid == null) {
       EmitObject({
@@ -62,7 +62,6 @@ export async function sendCommand(cmdToSend) {
   }
 }
 
-
 async function sendMMSCommand(cmdToSend) {
   let commands = mt_MMS.buildCmdsArray(
     cmdToSend,
@@ -70,7 +69,7 @@ async function sendMMSCommand(cmdToSend) {
   );
   for (let index = 0; index < commands.length; index++) {
     await window.mt_device_hid.sendReport(0, new Uint8Array(commands[index]));
-    EmitObject({Name:"OnDeviceSendProgress", Total:commands.length, Progress:index});
+    EmitObject({Name:"OnDeviceSendProgress", Total: commands.length, Progress: index});
   }
   Response = await waitForDeviceResponse();
   return Response;

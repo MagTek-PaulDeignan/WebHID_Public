@@ -1,6 +1,6 @@
 /* 
 DO NOT REMOVE THIS COPYRIGHT
- Copyright 2020-2024 MagTek, Inc, Paul Deignan.
+ Copyright 2020-2025 MagTek, Inc, Paul Deignan.
  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), 
  to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
  and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
@@ -156,12 +156,10 @@ export function FromListToText(event) {
     link.id = `dev-${type}${name}`;
     link.href = url;
     link.textContent = name;
-    //link.target = "_blank"; // Opens link in a new tab
     link.style.display = "inline-flex";
     link.prepend(imgOnline);    
     link.prepend(img);
     if (status == "disconnected"){
-      //link.hidden = true;
       link.hidden = !bShowOffline;
     }
     else
@@ -195,3 +193,33 @@ export function FromListToText(event) {
    } catch (error) { }
    }
  
+   export function PrintTLVs(TLVs){
+    LogData("TLVs---------------------------------");
+    TLVs.forEach(element => {
+      LogData(`${element.tag} : ${element.tagValue} `);    
+    });   
+    LogData("TLVs---------------------------------");
+   }
+
+
+   // Function to show the loading spinner
+export function showSpinner() {
+  const loadingSpinner = document.getElementById('loading-spinner');
+  //loadingSpinner.style.display = 'block';
+  loadingSpinner.style.visibility = "visible";
+}
+
+// Function to hide the loading spinner
+export function hideSpinner() {
+  const loadingSpinner = document.getElementById('loading-spinner');
+  //loadingSpinner.style.display = 'none';
+  loadingSpinner.style.visibility = "hidden";
+}
+
+export function CheckForHID(){
+  if (!navigator.hid)
+  {
+    LogData("This Browser/OS does not support WEB HID");
+    LogData("See: https://developer.mozilla.org/en-US/docs/Web/API/WebHID_API#browser_compatibility");
+  } 
+}

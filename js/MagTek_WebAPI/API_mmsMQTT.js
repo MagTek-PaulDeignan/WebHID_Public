@@ -1,6 +1,6 @@
 /* 
 DO NOT REMOVE THIS COPYRIGHT
- Copyright 2020-2024 MagTek, Inc, Paul Deignan.
+ Copyright 2020-2025 MagTek, Inc, Paul Deignan.
  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), 
  to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
  and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
@@ -42,7 +42,10 @@ export function setPath(Path) {
  */
 export function setUserName(UserName) {
   _userName = UserName;
-  if (UserName.length == 0 ) _userName = null;
+  if(UserName != null){
+    if (UserName.length == 0 ) _userName = null;
+  }
+  
 };
 
 /**
@@ -50,7 +53,10 @@ export function setUserName(UserName) {
  */
 export function setPassword(Password) {
   _password = Password;
-  if (Password.length == 0 ) _password = null;
+  if(Password != null){
+    if (Password.length == 0 ) _password = null;
+  }
+  
 };
 
 function EmitObject(e_obj) {
@@ -63,7 +69,7 @@ export async function sendBase64Command(cmdToSendB64) {
 
 
 export async function SendCommand(cmdHexString) {
-    window.mt_device_response = null
+    window.mt_device_response = null;    
     _client.publish(`${mt_AppSettings.MQTT.MMS_Base_Sub}${_devPath}`, cmdHexString);
     let Resp = await waitForDeviceResponse();
     return Resp;

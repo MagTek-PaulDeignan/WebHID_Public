@@ -1,6 +1,6 @@
 /* 
 DO NOT REMOVE THIS COPYRIGHT
- Copyright 2020-2024 MagTek, Inc, Paul Deignan.
+ Copyright 2020-2025 MagTek, Inc, Paul Deignan.
  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), 
  to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
  and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
@@ -116,19 +116,23 @@ async function handleClearButton() {
     
           let email = document.getElementById("receiptEmail").value;
           let sms = document.getElementById("receiptSMS").value;
-          
-            let saleResp = await mt_Unigate.ProcessARQCTransaction(Amount, window.mt_device_ARQCData, null, "SALE", "EMV", "Credit", false);  
+   
+            mt_Unigate.setUsername(mt_Utils.getEncodedValue("MPPG_UserName", "VFNZU1BpbG90UFJPRA=="));
+            mt_Unigate.setPassword(mt_Utils.getEncodedValue("MPPG_Password", "UGFzc3dvcmQjMTIzNDU="));
+            mt_Unigate.setCustCode(mt_Utils.getEncodedValue("MPPG_CustCode", "S1Q0NDc0NjI2NA=="));
+            mt_Unigate.setProcessorName(mt_Utils.getEncodedValue("MPPG_ProcessorName", "VFNZUyAtIFBJTE9U"));
+            let saleResp = await mt_Unigate.ProcessARQCTransaction(Amount, window.mt_device_ARQCData, undefined, "SALE", "Credit", true);  
 
-            if(saleResp.transactionOutput != null)
+            if(saleResp.status.code == 200)
               {
-                let claims = saleResp.Details;
-                claims.magTranID = saleResp.magTranID;
-                window.mt_device_SaleResponse = saleResp;
+                let claims = saleResp.data.Details;
+                claims.magTranID = saleResp.data.magTranID;
+                window.mt_device_SaleResponse = saleResp.data;
                 if(QMFAChecked)
                 {
                   if(sms.length > 0 || email.length > 0 )
                   {
-                    window.mt_device_SaleResponse = saleResp;
+                    window.mt_device_SaleResponse = saleResp.data;
                     mt_UI.LogData(`Sending Qwantum MultiFactor Auth Request`);
                     let mfaResponse = mt_QMFA.TransactionCreate(sms, email, claims)
                   }
@@ -139,15 +143,15 @@ async function handleClearButton() {
                 }
             }
                        
-              if (!QMFAChecked)
+              if (!QMFAChecked && saleResp.status.code == 200)
               {
-                if(Object.keys(saleResp.Details).length  > 0 )
+                if(Object.keys(saleResp.data.Details).length  > 0 )
                   {
                     mt_UI.LogData(`=====================Processor Response KVPs=====================`);
-                    for (var key in saleResp.Details) {
-                      if (saleResp.Details.hasOwnProperty(key))
+                    for (var key in saleResp.data.Details) {
+                      if (saleResp.data.Details.hasOwnProperty(key))
                         {
-                          mt_UI.LogData(`${key}: ${saleResp.Details[key]}` );
+                          mt_UI.LogData(`${key}: ${saleResp.data.Details[key]}` );
                         }
                     }
                     mt_UI.LogData(`======================Processor Response KVPs======================`);
@@ -155,7 +159,7 @@ async function handleClearButton() {
 
                   mt_UI.LogData(``);
                   mt_UI.LogData(`======================Transaction Response Details======================`);
-                  mt_UI.LogData(JSON.stringify(saleResp, null, 2));
+                  mt_UI.LogData(JSON.stringify(saleResp.data, null, 2));
                   mt_UI.LogData(`======================Transaction Response Details======================`);                
 
                   //mt_UI.LogData(``);
@@ -167,7 +171,8 @@ async function handleClearButton() {
               }
               await mt_Utils.wait(1000);
               mt_UI.LogData(`Clearing ARQC`);          
-              window.mt_device_ARQCData = null;
+              window.mt_device_ARQCData = null;              
+
         }
     }
     else
@@ -177,8 +182,8 @@ async function handleClearButton() {
    } 
    else 
    {
-     mt_UI.LogData(`No ARQC Available - Starting Transaction`);
-     mt_MQTT.SendCommand("AA008104010010018430100182010AA30981010082010083010184020003861A9C01009F02060000000001009F03060000000000005F2A020840");
+     mt_UI.LogData(`Starting Transaction`);
+     mt_MQTT.SendCommand("AA008104010010018430100182010AA30981010182010183010184020003861A9C01009F02060000000001009F03060000000000005F2A020840");
    }
  }
 
@@ -256,7 +261,6 @@ function SetAutoCheck() {
 }
 
 function SetTechnologies(bEMV, bNFC, bMSR) {
-  
   document.getElementById("chk-AutoEMV").checked = bEMV;
   document.getElementById("chk-AutoNFC").checked = bNFC;
   document.getElementById("chk-AutoMSR").checked = bMSR;
@@ -269,10 +273,12 @@ const deviceDisconnectLogger = (e) => {
   mt_UI.setUSBConnected("Disconnected");
 };
 const deviceCloseLogger = (e) => {
-  mt_UI.setUSBConnected("Closed");
+  mt_UI.setUSBConnected("Closed");  
 };
-const deviceOpenLogger = (e) => {
+const deviceOpenLogger = async (e) => {
+  let resp;   
   mt_UI.setUSBConnected("Opened");
+  
 };
 const dataLogger = (e) => {
   mt_UI.LogData(`Received Data: ${e.Name}: ${e.Data}`);
@@ -313,14 +319,12 @@ const barcodeLogger = async (e) => {
         {
           mt_UI.LogData(`The transaction was cancelled because the customer did not verify the authenticity of the transaction details.`);
         }
-        
       }
   }
   else
   {
       mt_UI.LogData(`Error: ${JSON.stringify(resp, null, 2)}`);
   }
-
 
   }
   else
@@ -346,11 +350,13 @@ const debugLogger = (e) => {
   mt_UI.LogData(`Error: ${e.Source} ${e.Data}`);
 };
 const touchUpLogger = (e) => {
-  let chk = document.getElementById("chk-AutoTouch");
-  if (chk.checked) {
-    mt_UI.LogData(`Touch Up: X: ${e.Data.Xpos} Y: ${e.Data.Ypos}`);
-  }
+   let chk = document.getElementById("chk-AutoTouch");
+   if (chk.checked) {
+     mt_UI.LogData(`Touch Up: X: ${e.Data.Xpos} Y: ${e.Data.Ypos}`);
+   }
 };
+
+  
 const touchDownLogger = (e) => {
   let chk = document.getElementById("chk-AutoTouch");
   if (chk.checked) {
