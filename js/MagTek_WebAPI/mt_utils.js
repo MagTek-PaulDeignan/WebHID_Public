@@ -497,7 +497,6 @@ Array.prototype.zeroFill = function (len) {
       {
         return 0;
       }
-      
     }
 
     export async function sha256(data, asHex = false) {

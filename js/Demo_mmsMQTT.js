@@ -114,6 +114,9 @@ async function parseCommand(message) {
     case "SENDBASE64COMMAND":
       await mt_MMSMQTT_API.sendBase64Command(cmd[1]);
       break;
+    case "SENDBASE64COMMAND":
+      mt_MMSMQTT_API.sendBase64Command(cmd[1]);
+      break;
     case "PCIRESET":
       mt_MMSMQTT_API.SendCommand("AA00810401121F0184021F01");      
       break;
@@ -262,8 +265,8 @@ const batchLogger = (e) => {
 };
 
 const fromDeviceLogger = (e) => {
-  if (ShowDeviceResponses) mt_UI.LogData(`Device Response: ${e.Data.HexString}`);
 
+  if (ShowDeviceResponses) mt_UI.LogData(`Device Response: ${e.Data.HexString}`);
   //this is to demo opening web pages from a URI that was read via NFC 
     let retData = mt_Utils.getTagValue("DF7A", "", e.Data.TLVData.substring(38), false)
     if(retData.length > 0 )

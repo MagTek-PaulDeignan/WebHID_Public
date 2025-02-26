@@ -12,7 +12,6 @@ DO NOT REMOVE THIS COPYRIGHT
 
 "use strict";
 import * as mt_Utils from "./mt_utils.js";
-
 import * as mt_XML2JSON from "./mt_xml2json.js";
 export let BaseURL = "https://svc1.magensa.net/Unigate/";
 export let ProcessorName = "TSYS - Pilot";
@@ -55,6 +54,7 @@ export function setUsername(name) {
 export function setPassword(password) {
   Password = password;
 }
+
 
 export function getBasicAuth() {
   let retString = `Basic ${btoa(`${CustCode}/${Username}:${Password}`)}`

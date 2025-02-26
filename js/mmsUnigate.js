@@ -332,7 +332,6 @@ const barcodeLogger = async (e) => {
     mt_UI.LogData(`Barcode  Data: ${stringbc}`);
   }
 };
-
 const arqcLogger = (e) => {
   window.mt_device_ARQCData = e.Data;
   window.mt_device_ARQCType = e.Source;  

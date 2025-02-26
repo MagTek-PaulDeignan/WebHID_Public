@@ -51,6 +51,7 @@ export async function XmltoDict(xml, dictionary)
       }
       else
       {
+
         dictionary[normalizeNames(node.nodeName)] = node.textContent;
       }              
     } 

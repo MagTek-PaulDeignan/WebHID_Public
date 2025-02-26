@@ -85,7 +85,6 @@ async function handleProcessSale() {
   mt_Unigate.setPassword(password);
   mt_Unigate.setCustCode(custCode);
   mt_Unigate.setProcessorName(processorName);
-
   let BasicAuth = mt_Unigate.getBasicAuth();
   
 
@@ -98,6 +97,7 @@ async function handleProcessSale() {
             Tip: 0,
             CashBack:0
           }
+
 
           if(saleAmount.length > 0) Amount.SubTotal = parseFloat(saleAmount);
     
