@@ -572,5 +572,4 @@ export function calculateTimeDifference(date1, date2, unit = 'milliseconds') {
           default:
               throw new Error('Invalid unit. Use milliseconds, seconds, minutes, hours, or days.');
       }
-  }
-  
+}

@@ -42,9 +42,6 @@ if (value != null) {
   altScreen = value;
 }
 
-
-
-
 if (userName.length == 0 ) userName = null;
 if (password.length == 0 ) password = null;
 

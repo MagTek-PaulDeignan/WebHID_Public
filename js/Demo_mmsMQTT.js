@@ -19,8 +19,6 @@ import * as mt_MMS_Commands from "./MagTek_WebAPI/API_mmsCommands.js"
 let timeStart = null;
 let timeEnd = null;
 
-
-
 let retval = "";
 let defaultRMSURL = '';
 let defaultRMSAPIKey = '';
@@ -182,6 +180,7 @@ async function parseCommand(message) {
       break;
     case "UPDATETAGSRMS":
       updateTagsRMS(); 
+
       break;
     case "HEXTOBASE64":
       let b64Data = mt_Utils.hexToBase64(cmd[1])
@@ -441,6 +440,7 @@ async function parseScriptFile(file){
         }
     };
   reader.readAsText(file);   
+
 }
 
 async function parseFirmwareFile(file, fileType = 1){

@@ -24,6 +24,7 @@ export let _openTimeDelay = 1500;
 let CertExpirationWarningDays = 30;
 let CertExpirationDays = 396;
 
+let ShowDeviceResponses = true;
 
 let ShowDeviceResponses = true;
 
@@ -144,11 +145,13 @@ async function getCSR() {
   Resp = await mt_MMS.sendCommand("AA0081040155EF028402EF02");  
   Resp = await mt_MMS.sendCommand("AA0081040107EF038405EF03810100");
   Resp = await mt_MMS.sendCommand("AA0081040108D821840BD821810404000000870101");
+
   //mt_UI.LogData("Generating CSR... DONE");
   ShowDeviceResponses = true;
 }
 
 async function getCertificate(){
+
   ShowDeviceResponses = false;
   let Resp = null;
   //mt_UI.LogData("Getting MagTek Root...");
@@ -160,8 +163,6 @@ async function getCertificate(){
   //Resp = await mt_MMS.sendCommand("AA0081040107D821840BD8218104 03000400 870101");
   Resp = await mt_MMS.sendCommand("AA0081040107D821840BD8218104 03000500 870101");
   ShowDeviceResponses = true;
-
-  
 }
 
 async function LoadTLS(){
@@ -499,8 +500,6 @@ const userEventLogger = (e) => {
 const fileLogger = async (e) => {
   
     let resp = null;
-
-    
     let tag84 = mt_Utils.getTagValue("84", "", e.Data.TLVData.substring(8), false);
     let tagC1 = mt_Utils.getTagValue("C1", "", tag84.substring(16), false);
     let tagCE = mt_Utils.getTagValue("CE", "", tag84.substring(16), false);
@@ -553,7 +552,6 @@ const fileLogger = async (e) => {
     
         break;
 
-    
       default:
         mt_UI.LogData(`File: ${tagC1} ${e.Data.HexString}`);
         break;
