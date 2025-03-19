@@ -13,6 +13,7 @@ DO NOT REMOVE THIS COPYRIGHT
 import * as mt_Utils from "./MagTek_WebAPI/mt_utils.js";
 import * as mt_MMS from "./MagTek_WebAPI/API_mmsHID.js";
 import * as mt_UI from "./mt_ui.js";
+import * as mt_CertMgr from "./MagTek_WebAPI/API_CertificateManager.js"
 import "./MagTek_WebAPI/mt_events.js";
 
 let retval = "";
@@ -20,6 +21,9 @@ let _contactSeated = false;
 let _AwaitingContactEMV = false;
 export let _contactlessDelay = parseInt(mt_Utils.getEncodedValue("ContactlessDelay", "500"));
 export let _openTimeDelay = 1500;
+let CertExpirationWarningDays = 30;
+let CertExpirationDays = 396;
+
 
 let ShowDeviceResponses = true;
 
@@ -140,11 +144,23 @@ async function getCSR() {
   Resp = await mt_MMS.sendCommand("AA0081040155EF028402EF02");  
   Resp = await mt_MMS.sendCommand("AA0081040107EF038405EF03810100");
   Resp = await mt_MMS.sendCommand("AA0081040108D821840BD821810404000000870101");
-  mt_UI.LogData("Generating CSR... DONE");
+  //mt_UI.LogData("Generating CSR... DONE");
   ShowDeviceResponses = true;
 }
 
 async function getCertificate(){
+  ShowDeviceResponses = false;
+  let Resp = null;
+  //mt_UI.LogData("Getting MagTek Root...");
+  //Resp = await mt_MMS.sendCommand("AA0081040107D821840BD8218104 03000000 870101");
+  //Resp = await mt_MMS.sendCommand("AA0081040107D821840BD8218104 03000100 870101");
+  //Resp = await mt_MMS.sendCommand("AA0081040107D821840BD8218104 03000200 870101");
+  mt_UI.LogData("Getting Customer Certificate...");
+  //Resp = await mt_MMS.sendCommand("AA0081040107D821840BD8218104 03000300 870101");
+  //Resp = await mt_MMS.sendCommand("AA0081040107D821840BD8218104 03000400 870101");
+  Resp = await mt_MMS.sendCommand("AA0081040107D821840BD8218104 03000500 870101");
+  ShowDeviceResponses = true;
+
   
 }
 
@@ -281,6 +297,20 @@ async function handleSendCommandButton() {
   const data = document.getElementById("sendData");
   await parseCommand(data.value);
 }
+function updateProgress(caption, progress ){
+  EmitObject({ Name: "OnRMSProgress", Data: {Caption: caption, Progress: progress }});
+};
+
+
+async function parseCommands(description, messageArray) {
+  for (let index = 0; index < messageArray.length; index++) 
+  {
+    let progress = parseInt((index / messageArray.length) * 100);
+    updateProgress(`Loading ${description}`, progress);
+    await parseCommand(messageArray[index]);
+  }
+  updateProgress(`Done Loading ${description}...`, 100);
+};
 
 async function parseCommand(message) {
   let Response;
@@ -294,7 +324,7 @@ async function parseCommand(message) {
       break;
     case "SENDCOMMAND":
       Response = await mt_MMS.sendCommand(cmd[1]);
-      EmitObject({ Name: "OnDeviceResponse", Data: Response });
+      //EmitObject({ Name: "OnDeviceResponse", Data: Response });
       break;
     case "GETDEVICELIST":
       devices = getDeviceList();      
@@ -466,23 +496,73 @@ const userEventLogger = (e) => {
   mt_UI.LogData(`User Event Data: ${e.Name} ${e.Data}`);
 };
 
-const fileLogger = (e) => {
+const fileLogger = async (e) => {
   
+    let resp = null;
 
+    
     let tag84 = mt_Utils.getTagValue("84", "", e.Data.TLVData.substring(8), false);
     let tagC1 = mt_Utils.getTagValue("C1", "", tag84.substring(16), false);
     let tagCE = mt_Utils.getTagValue("CE", "", tag84.substring(16), false);
 
     switch (tagC1) {
+      case "03000500":
+        mt_UI.LogData(`Checking Certificate Expiration...`);
+        mt_CertMgr.setURL("https://rms.magensa.net/Qwantum/CertificateManager");
+        mt_CertMgr.setWebAPIKey("MTSandbox-F0FA3140-1E50-4331-8BB9-F33BF9CB32FB");
+        mt_CertMgr.setProfile("SandBox");
+        resp = await mt_CertMgr.VerifyCertificate(tagCE);
+        if (!resp.status.ok){
+          mt_UI.LogData(JSON.stringify(resp));
+        }
+        else
+        {
+          if (resp.data.isValidNow && resp.data.expiresInDays > CertExpirationWarningDays)
+          {
+            mt_UI.LogData(`The certificate with common came ${resp.data.commonName} is valid `);
+          }
+          else
+          {
+            if (!resp.data.isValidNow){
+              mt_UI.LogData(`The certificate with common name ${resp.data.commonName} is not valid`);
+            }
+            else
+            {
+              mt_UI.LogData(`The certificate with common name ${resp.data.commonName} is valid. However, it expires in ${resp.data.expiresInDays} days`);
+            }
+          }
+        }
+       
+
+        
+      break;
       case '04000000':
-        mt_UI.LogData(`CSR: ${tagC1}  ${tagCE}`);
+        mt_UI.LogData(`Getting CSR Signed...`);
+
+        mt_CertMgr.setURL("https://rms.magensa.net/Qwantum/CertificateManager");
+        mt_CertMgr.setWebAPIKey("MTSandbox-F0FA3140-1E50-4331-8BB9-F33BF9CB32FB");
+        mt_CertMgr.setProfile("SandBox");
+        resp = await mt_CertMgr.SignCSR(tagCE, CertExpirationDays, "Days");
+        //if (resp.status.ok){
+          //mt_UI.LogData(JSON.stringify(resp));
+        //}
+
+        if (resp.status.ok){
+          await parseCommands('Certificate Update', resp.data.certificateLoadCommands);
+        }
+    
         break;
+
     
       default:
         mt_UI.LogData(`File: ${tagC1} ${e.Data.HexString}`);
         break;
     }
   
+};
+
+const displayRMSProgressLogger = (e) => {  
+  mt_UI.updateProgressBar(e.Data.Caption, e.Data.Progress)
 };
 
 
@@ -553,3 +633,4 @@ EventEmitter.on("OnDebug", debugLogger);
 
 EventEmitter.on("OnFileFromHost", fileLogger);
 EventEmitter.on("OnFileFromDevice", fileLogger);
+EventEmitter.on("OnRMSProgress", displayRMSProgressLogger);

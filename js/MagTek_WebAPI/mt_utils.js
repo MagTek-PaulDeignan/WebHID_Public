@@ -266,9 +266,16 @@ export function removeSpaces(str) {
 
 export function hexToBytes(hex) {
   let bytes = [];
-  for (let i = 0; i < hex.length; i += 2)
-    bytes.push(parseInt(hex.substring(i, i+2), 16));
-  return bytes;
+  try 
+  {
+    for (let i = 0; i < hex.length; i += 2)
+      bytes.push(parseInt(hex.substring(i, i+2), 16));
+    return bytes;      
+  } catch (error) 
+  {
+    return[];
+  }
+  
 }
 
 export function debugLog(data) {
@@ -518,15 +525,12 @@ Array.prototype.zeroFill = function (len) {
       let response = undefined;
       let json;
       try 
-      {
-        
-        
+      { 
         response = await fetch(commandURL);
         if (response.status == 200){
           json = await response.json();
         }
 
-        
         let resp = {
           status: {
             ok: response.ok,
@@ -543,3 +547,30 @@ Array.prototype.zeroFill = function (len) {
       
     }
     
+
+
+export function calculateTimeDifference(date1, date2, unit = 'milliseconds') {
+      // Convert the inputs to Date objects if they're not already
+      const d1 = new Date(date1);
+      const d2 = new Date(date2);
+  
+      // Calculate the difference in milliseconds
+      const diffInMs = Math.abs(d2 - d1);
+  
+      // Convert the difference to the requested unit
+      switch (unit) {
+          case 'milliseconds':
+              return diffInMs;
+          case 'seconds':
+              return Math.floor(diffInMs / 1000);
+          case 'minutes':
+              return Math.floor(diffInMs / (1000 * 60));
+          case 'hours':
+              return Math.floor(diffInMs / (1000 * 60 * 60));
+          case 'days':
+              return Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+          default:
+              throw new Error('Invalid unit. Use milliseconds, seconds, minutes, hours, or days.');
+      }
+  }
+  

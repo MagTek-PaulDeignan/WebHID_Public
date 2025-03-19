@@ -75,6 +75,17 @@ export function getBasicAuth() {
           break;
         }
       
+
+    let cardType = mt_Utils.getTagValue('DFDF52', '00', arqc.substring(4), false);
+    switch (cardType) {
+      case '01': case '02': case '03':  
+        PaymentMode = 'MagStripe'
+        break;
+      default:
+        PaymentMode = 'EMV';
+        break;
+      }
+
    let req = {
       customerTransactionID: transactionID,
       transactionInput: {

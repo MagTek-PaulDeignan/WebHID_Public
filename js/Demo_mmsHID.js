@@ -126,6 +126,7 @@ async function parseCommand(message) {
   let sn = "";
   let fw = "";
   let hexData = null;
+  let b64Data = null;
   let cmd = message.split(",");
   switch (cmd[0].toUpperCase()) {
     case "GETAPPVERSION":
@@ -255,25 +256,28 @@ async function parseCommand(message) {
       updateTagsRMS(); 
       break;
     case "HEXTOBASE64":
-      let b64Data = mt_Utils.hexToBase64(cmd[1])
+      b64Data = mt_Utils.hexToBase64(cmd[1])
       mt_UI.LogData(b64Data);
       break;
     case "BASE64TOHEX":
       hexData = mt_Utils.base64ToHex(cmd[1])
       mt_UI.LogData(hexData);
       break;
-    case "UPDATEFIRMARE", "UPDATEFIRMWARE":
+      case "UPDATEFIRMARE":  case "UPDATEFIRMWARE":
       let fwResponse =  await mt_MMS_Commands.GetLoadFimrwareFromBase64(cmd[1],cmd[2]);
       window.mt_device_CommitCmd = fwResponse.commitCmd;
       await mt_MMS.sendCommand(fwResponse.firmwareCmd);
       break;
     case "HEXTOBASE64":
-      let b64Data = mt_Utils.hexToBase64(cmd[1])
+      b64Data = mt_Utils.hexToBase64(cmd[1])
       mt_UI.LogData(b64Data);
       break;
     case "BASE64TOHEX":
       hexData = mt_Utils.base64ToHex(cmd[1])
       mt_UI.LogData(hexData);
+      break;
+    case "SETACTIVEMODE":
+      mt_MMS.setActiveCommandMode(cmd[1])
       break;
     default:
       mt_Utils.debugLog("Unknown Command");
@@ -520,6 +524,12 @@ async function handleFileUpload(event) {
         break;
       case "fw-main":
         await parseFirmwareFile(file, 1)
+        break;
+      case "fw-wifi":
+        await parseFirmwareFile(file, 2)
+        break;
+      case "fw-ble":
+        await parseFirmwareFile(file, 3)
         break;
       default:
         mt_UI.LogData("Unknown File Type")

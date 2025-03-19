@@ -16,6 +16,11 @@ import * as mt_RMS_API from "./MagTek_WebAPI/API_rms.js";
 import * as mt_MMSMQTT_API from "./MagTek_WebAPI/API_mmsMQTT.js";
 import * as mt_MMS_Commands from "./MagTek_WebAPI/API_mmsCommands.js"
 
+let timeStart = null;
+let timeEnd = null;
+
+
+
 let retval = "";
 let defaultRMSURL = '';
 let defaultRMSAPIKey = '';
@@ -91,6 +96,7 @@ async function handleOpenButton() {
   mt_MMSMQTT_API.setUserName(userName);
   mt_MMSMQTT_API.setPassword(password);
   mt_MMSMQTT_API.setPath(devPath);  
+  timeStart = Date.now();
   mt_MMSMQTT_API.OpenMQTT();
 }
 
@@ -214,6 +220,8 @@ const deviceCloseLogger = (e) => {
   _DeviceDetected = false;
 };
 const deviceOpenLogger = (e) => {
+  timeEnd = Date.now();
+  mt_UI.LogData(`Time to open Websocket: ${mt_Utils.calculateTimeDifference(timeStart,timeEnd)} ms`);
   mt_UI.setUSBConnected("Opened");
   _DeviceDetected = true;
 };

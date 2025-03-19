@@ -223,3 +223,10 @@ export function CheckForHID(){
     LogData("See: https://developer.mozilla.org/en-US/docs/Web/API/WebHID_API#browser_compatibility");
   } 
 }
+
+export function StringNoNulls(data){
+  let resp = JSON.stringify(data,(key, value) => {
+  if (value !== null) return value
+},2);
+return resp;
+}

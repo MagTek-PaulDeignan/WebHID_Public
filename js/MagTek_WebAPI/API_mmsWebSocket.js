@@ -113,5 +113,48 @@ function processMsg(msg) {
   };
 
 
+export async function getWSSDevicePage(url) {
+  let resp = null;  
+  let response = null;
+  try 
+    {
+      let _URL = convertWssToHttps(url);    
+       response = await fetch(_URL, {
+        method: "GET",
+        mode: "no-cors"
+      });
+      resp = {
+        status: {
+          ok: true,
+          text: "OK",
+          code: 200
+        }
+      }
+      return resp;
+    } 
+    catch (error) 
+    {
+      resp = {
+        status: {
+          ok: false,
+          // text: `${error.message} - ${url}`,
+          text: `Failed to connect to - ${url}`,
+          code: 0
+        }
+      }
 
+    }
+    return resp;
 
+  }
+  
+function convertWssToHttps(url) {
+    if (url.startsWith("ws://")) {
+        return "http://" + url.substring(5);  // Remove "ws://" and prepend "http://"
+    }
+    if (url.startsWith("wss://")) {
+      return "https://" + url.substring(6);  // Remove "wss://" and prepend "https://"
+    }
+    return url;  // Return original string if no change needed
+  }
+  

@@ -25,6 +25,8 @@ let userName = mt_Utils.getEncodedValue('MQTTUser','RGVtb0NsaWVudA==');
 let password = mt_Utils.getEncodedValue('MQTTPassword','ZDNtMENMdjFjMQ==');
 let client = null;
 
+let altScreen = "";
+
 
 const params = new Proxy(new URLSearchParams(window.location.search), {
   get: (searchParams, prop) => searchParams.get(prop),
@@ -33,6 +35,11 @@ const params = new Proxy(new URLSearchParams(window.location.search), {
 let value = params.devpath;
 if (value != null) {
   devPath = value;
+}
+
+value = params.altscreen;
+if (value != null) {
+  altScreen = value;
 }
 
 
@@ -172,10 +179,7 @@ async function handleClearButton() {
                 await mt_MQTT.SendCommand(`AA0081040155180384081803810100820107`);
               }
               await mt_Utils.wait(2000);
-              let cmds = await mt_Utils.FetchCommandsfromURL("cmds/vendingCmds.txt");
-              if (cmds.status.ok){
-                await parseCommands('Update', cmds.data);
-              }
+              await GetScreens(altScreen);
               mt_UI.LogData(`Clearing ARQC`);          
               window.mt_device_ARQCData = null;
               
@@ -200,15 +204,17 @@ async function handleOpenButton() {
   mt_MQTT.setUserName(userName);
   mt_MQTT.setPassword(password);
   mt_MQTT.setPath(devPath);  
-  mt_MQTT.OpenMQTT();
-  //SetAutoCheck();
-  SetTechnologies(true, true, true);
-  let cmds = await mt_Utils.FetchCommandsfromURL("cmds/vendingCmds.txt");
+  mt_MQTT.OpenMQTT();  
+  SetTechnologies(true, true, true);  
+  await GetScreens(altScreen);  
+}
+
+async function GetScreens(altscreen){
+  let cmds = await mt_Utils.FetchCommandsfromURL(`cmds/vendingCmds${altscreen}.txt`);
   if (cmds.status.ok){
     await parseCommands('Update', cmds.data);
   }
 }
-
 async function parseCommands(description, messageArray) {
   for (let index = 0; index < messageArray.length; index++) 
   {
@@ -235,10 +241,10 @@ async function parseCommand(message) {
       //mt_Utils.debugLog("GETDEVINFO " + getDeviceInfo());      
       break;
     case "SENDCOMMAND":
-      mt_MQTT.SendCommand(cmd[1]);
+      await mt_MQTT.SendCommand(cmd[1]);
       break;
     case "SENDBASE64COMMAND":
-      mt_MQTT.sendBase64Command(cmd[1]);
+      await mt_MQTT.sendBase64Command(cmd[1]);
       break;
     case "GETDEVICELIST":
       devices = getDeviceList();      
@@ -301,9 +307,7 @@ const deviceCloseLogger = (e) => {
   mt_UI.setUSBConnected("Closed");  
 };
 const deviceOpenLogger = async (e) => {
-  let resp;   
-  mt_UI.setUSBConnected("Opened");
-  
+  mt_UI.setUSBConnected("Opened");  
 };
 const dataLogger = (e) => {
   mt_UI.LogData(`Received Data: ${e.Name}: ${e.Data}`);

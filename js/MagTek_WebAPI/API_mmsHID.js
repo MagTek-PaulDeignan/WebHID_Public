@@ -16,19 +16,25 @@ import * as mt_Configs from "./config/DeviceConfig.js";
 import "./mt_events.js";
 
 
-let _filters = mt_Configs.MMSfilters;
+export let _activeCommandMode = true;
 
+
+let _filters = mt_Configs.MMSfilters;
 let mtDeviceType = "";
 
 function EmitObject(e_obj) {
   EventEmitter.emit(e_obj.Name, e_obj);
 }
 
+export function setActiveCommandMode(mode){
+  _activeCommandMode =  (mode === "true");
+}
 export async function getDeviceList() {
   let devices = await navigator.hid.getDevices();
   devices = mt_Configs.filterDevices(devices, _filters);
   return devices;
 }
+
 export async function sendBase64Command(cmdToSendB64) {
   return await sendCommand(mt_Utils.base64ToHex(cmdToSendB64));
 }
@@ -37,6 +43,16 @@ export async function sendCommand(cmdToSend) {
   let cmdResp = "";
   window.mt_device_response = undefined;
   try {
+    if (!_activeCommandMode) {
+      EmitObject({
+        Name: "OnError",
+        Source: "SendCommand",
+        Data: "Session not active",
+      });
+      return;
+    }
+
+
     if (window.mt_device_hid == null) {
       EmitObject({
         Name: "OnError",
@@ -53,6 +69,7 @@ export async function sendCommand(cmdToSend) {
       });
       return 0;
     }
+    
     
     cmdResp = await sendMMSCommand(mt_Utils.sanitizeHexData(cmdToSend));
     return cmdResp;
