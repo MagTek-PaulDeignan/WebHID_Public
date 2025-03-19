@@ -131,7 +131,7 @@ function parseManualEntryDetail(Msg) {
       console.log(Msg.TLVData);
       break;
     case "080202": //Manual Card Entry ARQC
-      NotifyDetail = Msg.TLVData;
+      NotifyDetail = mt_Utils.getTagValue("84", "", Msg.TLVData, false);
       EmitObject({
         Name: "OnARQCData",
         Source: "Manual",

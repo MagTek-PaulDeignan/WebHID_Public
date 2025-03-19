@@ -18,7 +18,8 @@ import "./MagTek_WebAPI/mt_events.js";
 let retval = "";
 let wsAddress = mt_Utils.getEncodedValue('WSAddress','');
   
-
+let timeStart = null;
+let timeEnd = null;
 let _contactSeated = false;
 let _AwaitingContactEMV = false;
 export let _contactlessDelay = parseInt(mt_Utils.getEncodedValue("ContactlessDelay", "NTAw"));
@@ -47,6 +48,14 @@ document
 // };
 
 async function handleDOMLoaded() {
+  mt_UI.LogData(`Configured websocket device: ${wsAddress}`);
+  if(wsAddress.toLowerCase().startsWith("wss")){
+    timeStart = Date.now();
+    let devResponse = await mt_WSS.getWSSDevicePage(wsAddress);
+    timeEnd = Date.now();
+    mt_UI.LogData(`Time to get default web page from device: ${mt_Utils.calculateTimeDifference(timeStart,timeEnd)}ms.`);
+  }
+
 }
 
 async function handleCloseButton() {
@@ -59,9 +68,14 @@ async function handleClearButton() {
 }
 
 async function handleOpenButton() {
-  mt_WSS.setURL(wsAddress);
-  mt_WSS.OpenWS();
+  try {
+    timeStart = Date.now();
+    mt_WSS.setURL(wsAddress);
+    mt_WSS.OpenWS();
+  } catch (error) {
+  }
 }
+  
 
 async function handleSendCommandButton() {
   const data = document.getElementById("sendData");
@@ -130,7 +144,9 @@ const deviceCloseLogger = (e) => {
   mt_UI.setUSBConnected("Closed");
 };
 const deviceOpenLogger = (e) => {
+  timeEnd = Date.now();
   mt_UI.setUSBConnected("Opened");
+  mt_UI.LogData(`Time to open Websocket: ${mt_Utils.calculateTimeDifference(timeStart,timeEnd)} ms`);
 };
 const dataLogger = (e) => {
   mt_UI.LogData(`Received Data: ${e.Name}: ${e.Data}`);
@@ -307,3 +323,10 @@ EventEmitter.on("OnError", errorLogger);
 EventEmitter.on("OnPINComplete", PINLogger);
 EventEmitter.on("OnUIDisplayMessage", displayMessageLogger);
 EventEmitter.on("OnDebug", debugLogger);
+
+// EventEmitter.on("OnKeyEvent", dataLogger);
+
+
+
+
+

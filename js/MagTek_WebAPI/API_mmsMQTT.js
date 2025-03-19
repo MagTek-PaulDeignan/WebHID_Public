@@ -23,6 +23,15 @@ let _password = "";
 let _client = null;
 
 
+export let _activeCommandMode = true;
+
+
+export function setActiveCommandMode(mode){
+  _activeCommandMode =  (mode === "true");
+}
+
+
+
 /**
  * @param {string} URL
  */
@@ -69,6 +78,15 @@ export async function sendBase64Command(cmdToSendB64) {
 
 
 export async function SendCommand(cmdHexString) {
+
+  if (!_activeCommandMode) {
+    EmitObject({
+      Name: "OnError",
+      Source: "SendCommand",
+      Data: "Session not active",
+    });
+    return;
+  }
     window.mt_device_response = null;    
     _client.publish(`${mt_AppSettings.MQTT.MMS_Base_Sub}${_devPath}`, cmdHexString);
     let Resp = await waitForDeviceResponse();
