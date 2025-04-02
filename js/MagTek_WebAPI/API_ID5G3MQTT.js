@@ -179,7 +179,7 @@ function onMQTTMessage(topic, message) {
         case "ID5G3Message":
           
           switch (data.substring(0,2)) {
-            case "4D":
+            case "4D": case "51":
               MT_ID5G3Parse.ParseID5G3MSR(data);  
               break;
             default:

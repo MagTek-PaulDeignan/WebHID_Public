@@ -94,18 +94,17 @@ async function parseCommand(message) {
     case "GETDEVINFO":
       //return mt_HID.getDeviceInfo();
       break;
-    case "SENDCOMMAND":
-      //Response = await mt_Device.sendCommand(cmd[1]);
-      Response = await mt_Device.sendExtCommand(cmd[1]);
-      return EmitObject({ Name: "OnV5DeviceResponse", Data: Response });
+    case "SENDCOMMAND":      
+      Response = await mt_Device.sendCommand(cmd[1]);
+      return EmitObject({ Name: "OnID5DeviceResponse", Data: Response });
       break;
     case "SENDEXTCOMMAND":
-      Response = await mt_Device.sendExtCommand(cmd[1]);
-      return EmitObject({ Name: "OnV5DeviceResponse", Data: Response });
+      Response = await mt_Device.sendCommand(cmd[1]);
+      return EmitObject({ Name: "OnID5DeviceResponse", Data: Response });
       break;
-    case "SENDEXTCOMMANDCMAC":
-      Response = await mt_Device.sendExtCommandCMAC(cmd[1]);
-      return EmitObject({ Name: "OnV5DeviceResponse", Data: Response });
+    case "SENDCOMMANDCMAC":
+      Response = await mt_Device.sendCommandCMAC(cmd[1]);
+      return EmitObject({ Name: "OnID5DeviceResponse", Data: Response });
       break;
     case "GETDEVICELIST":
       devices = getDeviceList();
@@ -141,6 +140,10 @@ async function parseCommand(message) {
     case "UPDATEPROGRESS":
       mt_UI.updateProgressBar(cmd[1],cmd[2])  
       break;
+      case "GETFIRMWAREID":
+      let fw = await mt_Device.sendCommand("0000000100");
+      mt_UI.LogData(fw.AsciiData);
+      break;
     default:
       mt_UI.LogData(`Unknown Parse Command: ${cmd[0]}`);    
   }
@@ -171,8 +174,14 @@ const fromV5DeviceLogger = (e) => {
   mt_UI.LogData(`V5 Device Response: ${e.Data}`);
 };
 
+const fromID5DeviceLogger = (e) => {
+  mt_UI.LogData(`ID5 Device Response: ${JSON.stringify(e.Data, null, 2)}`);
+};
+
+
+
 const inputReportLogger = (e) => {
-  mt_UI.LogData(`Input Report: ${e.Data}`);
+  //mt_UI.LogData(`Input Report: ${e.Data}`);
 };
 
 const errorLogger = (e) => {
@@ -181,7 +190,7 @@ const errorLogger = (e) => {
 
 
 
-const V5MSRSwipeLogger = (e) =>{
+const ID5MSRSwipeLogger = (e) =>{
   mt_UI.LogData(`MSR Swiped`);
   mt_UI.LogData(`${JSON.stringify(e.Data,null, 2)}`);  
 }
@@ -207,7 +216,9 @@ EventEmitter.on("OnDeviceOpen", deviceOpenLogger);
 EventEmitter.on("OnDeviceClose", deviceCloseLogger);
 EventEmitter.on("OnError", errorLogger);
 EventEmitter.on("OnV5DeviceResponse", fromV5DeviceLogger);
-EventEmitter.on("OnV5MSRSwipe", V5MSRSwipeLogger);
+EventEmitter.on("OnID5DeviceResponse", fromID5DeviceLogger);
+
+EventEmitter.on("OnID5MSRSwipe", ID5MSRSwipeLogger);
 EventEmitter.on("OnQwantumSwipe", QwantumSwipeLogger);
 EventEmitter.on("OnQwantumPush", QwantumPushLogger);
-//EventEmitter.on("OnInputReport", inputReportLogger);
+EventEmitter.on("OnInputReport", inputReportLogger);

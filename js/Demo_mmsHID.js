@@ -279,6 +279,9 @@ async function parseCommand(message) {
     case "SETACTIVEMODE":
       mt_MMS.setActiveCommandMode(cmd[1])
       break;
+    case "LOADSIGNATURE":
+      loadSignature(cmd[1]); 
+      break;  
     default:
       mt_Utils.debugLog("Unknown Command");
   }
@@ -355,39 +358,39 @@ mt_UI.LogData(`Received NFC UID : ${e.Name}: ${e.Data}`);
 //   mt_UI.LogData(`Fast Read ${tagData}`);
 // }
 
-// resp = await mt_MMS.sendCommand("AA00810401261100840C1100810230 00 8201008301FF");
-// resp = await mt_MMS.sendCommand("AA00810401261100840C1100810230 04 820100830100");
-// resp = await mt_MMS.sendCommand("AA00810401261100840C1100810230 08 820100830100");
-// resp = await mt_MMS.sendCommand("AA00810401261100840C1100810230 0C 820100830100");
-// resp = await mt_MMS.sendCommand("AA00810401261100840C1100810230 10 820100830100");
-// resp = await mt_MMS.sendCommand("AA00810401261100840C1100810230 14 820100830100");
-// resp = await mt_MMS.sendCommand("AA00810401261100840C1100810230 18 820100830100");
-// resp = await mt_MMS.sendCommand("AA00810401261100840C1100810230 20 8201008301FF");
+//  resp = await mt_MMS.sendCommand("AA00810401261100840C1100810230 00 8201008301FF");
+//  resp = await mt_MMS.sendCommand("AA00810401261100840C1100810230 04 820100830100");
+//  resp = await mt_MMS.sendCommand("AA00810401261100840C1100810230 08 820100830100");
+//  resp = await mt_MMS.sendCommand("AA00810401261100840C1100810230 0C 820100830100");
+//  resp = await mt_MMS.sendCommand("AA00810401261100840C1100810230 10 820100830100");
+//  resp = await mt_MMS.sendCommand("AA00810401261100840C1100810230 14 820100830100");
+//  resp = await mt_MMS.sendCommand("AA00810401261100840C1100810230 18 820100830100");
+//  resp = await mt_MMS.sendCommand("AA00810401261100840C1100810230 20 8201008301FF");
 
-if (tagData.length == 0){
-  mt_UI.LogData(`Reading Fast`);
+//  if (tagData.length == 0){
+//    mt_UI.LogData(`Reading Fast`);
+//        resp = await mt_MMS.sendCommand(`AA0081 04 0126110084 0D 1100 8103 30 002C   8201008301FF`);  
+//        let tag84 = mt_Utils.getTagValue("84", "", resp.TLVData, false); 
+//        let tag82 = mt_Utils.getTagValue("82", "", tag84.substring(4), false); 
+//        let tagFC = mt_Utils.getTagValue("FC", "", tag82, false); 
+//        tag =  mt_Utils.getTagValue("DF7A", "", tagFC, false);
+//        tagData =  tagData + tag;
+//    }
+   mt_UI.LogData(`Reading sequentially`);
+   for (index = 0; index <= 0x40; index ++ )
+     {
+       resp = await mt_MMS.sendCommand(`AA00810401261100840C1100810230${mt_Utils.makeHex(index*4, 2)}820100830100`);  
+       let tag84 = mt_Utils.getTagValue("84", "", resp.TLVData, false); 
+       let tag82 = mt_Utils.getTagValue("82", "", tag84.substring(4), false); 
+       let tagFC = mt_Utils.getTagValue("FC", "", tag82, false); 
+       tag =  mt_Utils.getTagValue("DF7A", "", tagFC, false);
+       if (tag == `00000000000000000000000000000000`) break;
+       mt_UI.LogData(`Reading page: ${index} : ${tag}`);
+       tagData =  tagData + tag;
+     } 
+     resp = await mt_MMS.sendCommand(`AA00810401261100840C1100810230${mt_Utils.makeHex(index*4, 2)}8201008301FF`);  
 
-      resp = await mt_MMS.sendCommand(`AA0081 04 0126110084 0D 1100 8103 30 002C   8201008301FF`);  
-      let tag84 = mt_Utils.getTagValue("84", "", resp.TLVData, false); 
-      let tag82 = mt_Utils.getTagValue("82", "", tag84.substring(4), false); 
-      let tagFC = mt_Utils.getTagValue("FC", "", tag82, false); 
-      tag =  mt_Utils.getTagValue("DF7A", "", tagFC, false);
-      tagData =  tagData + tag;
-  }
-  // mt_UI.LogData(`Reading sequentially`);
-  // for (index = 0; index <= 0x40; index ++ )
-  //   {
-  //     resp = await mt_MMS.sendCommand(`AA00810401261100840C1100810230${mt_Utils.makeHex(index*4, 2)}820100830100`);  
-  //     let tag84 = mt_Utils.getTagValue("84", "", resp.TLVData, false); 
-  //     let tag82 = mt_Utils.getTagValue("82", "", tag84.substring(4), false); 
-  //     let tagFC = mt_Utils.getTagValue("FC", "", tag82, false); 
-  //     tag =  mt_Utils.getTagValue("DF7A", "", tagFC, false);
-  //     if (tag == `00000000000000000000000000000000`) break;
-  //     mt_UI.LogData(`Reading page: ${index} : ${tag}`);
-  //     tagData =  tagData + tag;
-  //   } 
-  //   resp = await mt_MMS.sendCommand(`AA00810401261100840C1100810230${mt_Utils.makeHex(index*4, 2)}8201008301FF`);  
-  // }
+     //}
 
     //this is to demo opening web pages from a URI that was read via NFC 
     //let retData = mt_Utils.getTagValue("DF7A", "", resp, false)
@@ -538,17 +541,9 @@ const fileLogger = async (e) => {
 
   switch (tagC1) {
     case '01000000':  //  Signature Capture File
-      let tagCE = mt_Utils.getTagValue("CE", "", tag84.substring(16), false);
-      let tag81 = mt_Utils.getTagValue("81", "000000FD00000078", tagCE, false);
-      let tag82 = mt_Utils.getTagValue("82", "", tagCE, false);
-      let imageWidth = mt_Utils.hexToNumber(tag81.substring(0,8));
-      let imageHeight = mt_Utils.hexToNumber(tag81.substring(8,16));
-      let image  = await mt_MMS_Commands.getImgFromPenData(tag82,imageWidth,imageHeight, 3, 'white', 'black','image/png', 1);
-      let img = document.createElement('img');
-      img.alt = 'signature';
-      img.setAttribute('src', image);
-      let imgData = document.getElementById('imagedata');
-      imgData.append(img);
+       let tagCE = mt_Utils.getTagValue("CE", "", tag84.substring(16), false);
+       mt_UI.LogData(`Signature Data: ${tagCE}`);
+       loadSignature(tagCE);
       break;
   
     default:
@@ -855,6 +850,21 @@ async function updateMMSTags(fw, sn, response, downloadPayload = true, rawComman
   }
 };
 
+
+async function loadSignature(data){
+  let tagCE = data;
+  let tag81 = mt_Utils.getTagValue("81", "000000FD00000078", tagCE, false);
+  let tag82 = mt_Utils.getTagValue("82", "", tagCE, false);
+  let imageWidth = mt_Utils.hexToNumber(tag81.substring(0,8));
+  let imageHeight = mt_Utils.hexToNumber(tag81.substring(8,16));
+  let image  = await mt_MMS_Commands.getImgFromPenData(tag82,imageWidth,imageHeight, 3, 'white', 'black','image/png', 1);
+  let img = document.createElement('img');
+  img.alt = 'signature';
+  img.setAttribute('src', image);
+  let imgData = document.getElementById('imagedata');
+  imgData.append(img);
+}
+
 // Subscribe to  events
 EventEmitter.on("OnInputReport", inputReportLogger);
 EventEmitter.on("OnDeviceConnect", deviceConnectLogger);
@@ -900,6 +910,7 @@ EventEmitter.on("OnTransactionComplete", trxCompleteLogger);
 EventEmitter.on("OnTransactionHostAction", dataLogger);
 
 EventEmitter.on("OnUIHostActionComplete", hostActionCompleteLogger);
+
 EventEmitter.on("OnUIHostActionRequest", dataLogger);
 EventEmitter.on("OnUIInformationUpdate", dataLogger);
 

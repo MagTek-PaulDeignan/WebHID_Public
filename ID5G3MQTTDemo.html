@@ -36,14 +36,7 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
       <div class="form-group container-left">
         <img id="USBStatus" src="./images/usb-disconnected.png"><span id="lblUSBStatus">Disconnected</span>
       </div>
-      <div class="form-group" id="autoStartOptions">
-        <input type="checkbox" id="chk-AutoStart" name="AutoStart" value=""><label for="chk-AutoStart">Auto Start</label>
-         <br> 
-        <input type="checkbox" id="chk-AutoEMV" name="AutoEMV" value=""><label for="chk-AutoEMV">EMV</label>
-        <input type="checkbox" id="chk-AutoNFC" name="AutoNFC" value=""><label for="chk-AutoNFC">NFC</label>
-        <input type="checkbox" id="chk-AutoMSR" name="AutoMSR" value=""><label for="chk-AutoMSR">MSR</label>
-        <input type="checkbox" id="chk-AutoTouch" name="AutoTouch" value="" hidden="true"><label for="chk-AutoTouch" hidden="true">Touch</label>
-        
+      <div class="form-group">
         <hr>
         <div id="updDeviceContainer" class="container" style.visibility ='hidden'>      
           <p></p> 
@@ -54,18 +47,18 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
         </div>
         <label for="sendData">Command Data</label>
         <input type="text" class="form-control" name="sendData" id="sendData" aria-describedby="helpId"
-          value="SENDCOMMAND,490700000000000100">
+          value="SENDCOMMAND,0000000100">
         <button class="btn btn-primary" id="sendCommand">Send Command</button>
       </div>
       <div class="form-group shadow-textarea">
         <label for="CommandList"></label>
         <select class="form-control-3" name="CommandList" id="CommandList" >
-          <option value="SENDCOMMAND,490700000000000100">GET FIRMWARE</option>
-          <option value="SENDCOMMAND,490700000000000103">GET SN</option>
-          <option value="SENDCOMMAND,490700000000000122">GET End of Message</option>
-          <option value="SENDCOMMAND,490700000000000184">GET Device Model Name</option>
-          <option value="SENDCOMMAND,490700000000000110">GET Device Interface</option>
-          <option value="SENDCOMMAND,4906000000020000">Reset Device</option>
+          <option value="SENDCOMMAND,0000000100">GET FIRMWARE</option>
+          <option value="SENDCOMMAND,0000000103">GET SN</option>
+          <option value="SENDCOMMAND,0000000122">GET End of Message</option>
+          <option value="SENDCOMMAND,0000000184">GET Device Model Name</option>
+          <option value="SENDCOMMAND,0000000110">GET Device Interface</option>
+          <option value="SENDCOMMAND,00020000">Reset Device</option>
           <option value="GETAPPVERSION">GET APP VERSION</option>
           <option value="GETDEVINFO">GET DEVICE INFO</option>
           <option value="UPDATEDEVICE">RMS Update Device</option>

@@ -155,9 +155,12 @@ let _msg =  msg.substring(14, (_packetLen*2)+2);
     data_Buffer_Response = "";
   }
 
-  if (_msgLen * 2 == data_Buffer_Response.length)
+  //if (_msgLen * 2 == data_Buffer_Response.length)
+  //console.log(`     Response Length ${data_Buffer_Response.length}   ${_msgLen * 2}`);
+  //if (data_Buffer_Response.length == _msgLen * 2)
+  if (data_Buffer_Response.length >= _msgLen * 2)
   {
-    EmitObject({Name: "OnV5Message",Data: data_Buffer_Response}); 
+    EmitObject({Name: "OnID5Message",Data: data_Buffer_Response}); 
     let ParsedMSR = ParseID5G3MSR(data_Buffer_Response);
     data_Buffer_Response = "";
   } 
@@ -249,7 +252,7 @@ function ParseNormalMode(buffer)
     Card: _card,
     Device: _device,
   };
-  EmitObject({ Name: "OnV5MSRSwipe", Data: _resp});
+  EmitObject({ Name: "OnID5MSRSwipe", Data: _resp});
   return _resp;
 
 }
@@ -408,3 +411,18 @@ export function parseExtendedResponse(response) {
   }
   return outString;
 };
+
+export function parseID5Response(hexdata){
+  let Msg = mt_Utils.hexToBytes(hexdata);
+  let MsgData = mt_Utils.toHexString(Msg.slice(4, Msg.length));
+  const ID5Message = {
+      ReturnCode: mt_Utils.makeHex((Msg[0] << 8) | Msg[1], 4),
+      DataLen: parseInt(mt_Utils.makeHex((Msg[2] << 8) | Msg[3], 4),16),
+      Data: MsgData,
+      AsciiData: mt_Utils.hexToASCII(MsgData),
+      HexString: hexdata
+  }
+  return ID5Message;
+};
+
+

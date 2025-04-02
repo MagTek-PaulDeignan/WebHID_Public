@@ -11,11 +11,12 @@ DO NOT REMOVE THIS COPYRIGHT
 */
 
 "use strict";
+import * as mt_Utils from './mt_utils.js';
 
 export let BaseURL = "https://rsgw.magensa.net/rs3/api/";
-export let APIKey =  "Basic TksxNDc5NDgzMC9NQUcxNzExMDIwMDI6UGFzc3dvcmRAMQ==";
+export let APIKey =  "Basic V2ViSElEUlMvV2ViSElEUlM6VyFuQGMzNUdhRDdKViM=";
   
-  
+ 
    /**
    * @param {string} key
    */
@@ -37,9 +38,9 @@ export let APIKey =  "Basic TksxNDc5NDgzMC9NQUcxNzExMDIwMDI6UGFzc3dvcmRAMQ==";
 
       let req = {
         deviceType: deviceType,
-        deviceChallenge: deviceChallenge,
-        deviceKeySlotInfo: deviceKeySlotInfo,
-        payload: payload
+        deviceChallenge: mt_Utils.sanitizeHexData(deviceChallenge),
+        deviceKeySlotInfo: mt_Utils.sanitizeHexData(deviceKeySlotInfo),
+        payload: mt_Utils.sanitizeHexData(payload)
       };
 
       return await postRequest(url, APIKey, JSON.stringify(req));
@@ -47,9 +48,7 @@ export let APIKey =  "Basic TksxNDc5NDgzMC9NQUcxNzExMDIwMDI6UGFzc3dvcmRAMQ==";
       throw error;
     }
   }
-  
-  
-  
+ 
   async function postRequest(url, apiKey, data) {
     let resp = null;
     try {
@@ -63,7 +62,6 @@ export let APIKey =  "Basic TksxNDc5NDgzMC9NQUcxNzExMDIwMDI6UGFzc3dvcmRAMQ==";
           Authorization: apiKey,
         }),
       });
-      //return await response.json();
       let json = await response.json();
       resp = {
         status: {
