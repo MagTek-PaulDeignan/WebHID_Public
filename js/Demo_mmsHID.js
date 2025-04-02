@@ -337,9 +337,73 @@ const hostActionCompleteLogger = async (e) => {
 };
 
 const NFCUIDLogger = async (e) => {
-  mt_UI.LogData(`Received NFC UID : ${e.Name}: ${e.Data}`);
-  let resp = await mt_MMS.sendCommand("AA00810401641100840B1100810160820100830100");
-  resp = await mt_MMS.sendCommand("AA00810401671100840D110081033A04278201008301FF");
+  let resp = null;
+  let index = 0;
+  let tagData = "";
+  let tag = "";
+
+ShowDeviceResponses = false;
+mt_UI.LogData(`Received NFC UID : ${e.Name}: ${e.Data}`);
+// resp = await mt_MMS.sendCommand("AA00810401641100840B1100810160820100830100");
+// resp = await mt_MMS.sendCommand("AA00810401671100840D110081033A04278201008301FF");
+// let tag84 = mt_Utils.getTagValue("84", "", resp.TLVData, false); 
+// let tag82 = mt_Utils.getTagValue("82", "", tag84.substring(4), false); 
+// let tagFC = mt_Utils.getTagValue("FC", "", tag82, false); 
+// tagData =  mt_Utils.getTagValue("DF7A", "", tagFC, false);
+
+// if (tagData.length > 0){
+//   mt_UI.LogData(`Fast Read ${tagData}`);
+// }
+
+// resp = await mt_MMS.sendCommand("AA00810401261100840C1100810230 00 8201008301FF");
+// resp = await mt_MMS.sendCommand("AA00810401261100840C1100810230 04 820100830100");
+// resp = await mt_MMS.sendCommand("AA00810401261100840C1100810230 08 820100830100");
+// resp = await mt_MMS.sendCommand("AA00810401261100840C1100810230 0C 820100830100");
+// resp = await mt_MMS.sendCommand("AA00810401261100840C1100810230 10 820100830100");
+// resp = await mt_MMS.sendCommand("AA00810401261100840C1100810230 14 820100830100");
+// resp = await mt_MMS.sendCommand("AA00810401261100840C1100810230 18 820100830100");
+// resp = await mt_MMS.sendCommand("AA00810401261100840C1100810230 20 8201008301FF");
+
+if (tagData.length == 0){
+  mt_UI.LogData(`Reading Fast`);
+
+      resp = await mt_MMS.sendCommand(`AA0081 04 0126110084 0D 1100 8103 30 002C   8201008301FF`);  
+      let tag84 = mt_Utils.getTagValue("84", "", resp.TLVData, false); 
+      let tag82 = mt_Utils.getTagValue("82", "", tag84.substring(4), false); 
+      let tagFC = mt_Utils.getTagValue("FC", "", tag82, false); 
+      tag =  mt_Utils.getTagValue("DF7A", "", tagFC, false);
+      tagData =  tagData + tag;
+  }
+  // mt_UI.LogData(`Reading sequentially`);
+  // for (index = 0; index <= 0x40; index ++ )
+  //   {
+  //     resp = await mt_MMS.sendCommand(`AA00810401261100840C1100810230${mt_Utils.makeHex(index*4, 2)}820100830100`);  
+  //     let tag84 = mt_Utils.getTagValue("84", "", resp.TLVData, false); 
+  //     let tag82 = mt_Utils.getTagValue("82", "", tag84.substring(4), false); 
+  //     let tagFC = mt_Utils.getTagValue("FC", "", tag82, false); 
+  //     tag =  mt_Utils.getTagValue("DF7A", "", tagFC, false);
+  //     if (tag == `00000000000000000000000000000000`) break;
+  //     mt_UI.LogData(`Reading page: ${index} : ${tag}`);
+  //     tagData =  tagData + tag;
+  //   } 
+  //   resp = await mt_MMS.sendCommand(`AA00810401261100840C1100810230${mt_Utils.makeHex(index*4, 2)}8201008301FF`);  
+  // }
+
+    //this is to demo opening web pages from a URI that was read via NFC 
+    //let retData = mt_Utils.getTagValue("DF7A", "", resp, false)
+    if(tagData.length > 0 )
+    {
+        let StartPos = tagData.indexOf("5504");
+        if(StartPos > 0 )
+        {
+            let len = parseInt(tagData.substring(StartPos-2,StartPos),16) * 2 - 2;
+            let uri = mt_Utils.hexToASCII(tagData.substring(StartPos + 4, StartPos+4 + len));
+            mt_UI.LogData(`Opening: ${uri}` );
+            window.open(`https://${uri}`, '_blank');
+        }
+    }
+    ShowDeviceResponses = true;
+
 };
 
 
@@ -379,20 +443,6 @@ const batchLogger = (e) => {
 };
 const fromDeviceLogger = (e) => {
   if (ShowDeviceResponses) mt_UI.LogData(`Device Response: ${e.Data.HexString}`);
-
-    //this is to demo opening web pages from a URI that was read via NFC 
-    let retData = mt_Utils.getTagValue("DF7A", "", e.Data.TLVData.substring(38), false)
-    if(retData.length > 0 )
-    {
-        let StartPos = retData.indexOf("5504");
-        if(StartPos > 0 )
-        {
-            let len = parseInt(retData.substring(StartPos-2,StartPos),16)*2 - 2;
-            let uri = mt_Utils.hexToASCII(retData.substring(StartPos+4, StartPos+4 + len));
-            mt_UI.LogData(`Opening: ${uri}` );
-            window.open(`https://${uri}`, '_blank');
-        }
-    }
 };
 const inputReportLogger = (e) => {
   mt_UI.LogData(`Input Report: ${e.Data}`);

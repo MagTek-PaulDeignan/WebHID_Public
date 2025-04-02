@@ -20,7 +20,6 @@ let technology = "";
 
 
 function EmitObject(e_obj) {
-  //  mt_Utils.debugLog(`Emiting Event: ${JSON.stringify(e_obj)}`)
   EventEmitter.emit(e_obj.Name, e_obj);
 }
 
@@ -40,8 +39,7 @@ export function parseV5Packet(data) {
       break;
     case "02":
       let outString = parseExtendedReport(hex);
-      if (outString.length > 0) {
-        //processMsg(outString);
+      if (outString.length > 0) {        
         processMsgType(outString);
       }
       break;  

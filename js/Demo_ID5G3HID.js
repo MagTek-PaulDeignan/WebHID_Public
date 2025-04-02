@@ -95,7 +95,16 @@ async function parseCommand(message) {
       //return mt_HID.getDeviceInfo();
       break;
     case "SENDCOMMAND":
-      Response = await mt_Device.sendCommand(cmd[1]);
+      //Response = await mt_Device.sendCommand(cmd[1]);
+      Response = await mt_Device.sendExtCommand(cmd[1]);
+      return EmitObject({ Name: "OnV5DeviceResponse", Data: Response });
+      break;
+    case "SENDEXTCOMMAND":
+      Response = await mt_Device.sendExtCommand(cmd[1]);
+      return EmitObject({ Name: "OnV5DeviceResponse", Data: Response });
+      break;
+    case "SENDEXTCOMMANDCMAC":
+      Response = await mt_Device.sendExtCommandCMAC(cmd[1]);
       return EmitObject({ Name: "OnV5DeviceResponse", Data: Response });
       break;
     case "GETDEVICELIST":

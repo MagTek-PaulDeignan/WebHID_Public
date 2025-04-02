@@ -179,8 +179,7 @@ function CheckMQTTError (err) {
 };
 
 function onMQTTMessage(topic, message) {
-    let data = message.toString();
-    //console.log(topic + " MMS:: " + data )
+    let data = message.toString();    
     let topicArray = topic.split('/');
     if(topicArray.length >= 5){
       switch (topicArray[topicArray.length-1]) {

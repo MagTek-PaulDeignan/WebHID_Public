@@ -14,7 +14,7 @@ import * as mt_Utils from "./mt_utils.js";
 import * as MT_Parse from "./API_ID5G3Parse.js";
 import * as mt_Configs from "./config/DeviceConfig.js";
 import * as mt_AppSettings from "./config/appsettings.js";
-
+import * as mt_RS3 from "./API_RS3.js";
 
 let _filters = mt_Configs.ID5G3filters;
 
@@ -176,62 +176,89 @@ function getExtCommandArray(commandStr) {
 //   }
 // }
 
-// export async function sendExtCommand(cmdData) {
-//   try {
-//     let deviceResponse = "";      
-//     let rc = "";
-//     let index;
-//     let msgComplete = true;
-//     let extendedResponse = "";
-//     let cmds = getExtCommandArray(cmdData);
-//     for (index = 0; index < cmds.length; index++) {
-      
-//       deviceResponse = await sendDeviceCommand(cmds[index]);      
-//       rc = deviceResponse.substring(0, 2);
-//       switch (rc) {
-//         case "0A": //more data is available
-//           extendedResponse = MT_Parse.parseExtendedResponse(deviceResponse);
-//           if (extendedResponse.length > 0) {
-//             msgComplete = true;
-//           } else {
-//             msgComplete = false;
-//           }
-//           break;
-//         case "0B": //buffering data
-//           msgComplete = true;
-//           extendedResponse = deviceResponse;
-//           break;
-//         default:
-//           msgComplete = true;
-//           extendedResponse = deviceResponse;
-//       }
-//     }
+export async function sendExtCommandCMAC(command) {
 
-//     while (!msgComplete) {
-//       //we need to get more data...
-//       deviceResponse = await sendDeviceCommand("4A00");
-//       rc = deviceResponse.substring(0, 2);
-//       switch (rc) {
-//         case "0A":
-//           extendedResponse = MT_Parse.parseExtendedResponse(deviceResponse);
-//           if (extendedResponse.length > 0) {
-//             msgComplete = true;
-//           } else {
-//             msgComplete = false;
-//           }
-//           break;
-//         case "0B":
-//           extendedResponse = deviceResponse;
-//           break;
-//         default:
-//           extendedResponse = deviceResponse;
-//       }
-//     }
-//     return extendedResponse;
-//   } catch (error) {
-//     throw error;
-//   }
-// }
+let response = null;
+let deviceChallenge = null;
+let deviceKeySlotInfo = null;
+let cmacResponse = null;
+try {
+  deviceChallenge =  await sendExtCommand(`070000020001`);
+  deviceKeySlotInfo = await sendExtCommand(`070300021102`);
+  cmacResponse = await mt_RS3.GenerateCMAC("iDynamo5GenIII", deviceChallenge, deviceKeySlotInfo, command,);
+  if (cmacResponse.status.ok)
+  {
+    response =  await sendExtCommand(cmacResponse.data.commandWithMAC);
+  }
+  else
+  {
+    response = cmacResponse.status.text;
+  }
+  return response;  
+} 
+catch (error) 
+{
+  return error.message;
+}
+}
+
+
+ export async function sendExtCommand(cmdData) {
+   try {
+     let deviceResponse = "";      
+     let rc = "";
+     let index;
+     let msgComplete = true;
+     let extendedResponse = "";
+     let cmds = getExtCommandArray(cmdData);
+     for (index = 0; index < cmds.length; index++) {
+      
+       deviceResponse = await sendDeviceCommand(cmds[index]);      
+       rc = deviceResponse.substring(0, 2);
+       switch (rc) {
+         case "0A": //more data is available
+           extendedResponse = MT_Parse.parseExtendedResponse(deviceResponse);
+           if (extendedResponse.length > 0) {
+             msgComplete = true;
+           } else {
+             msgComplete = false;
+           }
+           break;
+         case "0B": //buffering data
+           msgComplete = true;
+           extendedResponse = deviceResponse;
+           break;
+         default:
+           msgComplete = true;
+           extendedResponse = deviceResponse;
+       }
+     }
+
+     while (!msgComplete) {
+       //we need to get more data...
+       deviceResponse = await sendDeviceCommand("4A00");
+       rc = deviceResponse.substring(0, 2);
+       switch (rc) {
+         case "0A":
+           extendedResponse = MT_Parse.parseExtendedResponse(deviceResponse);
+           if (extendedResponse.length > 0) {
+             msgComplete = true;
+           } else {
+             msgComplete = false;
+           }
+           break;
+         case "0B":
+           extendedResponse = deviceResponse;
+           break;
+         default:
+           extendedResponse = deviceResponse;
+       }
+     }
+     return extendedResponse;
+   } catch (error) {
+     throw error;
+   }
+ }
 
 export async function sendCommand(cmdToSend) {
   try {
