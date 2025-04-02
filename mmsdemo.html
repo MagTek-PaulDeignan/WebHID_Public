@@ -93,68 +93,59 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
             <option value="SENDCOMMAND,AA008104010010018434100182013CA30D8101008201008301038502010084020003861A9C01009F02060000000001009F03060000000000005F2A020840">
               DynaProx: START EMV CONTACTLESS + BARCODE</option>
             <option value="SENDCOMMAND,AA0081040113100884021008">DynaFlex: CANCEL Transaction</option>                      
-          </optgroup>
-          <br>   
+          </optgroup>          
           
-          <optgroup label="----- DynaFlex II PED - EMV Start Transaction Extended Commands (Cmd-ID Group: 1001 -----">            
+          <optgroup label="----- DynaFlex II PED - EMV Start Transaction Extended Commands (Cmd-ID Group: 1001) -----">            
             <option value="SENDCOMMAND,AA008104010010018434100182013CA30D810101820101830103850200008402B20B861A9C01009F02060000000001009F03060000000000005F2A020840">Display Amount at Prompt</option>
             <option value="SENDCOMMAND,AA00810401141001846E1001820178A3098101008201008301018402B10B86279C01009F02060000000001009F03060000000000005F2A0208405F3601029F150200009F530100A429811F010000000015000000002000000000250300000000030000000003000000008206000000000000AC0483020000">
               Display Tax/Tip Options at Prompt</option>            
-          </optgroup>
-          <br>
+          </optgroup>          
 
-          <optgroup label="----- DynaFlex II PED - EMV PIN Functions (Cmd-ID Groups: 2001, 2001) -----">
+          <optgroup label="----- DynaFlex II PED - EMV PIN Functions (Cmd-ID Groups: 2001, 2002) -----">
             <option value="SENDCOMMAND,AA008104017A2001841C200181013C82010083020804850100A10B81010C8206123456789012">Request PIN</option>
             <option value="SENDCOMMAND,AA008104017A2001841C200181013C8201FF83020804850100A10B81010C8206123456789012">PIN Entry Success</option>
             <option value="SENDCOMMAND,AA00810401322001841C200181013C8201FE83020804850100A10B81010C8206123456789012">PIN Entry Fail</option>                     
             <option value="SENDCOMMAND,AA00810401002002841C200281011EA309810101820101830101A40A82010183020804850100">Request PIN with Card Read</option>
             <option value="SENDCOMMAND,AA00810401322002841C200281013CA309810101820101830101A40A8201FF83020804850100">PIN Entry With Card Read Success</option>
             <option value="SENDCOMMAND,AA00810401322002841C200281013CA309810101820101830101A40A8201FE83020804850100">PIN Entry With Card Read Fail</option>                        
-          </optgroup>
-          <br>  
+          </optgroup>          
           
           <optgroup label="----- DynaFlex II PED - EMV Extended Functions (Cmd-ID Groups: 1001, 1801) -----">            
             <option value="SENDCOMMAND,AA008104010610018442100182013CA30E81010082010083010084030000018402000386279C01009F02060000000001009F03060000000000005F2A0208405F3601029F150200009F530100">Manual PAN Entry</option>
             <option value="SENDCOMMAND,AA008104010618018405180181011E">Request Signature</option>            
-          </optgroup>
-          <br> 
+          </optgroup>          
 
           <optgroup label="----- Display EMV Transaction Messages ----- (Cmd-ID Group: 1803)">            
             <option value="SENDCOMMAND,AA0081040155180384081803810100820101">Display Amount</option>
             <option value="SENDCOMMAND,AA0081040155180384081803810100820102">Display Amount OK?</option>
             <option value="SENDCOMMAND,AA0081040155180384081803810100820103">Display Approved</option>
             <option value="SENDCOMMAND,AA0081040155180384081803810100820114">Display Welcome</option>            
-          </optgroup>
-          <br>  
+          </optgroup>          
           
           <optgroup label="----- Display Stored Images ----- (Cmd-ID Group: 1821)"> 
             <option value="SENDCOMMAND,AA008104012C182184081821810101830100">Display Screen 1</option>
             <option value="SENDCOMMAND,AA008104012C182184081821810102830100">Display Screen 2</option>
             <option value="SENDCOMMAND,AA008104012C182184081821810103830100">Display Screen 3</option>
             <option value="SENDCOMMAND,AA008104012C182184081821810104830100">Display Screen 4</option>            
-          </optgroup>
-          <br>
+          </optgroup>          
           
           <optgroup label="----- Device Information (Cmd-ID Group: D101) -----">
             <option value="SENDCOMMAND,AA00810401B5D1018418D10181072B06010401F6098501028704020101018902C100">Get Device SN</option>
             <option value="SENDCOMMAND,AA00810401E0D101841AD10181072B06010401F609850102890AE208E106E104E102C200">Get Device Capabilities</option>
             <option value="GETFIRMWAREID">Get Device Firmware Version</option>                        
-          </optgroup>
-          <br>
+          </optgroup>          
 
           <optgroup label="----- User Selection Emulation (Cmd-ID Group: 1802)-----">
             <option value="SENDCOMMAND,AA0081040100180284081802810100820100">User Selection: 00</option>
             <option value="SENDCOMMAND,AA0081040100180284081802810100820101">User Selection: 01</option>                        
           </optgroup>
-          <br>
 
           <optgroup label="----- NFC / NTAG Modes (Cmd-ID Groups: 1031, 1041, 1051) -----">
             <option value="SENDCOMMAND,AA00810401031001843D1001820178A3098101008201008301038402020386279C01009F02060000000001009F03060000000000005F2A0208405F3601029F150200009F530100">
               NFC (1031)</option>
             <option value="SENDCOMMAND,AA00810401041100840C110081023000820100830100">NFC Mifare (1041)</option>
             <option value="SENDCOMMAND,AA00810401051100840D110081033A047F8201008301FF">NFC Mifare2 (1051)</option>          
-          </optgroup>
-          <br>
+          </optgroup>          
 
           <optgroup label="----- User Event Notifications ----- (MUST RESET after SET) (Cmd-ID Group: 155D)">
             <option value="SENDCOMMAND,AA0081040155D101840FD1018501018704020701028902C100">Get User Notify Status</option>
@@ -165,8 +156,7 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
             <option value="SENDCOMMAND,AA0081040155D1118413D1118501018704020701028906C10400000000">Set DISABLE User Notify Events (00)</option>
             <option value="SENDCOMMAND,AA00810401121F0184021F01">Reset Device</option>            
           </optgroup>
-          <br>   
-                          
+                                    
           <optgroup label="----- Audio Transducer / Beeper (Cmd-ID Group: 1805) -----">
             <option value="SENDCOMMAND,AA00810401031805840818058104025801F4">Single Beep Positive Tone (500ms)</option>
             <option value="SENDCOMMAND,AA00810401031805840818058104025800FA">Single Beep Positive Tone (250ms)</option>
@@ -183,13 +173,11 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
             <option value="SENDCOMMAND,AA0081040103180584141805811000C801F400FA01F4012F01F4019101F4">Four Tone Ascending Chromatic Alert</option>
             <option value="SENDCOMMAND,AA00810401031805841418058110019101F4012F01F400FA01F400CA01F4">Four Tone Descending Chromatic Alert</option>
             <option value="SENDCOMMAND,AA0081040103180584181805811400C801F4019001F4025801F4019001F400C801F4">Five Tones Varied</option>            
-          </optgroup>
-          <br>           
+          </optgroup>   
           
           <optgroup label="----- Command Line DIRECTIVES -----">            
             <option value="GETFIRMWAREID">Get Device Firmware Version</option>                      
-          </optgroup>
-          <br>           
+          </optgroup>          
           
         </select>
       </div>
