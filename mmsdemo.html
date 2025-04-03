@@ -31,7 +31,7 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
       <h1>HID MMS Demo</h1>      
     </div>
     <div class="container">
-      <div id="DeviceDisplay">WELCOME</div>
+      <div id="DeviceDisplay"><b>Device Response Console</b></div>
       <div id="imagedata"></div>
       <textarea class="form-control" name="LogData" id="LogData" rows="12"></textarea>
       <div class="form-group container-left">
@@ -58,7 +58,7 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
           </div>
           
         </div>
-        <label for="sendData">Command Data</label>
+        <label for="sendData"><b>Command Data</b></label>
         <input type="text" class="form-control" name="sendData" id="sendData" aria-describedby="helpId"
           value="SENDCOMMAND,AA008104010010018434100182013CA30D8101018201018301018502000084020003861A9C01009F02060000000001009F03060000000000005F2A020840">
         <button class="btn btn-primary" id="sendCommand">Send Command</button>
@@ -101,14 +101,17 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
               Display Tax/Tip Options at Prompt</option>            
           </optgroup>          
 
-          <optgroup label="----- DynaFlex II PED - EMV PIN Functions (Cmd-ID Groups: 2001, 2002) -----">
-            <option value="SENDCOMMAND,AA008104017A2001841C200181013C82010083020804850100A10B81010C8206123456789012">Request PIN</option>
-            <option value="SENDCOMMAND,AA008104017A2001841C200181013C8201FF83020804850100A10B81010C8206123456789012">PIN Entry Success</option>
-            <option value="SENDCOMMAND,AA00810401322001841C200181013C8201FE83020804850100A10B81010C8206123456789012">PIN Entry Fail</option>                     
+          <optgroup label="----- DynaFlex II PED - EMV Request PIN w/ Host Data Functions (Cmd-ID Group: 2001) -----">
+            <option value="SENDCOMMAND,AA008104017A2001841C200181013C82010083020804850100A10B81010C8206123456789012">Request PIN with Host Data</option>
+            <option value="SENDCOMMAND,AA008104017A2001841C200181013C8201FF83020804850100A10B81010C8206123456789012">PIN Entry Success (Send this Response AFTER Request PIN)</option>
+            <option value="SENDCOMMAND,AA00810401322001841C200181013C8201FE83020804850100A10B81010C8206123456789012">PIN Entry Fail (Send this Response AFTER Request PIN)</option>                                    
+          </optgroup>         
+          
+          <optgroup label="----- DynaFlex II PED - EMV Request PIN w/ Card Data Functions (Cmd-ID Group: 2002) -----">
             <option value="SENDCOMMAND,AA00810401002002841C200281011EA309810101820101830101A40A82010183020804850100">Request PIN with Card Read</option>
-            <option value="SENDCOMMAND,AA00810401322002841C200281013CA309810101820101830101A40A8201FF83020804850100">PIN Entry With Card Read Success</option>
-            <option value="SENDCOMMAND,AA00810401322002841C200281013CA309810101820101830101A40A8201FE83020804850100">PIN Entry With Card Read Fail</option>                        
-          </optgroup>          
+            <option value="SENDCOMMAND,AA00810401322002841C200281013CA309810101820101830101A40A8201FF83020804850100">PIN Entry With Card Read Success (Send this Response AFTER Request PIN)</option>
+            <option value="SENDCOMMAND,AA00810401322002841C200281013CA309810101820101830101A40A8201FE83020804850100">PIN Entry With Card Read Fail (Send this Response AFTER Request PIN)</option>            
+          </optgroup>   
           
           <optgroup label="----- DynaFlex II PED - EMV Extended Functions (Cmd-ID Groups: 1001, 1801) -----">            
             <option value="SENDCOMMAND,AA008104010610018442100182013CA30E81010082010083010084030000018402000386279C01009F02060000000001009F03060000000000005F2A0208405F3601029F150200009F530100">Manual PAN Entry</option>
