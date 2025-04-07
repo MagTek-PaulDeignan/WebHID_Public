@@ -121,6 +121,15 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
             <option value="SENDCOMMAND,AA008104010618018405180181011E">Request Signature</option>            
           </optgroup>          
 
+          <optgroup label="----- DynaFlex II PED - Display Orientation ----- (Cmd-ID Group: D111) (MUST RESET after SET)"> 
+            <option value="SENDCOMMAND,AA008104015ED101841AD10181072B06010401F609850101890AE208E306E104E202C100">Get Rotation Status</option>
+            <option value="SENDCOMMAND,AA008104015DD111841BD11181072B06010401F609850101890BE209E307E105E203C10100">Set Rotation 00 MSR top</option>
+            <option value="SENDCOMMAND,AA008104015DD111841BD11181072B06010401F609850101890BE209E307E105E203C10101">Set Rotation 01 MSR right</option>
+            <option value="SENDCOMMAND,AA008104015DD111841BD11181072B06010401F609850101890BE209E307E105E203C10102">Set Rotation 02 MSR left</option>
+            <option value="SENDCOMMAND,AA008104015DD111841BD11181072B06010401F609850101890BE209E307E105E203C10103">Set Rotation 03 MSR bottom</option>
+            <option value="SENDCOMMAND,AA00810401121F0184021F01">Reset Device</option>         
+          </optgroup>     
+
           <optgroup label="----- Display EMV Transaction Messages ----- (Cmd-ID Group: 1803)">            
             <option value="SENDCOMMAND,AA0081040155180384081803810100820101">Display Amount</option>
             <option value="SENDCOMMAND,AA0081040155180384081803810100820102">Display Amount OK?</option>
@@ -153,7 +162,7 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
             <option value="SENDCOMMAND,AA00810401051100840D110081033A047F8201008301FF">NFC Mifare2 (1051)</option>          
           </optgroup>          
 
-          <optgroup label="----- User Event Notifications ----- (MUST RESET after SET) (Cmd-ID Group: 155D)">
+          <optgroup label="----- User Event Notifications ----- (Cmd-ID Group: 155D) (MUST RESET after SET)">
             <option value="SENDCOMMAND,AA0081040155D101840FD1018501018704020701028902C100">Get User Notify Status</option>
             <option value="SENDCOMMAND,AA0081040155D1118413D1118501018704020701028906C1049F000000">Set DynaFlex: User Notify to All Events, AND Barcode (9F)</option>
             <option value="SENDCOMMAND,AA0081040155D1118413D1118501018704020701028906C1041F000000">Set DynaFlex: User Notify to All Events, NO Barcode  (1F)</option>
