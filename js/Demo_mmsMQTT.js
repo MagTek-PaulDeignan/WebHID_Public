@@ -220,7 +220,7 @@ const deviceCloseLogger = (e) => {
 };
 const deviceOpenLogger = (e) => {
   timeEnd = Date.now();
-  mt_UI.LogData(`Time to open Websocket: ${mt_Utils.calculateTimeDifference(timeStart,timeEnd)} ms`);
+  mt_UI.LogData(`Time to open MQTT: ${mt_Utils.calculateTimeDifference(timeStart,timeEnd)} ms`);
   mt_UI.setUSBConnected("Opened");
   _DeviceDetected = true;
 };

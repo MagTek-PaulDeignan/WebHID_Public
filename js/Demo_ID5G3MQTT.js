@@ -94,6 +94,7 @@ async function handleSendCommandButton() {
 }
 
 async function parseCommand(message) {
+  let Response = "";
   let cmd = message.split(",");
   switch (cmd[0].toUpperCase()) {
     case "GETAPPVERSION":
@@ -104,6 +105,11 @@ async function parseCommand(message) {
       break;
     case "SENDCOMMAND":
       mt_MQTT_API.SendCommand(cmd[1]);
+      break;
+    case "SENDCOMMANDCMAC":
+      await mt_MQTT_API.sendCommandCMAC(cmd[1]);
+      //Response = await mt_MQTT_API.sendCommandCMAC(cmd[1]);
+      //return EmitObject({ Name: "OnID5DeviceResponse", Data: Response });
       break;
     case "SENDDATETIME":
       //Response = await mt_MQTT_API.SendCommand(mt_V5.calcDateTime()); 
@@ -221,7 +227,7 @@ const DeviceResponseLogger = (e) => {
    //mt_UI.LogData(`Device Response: ${e.Data}`);
    let resp = mt_Parse.parseID5Response(e.Data)
    mt_UI.LogData(`Device Response: ${JSON.stringify(resp,null,2)}`);
-
+   
 };
 const inputReportLogger = (e) => {
   mt_UI.LogData(`Input Report: ${e.Data}`);
@@ -256,6 +262,6 @@ EventEmitter.on("OnDeviceClose", deviceCloseLogger);
 EventEmitter.on("OnDeviceResponse", DeviceResponseLogger);
 EventEmitter.on("OnError", errorLogger);
 EventEmitter.on("OnMQTTStatus", mqttStatus);
-EventEmitter.on("OnID55MSRSwipe", ID5MSRSwipeLogger);
+EventEmitter.on("OnID5MSRSwipe", ID5MSRSwipeLogger);
 EventEmitter.on("OnQwantumSwipe", QwantumSwipe);
 EventEmitter.on("OnQwantumPush", QwantumPush);

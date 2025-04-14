@@ -41,7 +41,7 @@ export async function sendBase64Command(cmdToSendB64) {
 
 export async function sendCommand(cmdToSend) {
   let cmdResp = "";
-  window.mt_device_response = undefined;
+  window.mt_device_response = null;
   try {
     if (!_activeCommandMode) {
       EmitObject({

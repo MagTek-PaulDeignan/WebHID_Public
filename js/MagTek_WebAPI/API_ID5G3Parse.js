@@ -155,9 +155,6 @@ let _msg =  msg.substring(14, (_packetLen*2)+2);
     data_Buffer_Response = "";
   }
 
-  //if (_msgLen * 2 == data_Buffer_Response.length)
-  //console.log(`     Response Length ${data_Buffer_Response.length}   ${_msgLen * 2}`);
-  //if (data_Buffer_Response.length == _msgLen * 2)
   if (data_Buffer_Response.length >= _msgLen * 2)
   {
     EmitObject({Name: "OnID5Message",Data: data_Buffer_Response}); 
@@ -394,20 +391,17 @@ export function parseExtendedResponse(response) {
     //we need to buffer this data it's partial length
     if (offset == 0) 
     {
-      //data_Buffer_Response = ""; //This is the first packet clear the buffer
-      //data_Buffer_Response = respnseCode + response.substring(8);
       data_Buffer_Response = response.substring(8);
     } else 
     {
       data_Buffer_Response += msg_data;
     }
       let totalLen = msg_data_len * 2 + 8;
-      //if (data_Buffer_Response.length == msg_data_len * 2 + 6) {
-        if (data_Buffer_Response.length >= totalLen ) {
-      //We now have a complete report - let's send it
+      if (data_Buffer_Response.length >= totalLen ) 
+      {
       outString = data_Buffer_Response;
       data_Buffer_Response = "";
-    }
+      }
   }
   return outString;
 };

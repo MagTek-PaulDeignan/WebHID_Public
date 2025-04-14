@@ -153,10 +153,16 @@ const MQTTMessageLogger = (e) => {
     let options = {
       retain: false
     }
+    //client.publish(`${mt_AppSettings.MQTT.ID5G3_Base_Pub}${devPath}/ID5G3Message`, e.Data, options);
     client.publish(`${mt_AppSettings.MQTT.ID5G3_Base_Pub}${devPath}/ID5G3Message`, e.Data, options);
   }
 };
 
+const MQTTSwipeLogger = (e) => {
+  mt_UI.LogData(`ID5 MSR Swiped ${e.Name}`);
+  mt_UI.LogData(`${JSON.stringify(e.Data,null, 2)}`);  
+
+};
 
 function OpenMQTT(){
   let options = {
@@ -200,10 +206,10 @@ function onMQTTConnect() {
     retain: true
   }
   
-  client.unsubscribe(`${mt_AppSettings.MQTT.ID5G3_Base_Sub}${devPath}/#`, CheckMQTTError)
+  client.unsubscribe(`${mt_AppSettings.MQTT.ID5G3_Base_Sub}${devPath}/ID5G3Message`, CheckMQTTError)
   client.publish(`${mt_AppSettings.MQTT.ID5G3_Base_Pub}${devPath}/Status`, 'connected', options);
     
-  client.subscribe(`${mt_AppSettings.MQTT.ID5G3_Base_Sub}${devPath}/#`, CheckMQTTError)
+  client.subscribe(`${mt_AppSettings.MQTT.ID5G3_Base_Sub}${devPath}/ID5G3Message`, CheckMQTTError)
   mt_UI.LogData(`Connected to: ${mt_AppSettings.MQTT.ID5G3_Base_Sub}${devPath}`);
   let path = `${mt_AppSettings.MQTT.ID5G3_PageURL}${devPath}`
   mt_UI.UpdateQRCodewithLink(path);
@@ -223,8 +229,8 @@ function CheckMQTTError (err) {
 async function onMQTTMessage(topic, message) {
     let data = message.toString();
     let resp = await mt_Device.sendCommand(data);
+    window.mt_device_response = resp;
     EmitObject({Name:"OnDeviceResponse", Data: resp.HexString});
-
 };
   
     
@@ -236,10 +242,5 @@ EventEmitter.on("OnDeviceOpen", deviceOpenLogger);
 EventEmitter.on("OnDeviceClose", deviceCloseLogger);
 EventEmitter.on("OnDeviceResponse", DeviceResponseLogger);
 EventEmitter.on("OnError", errorLogger);
-
-
-//EventEmitter.on("OnV5Message", MQTTMessageLogger);
-//EventEmitter.on("OnV5MSRSwipe", MQTTMessageLogger);
-
-EventEmitter.on("OnID5MSRSwipe", MQTTMessageLogger);
+//EventEmitter.on("OnID5MSRSwipe", MQTTSwipeLogger);
 EventEmitter.on("OnID5Message", MQTTMessageLogger);

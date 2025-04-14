@@ -13,6 +13,7 @@ DO NOT REMOVE THIS COPYRIGHT
 import * as mt_Utils from "./mt_utils.js";
 import * as MT_ID5G3Parse from "./API_ID5G3Parse.js";
 import * as mt_AppSettings from "./config/appsettings.js";
+import * as mt_RS3 from "./API_RS3.js";
 import mqtt  from "./mqtt.esm.js";
 import "./mt_events.js";
 
@@ -58,11 +59,38 @@ function EmitObject(e_obj) {
 };
 
 export async function SendCommand(cmdHexString) {
-    window.mt_device_response = null
-    _client.publish(`${mt_AppSettings.MQTT.ID5G3_Base_Sub}${_devPath}`, cmdHexString);
+    window.mt_device_response = null;
+    _client.publish(`${mt_AppSettings.MQTT.ID5G3_Base_Sub}${_devPath}/ID5G3Message`, cmdHexString);
     let Resp = await waitForDeviceResponse();
     return Resp;
 };
+
+export async function sendCommandCMAC(command) {
+
+  let response = null;
+  let deviceChallenge = null;
+  let deviceKeySlotInfo = null;
+  let cmacResponse = null;
+  try {
+    deviceChallenge =  await SendCommand(`070000020001`);
+    deviceKeySlotInfo = await SendCommand(`070300021102`);
+    cmacResponse = await mt_RS3.GenerateCMAC("iDynamo5GenIII", deviceChallenge.HexString, deviceKeySlotInfo.HexString, command,);
+    if (cmacResponse.status.ok)
+    {
+      response =  await SendCommand(cmacResponse.data.commandWithMAC);
+    }
+    else
+    {
+      response = cmacResponse.status.text;
+    }
+    return response;  
+  } 
+  catch (error) 
+  {
+    return error.message;
+  }
+  };
+  
 
 function waitForDeviceResponse() {
   function waitFor(result) {
@@ -129,10 +157,10 @@ async function onMQTTConnect(_connack) {
   if(_client != null){
   // Subscribe to a topic
   
-  await _client.unsubscribe(`${mt_AppSettings.MQTT.ID5G3_Base_Pub}${_devPath}/#`, CheckMQTTError);  
+  await _client.unsubscribe(`${mt_AppSettings.MQTT.ID5G3_Base_Pub}${_devPath}/ID5G3Message`, CheckMQTTError);  
   await _client.unsubscribe(`${mt_AppSettings.MQTT.ID5G3_DeviceList}`, CheckMQTTError);
 
-  await _client.subscribe(`${mt_AppSettings.MQTT.ID5G3_Base_Pub}${_devPath}/#`, CheckMQTTError);
+  await _client.subscribe(`${mt_AppSettings.MQTT.ID5G3_Base_Pub}${_devPath}/ID5G3Message`, CheckMQTTError);
   await _client.subscribe(`${mt_AppSettings.MQTT.ID5G3_DeviceList}`, CheckMQTTError);  
 }
 };
@@ -149,7 +177,6 @@ function CheckMQTTError (err) {
 
 function onMQTTMessage(topic, message) {
     let data = message.toString();
-    //console.log(topic + " ID5G3:: " + data )
     let topicArray = topic.split('/');
     if(topicArray.length >= 5){
       switch (topicArray[topicArray.length-1]) {
@@ -173,9 +200,6 @@ function onMQTTMessage(topic, message) {
           }
           }
           break; 
-        //case "V5Message":          
-          //MT_V5Parse.processMsgType(data);
-        //  break;
         case "ID5G3Message":
           
           switch (data.substring(0,2)) {
