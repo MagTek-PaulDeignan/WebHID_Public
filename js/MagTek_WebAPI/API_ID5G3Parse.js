@@ -155,9 +155,9 @@ let _msg =  msg.substring(14, (_packetLen*2)+2);
     data_Buffer_Response = "";
   }
 
-  if (_msgLen * 2 == data_Buffer_Response.length)
+  if (data_Buffer_Response.length >= _msgLen * 2)
   {
-    EmitObject({Name: "OnV5Message",Data: data_Buffer_Response}); 
+    EmitObject({Name: "OnID5Message",Data: data_Buffer_Response}); 
     let ParsedMSR = ParseID5G3MSR(data_Buffer_Response);
     data_Buffer_Response = "";
   } 
@@ -249,7 +249,7 @@ function ParseNormalMode(buffer)
     Card: _card,
     Device: _device,
   };
-  EmitObject({ Name: "OnV5MSRSwipe", Data: _resp});
+  EmitObject({ Name: "OnID5MSRSwipe", Data: _resp});
   return _resp;
 
 }
@@ -340,3 +340,83 @@ function ParseQwantumPush(buffer)
   return _resp;
 
 }
+
+
+
+export function parseExtendedReport(report) {
+  let report_id = report.substring(0, 2);
+  //let report_rc = report.substring(2, 4);
+  let part_data_len = parseInt(report.substring(4, 6), 16);
+  let offset = parseInt(report.substring(6, 10), 16);
+  let notification_id = report.substring(10, 14);
+  let msg_data_len = parseInt(report.substring(14, 18), 16);
+  let msg_data = report.substring(18, part_data_len * 2 + 18);
+  let outString = "";
+  if (part_data_len == msg_data_len) {
+    //we don't need to buffer this data it's full length
+    outString =
+      report_id +
+      notification_id +
+      mt_Utils.makeHex(msg_data_len, 4) +
+      msg_data;
+  } else {
+    //we need to buffer this data it's partial length
+    if (offset == 0) data_Buffer_Report = ""; //This is the first packet clear the buffer
+    data_Buffer_Report += msg_data;
+    if (data_Buffer_Report.length == msg_data_len * 2) {
+      //We now have a complete report - let's send it
+      outString =
+        report_id +
+        notification_id +
+        mt_Utils.makeHex(msg_data_len, 4) +
+        data_Buffer_Report;
+      data_Buffer_Report = "";
+    }
+  }
+  return outString;
+}
+
+export function parseExtendedResponse(response) {
+  let respnseCode = response.substring(0, 2);
+  let part_data_len = parseInt(response.substring(2, 4), 16);
+  let offset = parseInt(response.substring(4, 8), 16);
+  let response_rc = response.substring(8, 12);
+  let msg_data_len = parseInt(response.substring(12, 16), 16);
+  let msg_data = response.substring(16, part_data_len * 2 + 16);
+  let outString = "";
+  if (part_data_len == msg_data_len + 6) {
+    //we don't need to buffer this data it's full length
+    outString =  response.substring(8);
+  } else {
+    //we need to buffer this data it's partial length
+    if (offset == 0) 
+    {
+      data_Buffer_Response = response.substring(8);
+    } else 
+    {
+      data_Buffer_Response += msg_data;
+    }
+      let totalLen = msg_data_len * 2 + 8;
+      if (data_Buffer_Response.length >= totalLen ) 
+      {
+      outString = data_Buffer_Response;
+      data_Buffer_Response = "";
+      }
+  }
+  return outString;
+};
+
+export function parseID5Response(hexdata){
+  let Msg = mt_Utils.hexToBytes(hexdata);
+  let MsgData = mt_Utils.toHexString(Msg.slice(4, Msg.length));
+  const ID5Message = {
+      ReturnCode: mt_Utils.makeHex((Msg[0] << 8) | Msg[1], 4),
+      DataLen: parseInt(mt_Utils.makeHex((Msg[2] << 8) | Msg[3], 4),16),
+      Data: MsgData,
+      AsciiData: mt_Utils.hexToASCII(MsgData),
+      HexString: hexdata
+  }
+  return ID5Message;
+};
+
+

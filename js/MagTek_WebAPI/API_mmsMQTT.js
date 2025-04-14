@@ -87,8 +87,8 @@ export async function SendCommand(cmdHexString) {
     });
     return;
   }
-    window.mt_device_response = null;    
-    _client.publish(`${mt_AppSettings.MQTT.MMS_Base_Sub}${_devPath}`, cmdHexString);
+  window.mt_device_response = null;     
+    _client.publish(`${mt_AppSettings.MQTT.MMS_Base_Sub}${_devPath}/MMSMessage`, cmdHexString);
     let Resp = await waitForDeviceResponse();
     return Resp;
 };
@@ -159,8 +159,9 @@ async function onMQTTConnect(_connack) {
   // Subscribe to a topic
   if(_devPath.length > 0)
   {
-    await _client.unsubscribe(`${mt_AppSettings.MQTT.MMS_Base_Pub}${_devPath}/#`, CheckMQTTError);  
-    await _client.subscribe(`${mt_AppSettings.MQTT.MMS_Base_Pub}${_devPath}/#`, CheckMQTTError);    
+    await _client.unsubscribe(`${mt_AppSettings.MQTT.MMS_Base_Pub}${_devPath}/MMSMessage`, CheckMQTTError);  
+    await _client.subscribe(`${mt_AppSettings.MQTT.MMS_Base_Pub}${_devPath}/MMSMessage`, CheckMQTTError);    
+
   }
   await _client.unsubscribe(`${mt_AppSettings.MQTT.MMS_DeviceList}`, CheckMQTTError);
   await _client.subscribe(`${mt_AppSettings.MQTT.MMS_DeviceList}`, CheckMQTTError);  
@@ -179,19 +180,24 @@ function CheckMQTTError (err) {
 };
 
 function onMQTTMessage(topic, message) {
-    let data = message.toString();
-    //console.log(topic + " MMS:: " + data )
+
+  console.log(`onMQTTMessage:  ${topic}: ${message}` );
+  let data = "";
+        
     let topicArray = topic.split('/');
     if(topicArray.length >= 5){
       switch (topicArray[topicArray.length-1]) {
         case "Status":
-        EmitObject({Name:"OnMQTTStatus", Data: { Topic:topic, Message:data} }); 
+          data = message.toString();    
+          //console.log(`status --- ${topic} ${message}`);
+          EmitObject({Name:"OnMQTTStatus", Data: { Topic:topic, Message:data} }); 
           if( `${topicArray[topicArray.length-3]}/${topicArray[topicArray.length-2]}` == _devPath){
           if( data.toLowerCase() == "connected")
           {
             if(_client)
               {              
-              EmitObject({Name:"OnDeviceOpen", Device:_client}); 
+              EmitObject({Name:"OnDeviceOpen", Device:_client});
+              console.log(`open --- ${topic} ${message}`); 
               }
             else
               {
@@ -205,7 +211,19 @@ function onMQTTMessage(topic, message) {
           }
           break; 
         case "MMSMessage":
-          mt_MMS.ParseMMSMessage(mt_Utils.hexToBytes(data));
+          if (message)
+            {
+              if (message[0] == 170)  // this must be in DynaFlex Binary Mode ("170 = 0xAA")
+              {
+                mt_MMS.ParseMMSMessage(message);
+                console.log(`In Binary Mode`)
+              }
+              else
+              {
+                mt_MMS.ParseMMSMessage(mt_Utils.hexToBytes(message.toString()));
+                console.log(`In ASCII Mode`)
+              }
+            }
           break;
         default:
           console.log(`${topic}: ${data}`);

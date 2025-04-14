@@ -44,7 +44,7 @@ async function handleDOMLoaded() {
   document.getElementById("custCode").value= mt_Utils.getEncodedValue("Unigate_CustCode", "S1Q0NDc0NjI2NA==");
   document.getElementById("userName").value= mt_Utils.getEncodedValue("Unigate_UserName", "VFNZU1BpbG90UFJPRA==");
   document.getElementById("password").value= mt_Utils.getEncodedValue("Unigate_Password", "UGFzc3dvcmQjMTIzNDU=");
-  document.getElementById("processorName").value = mt_Utils.getEncodedValue("Unigate_ProcessorName", "VFNZUyAtIFBJTE9U");  
+  document.getElementById("processorName").value = mt_Utils.getEncodedValue("Unigate_ProcessorName", "VFNZUyAtIFBJTE9U");
 }
 
 async function handleSave() {

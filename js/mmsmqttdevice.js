@@ -194,9 +194,9 @@ function onMQTTConnect() {
   let options = {
     retain: true
   }
-  client.unsubscribe(`${mt_AppSettings.MQTT.MMS_Base_Sub}${devPath}/#`, CheckMQTTError)
+  client.unsubscribe(`${mt_AppSettings.MQTT.MMS_Base_Sub}${devPath}/MMSMessage`, CheckMQTTError)
   client.publish(`${mt_AppSettings.MQTT.MMS_Base_Pub}${devPath}/Status`, 'connected', options);
-  client.subscribe(`${mt_AppSettings.MQTT.MMS_Base_Sub}${devPath}/#`, CheckMQTTError)
+  client.subscribe(`${mt_AppSettings.MQTT.MMS_Base_Sub}${devPath}/MMSMessage`, CheckMQTTError)
   mt_UI.LogData(`Connected to: ${mt_AppSettings.MQTT.MMS_Base_Sub}${devPath}`);
   let path = `${mt_AppSettings.MQTT.MMS_PageURL}${devPath}`
   mt_UI.UpdateQRCodewithLink(path);

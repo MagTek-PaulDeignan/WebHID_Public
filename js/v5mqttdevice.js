@@ -226,10 +226,10 @@ function onMQTTConnect() {
     retain: true
   }
   
-  client.unsubscribe(`${mt_AppSettings.MQTT.V5_Base_Sub}${devPath}/#`, CheckMQTTError)
+  client.unsubscribe(`${mt_AppSettings.MQTT.V5_Base_Sub}${devPath}/V5Message`, CheckMQTTError)
   client.publish(`${mt_AppSettings.MQTT.V5_Base_Pub}${devPath}/Status`, 'connected', options);
     
-  client.subscribe(`${mt_AppSettings.MQTT.V5_Base_Sub}${devPath}/#`, CheckMQTTError)
+  client.subscribe(`${mt_AppSettings.MQTT.V5_Base_Sub}${devPath}/V5Message`, CheckMQTTError)
   mt_UI.LogData(`Connected to: ${mt_AppSettings.MQTT.V5_Base_Sub}${devPath}`);
   let path = `${mt_AppSettings.MQTT.V5_PageURL}${devPath}`
   mt_UI.UpdateQRCodewithLink(path);
@@ -265,5 +265,4 @@ EventEmitter.on("OnDeviceOpen", deviceOpenLogger);
 EventEmitter.on("OnDeviceClose", deviceCloseLogger);
 EventEmitter.on("OnDeviceResponse", DeviceResponseLogger);
 EventEmitter.on("OnError", errorLogger);
-//EventEmitter.on("OnMMSMessage", MMSMessageLogger);
 EventEmitter.on("OnV5Message", V5MessageLogger);

@@ -17,11 +17,9 @@ import * as mt_RMS_API from "./MagTek_WebAPI/API_rms.js";
 import * as mt_MQTT_API from "./MagTek_WebAPI/API_ID5G3MQTT.js";
 import "./MagTek_WebAPI/mt_events.js";
 
-let retval = "";
-let defaultRMSURL = '';
-let defaultRMSAPIKey = '';
-let defaultRMSProfileName = '';
+import * as mt_Parse from "./MagTek_WebAPI/API_ID5G3Parse.js";
 
+let retval = "";
 
 let url = mt_Utils.getEncodedValue('MQTTURL','d3NzOi8vZGV2ZWxvcGVyLmRlaWduYW4uY29tOjgwODQvbXF0dA==');
 let devPath = mt_Utils.getEncodedValue('MQTTDevice','');
@@ -41,11 +39,6 @@ if (value != null) {
   devPath = value;
 }
 
-
-let _contactSeated = false;
-let _AwaitingContactEMV = false;
-
-export let _contactlessDelay = parseInt(mt_Utils.getEncodedValue("ContactlessDelay", "NTAw"));
 export let _openTimeDelay = 1500;
 
 document
@@ -71,7 +64,6 @@ document.addEventListener("DOMContentLoaded", handleDOMLoaded);
 
 async function handleDOMLoaded() {
   mt_UI.LogData(`Configured Device: ${devPath}`);
-  //if (devPath.length > 0 ) handleOpenButton();
   handleOpenButton();
 }
 
@@ -102,6 +94,7 @@ async function handleSendCommandButton() {
 }
 
 async function parseCommand(message) {
+  let Response = "";
   let cmd = message.split(",");
   switch (cmd[0].toUpperCase()) {
     case "GETAPPVERSION":
@@ -112,6 +105,11 @@ async function parseCommand(message) {
       break;
     case "SENDCOMMAND":
       mt_MQTT_API.SendCommand(cmd[1]);
+      break;
+    case "SENDCOMMANDCMAC":
+      await mt_MQTT_API.sendCommandCMAC(cmd[1]);
+      //Response = await mt_MQTT_API.sendCommandCMAC(cmd[1]);
+      //return EmitObject({ Name: "OnID5DeviceResponse", Data: Response });
       break;
     case "SENDDATETIME":
       //Response = await mt_MQTT_API.SendCommand(mt_V5.calcDateTime()); 
@@ -126,7 +124,7 @@ async function parseCommand(message) {
       //return EmitObject({ Name: "OnV5DeviceResponse", Data: Response });
       break;  
     case "PCIRESET":
-      mt_MQTT_API.SendCommand("0200");      
+      mt_MQTT_API.SendCommand("02000000");      
       break;
     case "GETDEVICELIST":
       devices = getDeviceList();      
@@ -167,36 +165,11 @@ async function parseCommand(message) {
       let fw = await mt_MQTT_API.GetDeviceFWID();
       mt_UI.LogData(fw);
       break;
-    case "UPDATEDEVICE":
-
-      mt_RMS_API.setURL(mt_Utils.getEncodedValue('RMSBaseURL',defaultRMSURL));
-      mt_RMS_API.setAPIKey(mt_Utils.getEncodedValue('RMSAPIKey',defaultRMSAPIKey));
-      mt_RMS_API.setProfileName(mt_Utils.getEncodedValue('RMSProfileName',defaultRMSProfileName));
-      
-      fw = await mt_MQTT_API.GetDeviceFWID();
-      sn = await mt_MQTT_API.GetDeviceSN();
-
-      //mt_RMS.setFWID(fw);
-      //mt_RMS.setDeviceSN(sn);
-      
-      if(mt_RMS_API.BaseURL.length > 0 && mt_RMS_API.APIKey.length > 0 && mt_RMS_API.ProfileName.length > 0)
-      {
-        //await mt_RMS.updateDevice();
-      }
-      else
-      {
-        mt_UI.LogData(`Please set APIKey and ProfileName`);      
-      }
-      break;
     default:
       mt_UI.LogData("Unknown Command");
   }
 };
 
-function ClearAutoCheck() {
-  let chk = document.getElementById("chk-AutoStart");
-  chk.checked = false;
-}
 
 const deviceConnectLogger = (e) => {
   mt_UI.setUSBConnected("Connected");
@@ -214,7 +187,6 @@ const dataLogger = (e) => {
   mt_UI.LogData(`Received Data: ${e.Name}: ${e.Data}`);
 };
 
-
 const trxCompleteLogger = (e) => {
   mt_UI.LogData(`${e.Name}: ${e.Data}`);
 };
@@ -223,19 +195,15 @@ const debugLogger = (e) => {
   mt_UI.LogData(`Error: ${e.Source} ${e.Data}`);
 };
 
-
-
 const fileLogger = (e) => {
   mt_UI.LogData(`File: ${e.Data.HexString}`);
 };
 
-
-const mqttStatus = e => {
+const mqttStatus = (e) => {
   let topicArray = e.Data.Topic.split('/');
   let data = e.Data.Message;
   mt_UI.AddDeviceLink(topicArray[topicArray.length-3], `${topicArray[topicArray.length-2]}`,data, `${window.location.pathname}?devpath=${topicArray[topicArray.length-3]}/${topicArray[topicArray.length-2]}`);
 }
-
 
 async function handleFileUpload(event) {
   if( event.target.files.length ==1 )
@@ -254,25 +222,12 @@ async function handleFileUpload(event) {
 }
 
 
-const displayRMSLogger = (e) => {
-  mt_UI.LogData(`RMS Display: ${e.Data}`);
-};
 
-const displayRMSProgressLogger = (e) => {  
-  mt_UI.updateProgressBar(e.Data.Caption, e.Data.Progress)
-};
-
-const displayFirmwareLoadStatusLogger = (e) => {  
-  mt_UI.LogData(`RMS Firmware Load Status: ${e.Data}`);
-};
-
-
-
-const fromDeviceLogger = (e) => {
-  mt_UI.LogData(`Device Response: ${e.Data}`);
-};
-const fromV5DeviceLogger = (e) => {
-  mt_UI.LogData(`V5 Device Response: ${e.Data}`);
+const DeviceResponseLogger = (e) => {
+   //mt_UI.LogData(`Device Response: ${e.Data}`);
+   let resp = mt_Parse.parseID5Response(e.Data)
+   mt_UI.LogData(`Device Response: ${JSON.stringify(resp,null,2)}`);
+   
 };
 const inputReportLogger = (e) => {
   mt_UI.LogData(`Input Report: ${e.Data}`);
@@ -282,45 +237,31 @@ const errorLogger = (e) => {
   mt_UI.LogData(`Error: ${e.Source} ${e.Data}`);
 };
 
+const ID5MSRSwipeLogger = (e) =>{
+  mt_UI.LogData(`ID5 MSR Swiped ${e.Name}`);
+  mt_UI.LogData(`${JSON.stringify(e.Data,null, 2)}`);  
+}
 
-const msrSwipeDetectedLogger = (e) => {
-  if (e.Data.toLowerCase() == "idle") mt_UI.LogData(`MSR Swipe Detected ${e.Data}`);
-  let chk = document.getElementById("chk-AutoMSR");
-  let _autoStart = document.getElementById("chk-AutoStart");
-  if (_autoStart.checked & chk.checked & (e.Data.toLowerCase() == "idle")) {
-    ClearAutoCheck();
-  }
-};
-
-const V5MSRSwipeLogger = (e) =>{
-  mt_UI.LogData(`MSR Swiped ${e.Name}`);
+const QwantumSwipe = (e) =>{
+  mt_UI.LogData(`Qwantum Swiped ${e.Name}`);
   mt_UI.LogData(`${JSON.stringify(e.Data,null, 2)}`);  
 }
 
 
 
+const QwantumPush = (e) =>{
+  mt_UI.LogData(`Qwantum Push`);
+  mt_UI.LogData(`${JSON.stringify(e.Data,null, 2)}`);
+}
 
 // Subscribe to  events
 EventEmitter.on("OnDeviceConnect", deviceConnectLogger);
 EventEmitter.on("OnDeviceDisconnect", deviceDisconnectLogger);
-
 EventEmitter.on("OnDeviceOpen", deviceOpenLogger);
 EventEmitter.on("OnDeviceClose", deviceCloseLogger);
-
-
-EventEmitter.on("OnTransactionComplete", trxCompleteLogger);
-
-
-EventEmitter.on("OnMSRSwipeDetected", msrSwipeDetectedLogger);
-
-EventEmitter.on("OnDeviceResponse", fromDeviceLogger);
-
+EventEmitter.on("OnDeviceResponse", DeviceResponseLogger);
 EventEmitter.on("OnError", errorLogger);
-EventEmitter.on("OnV5DeviceResponse", fromV5DeviceLogger);
-
-EventEmitter.on("OnRMSLogData", displayRMSLogger);
-EventEmitter.on("OnRMSProgress", displayRMSProgressLogger);
-EventEmitter.on("OnFirmwareLoadStatus", displayFirmwareLoadStatusLogger);
-
 EventEmitter.on("OnMQTTStatus", mqttStatus);
-EventEmitter.on("OnV5MSRSwipe", V5MSRSwipeLogger);
+EventEmitter.on("OnID5MSRSwipe", ID5MSRSwipeLogger);
+EventEmitter.on("OnQwantumSwipe", QwantumSwipe);
+EventEmitter.on("OnQwantumPush", QwantumPush);

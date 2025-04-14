@@ -105,31 +105,12 @@ async function handleOpenButton() {
 
 async function GetDevSN(){
   try {
-    let resp = await mt_Device.sendCommand('490700000000000103');
-    return mt_Utils.filterString(mt_Utils.hexToASCII(resp.substring(16,30)));
+    let resp = await mt_Device.sendCommand('0000000103');
+    return mt_Utils.filterString(resp.AsciiData);
   } catch (error) {
     return null;
   }
 }
-
-// async function SetDate(){
-//   try {
-//     let resp = await mt_Device.sendCommand(mt_Device.calcDateTime());
-//     return resp
-//   } catch (error) {
-//     return null;
-//   }
-// }
-
-// async function SetUSBOutChannel(){
-//   try {
-//     let resp = await mt_Device.sendCommand('480100');
-//     return resp;
-//   } catch (error) {
-//     return null;
-//   }
-// }
-
 
 async function handleDeviceNameSave(){
   friendlyName = document.getElementById('txFriendlyName').value;
@@ -165,15 +146,6 @@ const errorLogger = (e) => {
   mt_UI.LogData(`Error: ${e.Source} ${e.Data}`);
 };
 
-// const MMSMessageLogger = (e) => {
-//   if(client)
-//   {
-//     let options = {
-//       retain: false
-//     }
-//     client.publish(`${mt_AppSettings.MQTT.MMS_Base_Pub}${devPath}/MMSMessage`, e.Data, options);
-//   }
-// };
 
 const MQTTMessageLogger = (e) => {
   if(client)
@@ -181,10 +153,16 @@ const MQTTMessageLogger = (e) => {
     let options = {
       retain: false
     }
+    //client.publish(`${mt_AppSettings.MQTT.ID5G3_Base_Pub}${devPath}/ID5G3Message`, e.Data, options);
     client.publish(`${mt_AppSettings.MQTT.ID5G3_Base_Pub}${devPath}/ID5G3Message`, e.Data, options);
   }
 };
 
+const MQTTSwipeLogger = (e) => {
+  mt_UI.LogData(`ID5 MSR Swiped ${e.Name}`);
+  mt_UI.LogData(`${JSON.stringify(e.Data,null, 2)}`);  
+
+};
 
 function OpenMQTT(){
   let options = {
@@ -228,10 +206,10 @@ function onMQTTConnect() {
     retain: true
   }
   
-  client.unsubscribe(`${mt_AppSettings.MQTT.ID5G3_Base_Sub}${devPath}/#`, CheckMQTTError)
+  client.unsubscribe(`${mt_AppSettings.MQTT.ID5G3_Base_Sub}${devPath}/ID5G3Message`, CheckMQTTError)
   client.publish(`${mt_AppSettings.MQTT.ID5G3_Base_Pub}${devPath}/Status`, 'connected', options);
     
-  client.subscribe(`${mt_AppSettings.MQTT.ID5G3_Base_Sub}${devPath}/#`, CheckMQTTError)
+  client.subscribe(`${mt_AppSettings.MQTT.ID5G3_Base_Sub}${devPath}/ID5G3Message`, CheckMQTTError)
   mt_UI.LogData(`Connected to: ${mt_AppSettings.MQTT.ID5G3_Base_Sub}${devPath}`);
   let path = `${mt_AppSettings.MQTT.ID5G3_PageURL}${devPath}`
   mt_UI.UpdateQRCodewithLink(path);
@@ -250,10 +228,9 @@ function CheckMQTTError (err) {
 
 async function onMQTTMessage(topic, message) {
     let data = message.toString();
-    //console.log(topic + " ID5G3Device:: " + data )
     let resp = await mt_Device.sendCommand(data);
-    EmitObject({Name:"OnDeviceResponse", Data: resp});
-
+    window.mt_device_response = resp;
+    EmitObject({Name:"OnDeviceResponse", Data: resp.HexString});
 };
   
     
@@ -265,5 +242,5 @@ EventEmitter.on("OnDeviceOpen", deviceOpenLogger);
 EventEmitter.on("OnDeviceClose", deviceCloseLogger);
 EventEmitter.on("OnDeviceResponse", DeviceResponseLogger);
 EventEmitter.on("OnError", errorLogger);
-EventEmitter.on("OnV5Message", MQTTMessageLogger);
-//EventEmitter.on("OnV5MSRSwipe", MQTTMessageLogger);
+//EventEmitter.on("OnID5MSRSwipe", MQTTSwipeLogger);
+EventEmitter.on("OnID5Message", MQTTMessageLogger);
