@@ -105,6 +105,39 @@ async function PostCreateTransaction(request) {
     }
   };
 
+  export async function HIDVerify(tagID, tac) {
+    try {
+       
+      let req = {
+        InputParameters: {
+          tagID: tagID,
+          tac: tac          
+        }
+      }
+  
+      let TransactionResponse = await PostHIDVerifyTransaction(req);
+     
+      return TransactionResponse;
+    } 
+    catch (error) 
+    {
+      return error;
+    }
+  };
+
+  
+  async function PostHIDVerifyTransaction(request) {
+    const url = BaseURL + "/api/Authorize/HID/Verify";
+    try 
+    {
+      return await postRequest(url, JSON.stringify(request));
+    } 
+    catch (error) 
+    {
+      throw error;
+    }
+  }
+  
   async function PostRedeemTransaction(request) {
     const url = BaseURL + "/api/Authorize/Transaction/Redeem";
     try 
