@@ -59,7 +59,7 @@ function EmitObject(e_obj) {
 
 export async function SendCommand(cmdHexString) {
     window.mt_device_response = null
-    _client.publish(`${mt_AppSettings.MQTT.V5_Base_Sub}${_devPath}`, cmdHexString);
+    _client.publish(`${mt_AppSettings.MQTT.V5_Base_Sub}${_devPath}/V5Message`, cmdHexString);
     let Resp = await waitForDeviceResponse();
     return Resp;
 };
@@ -127,12 +127,11 @@ export async function CloseMQTT(){
 
 async function onMQTTConnect(_connack) {    
   if(_client != null){
-  // Subscribe to a topic
   
-  await _client.unsubscribe(`${mt_AppSettings.MQTT.V5_Base_Pub}${_devPath}/#`, CheckMQTTError);  
+  await _client.unsubscribe(`${mt_AppSettings.MQTT.V5_Base_Pub}${_devPath}/V5Message`, CheckMQTTError);
   await _client.unsubscribe(`${mt_AppSettings.MQTT.V5_DeviceList}`, CheckMQTTError);
-  //console.log(`${mt_AppSettings.MQTT.V5_Base_Pub}${_devPath}/#`);
-  await _client.subscribe(`${mt_AppSettings.MQTT.V5_Base_Pub}${_devPath}/#`, CheckMQTTError);
+  
+  await _client.subscribe(`${mt_AppSettings.MQTT.V5_Base_Pub}${_devPath}/V5Message`, CheckMQTTError);
   await _client.subscribe(`${mt_AppSettings.MQTT.V5_DeviceList}`, CheckMQTTError);  
 }
 };
@@ -149,7 +148,6 @@ function CheckMQTTError (err) {
 
 function onMQTTMessage(topic, message) {
     let data = message.toString();
-    //console.log(topic + " V5:: " + data )
     let topicArray = topic.split('/');
     if(topicArray.length >= 5){
       switch (topicArray[topicArray.length-1]) {

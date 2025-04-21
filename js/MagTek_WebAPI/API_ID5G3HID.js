@@ -14,13 +14,12 @@ import * as mt_Utils from "./mt_utils.js";
 import * as MT_Parse from "./API_ID5G3Parse.js";
 import * as mt_Configs from "./config/DeviceConfig.js";
 import * as mt_AppSettings from "./config/appsettings.js";
-
+import * as mt_RS3 from "./API_RS3.js";
 
 let _filters = mt_Configs.ID5G3filters;
 
 let mtDeviceType = "";
 let _devinfo = "";
-
 
 
 function EmitObject(e_obj) {
@@ -46,49 +45,6 @@ function buildCmdArray(commandstring, reportLen) {
   return new Uint8Array(cmdArray);
 }
 
-function getExtendedCommandArray(commandStr, dataStr) {
-  let command = mt_Utils.hexToBytes(commandStr);
-  let data = mt_Utils.hexToBytes(dataStr);
-  let result = [];
-  const MAX_DATA_LEN = 60;
-  let commandLen = 0;
-  let dataLen = 0;
-  if (command != null) {
-    commandLen = command.length;
-  }
-  if (commandLen != 2) {
-    return null;
-  }
-  if (data != null) {
-    dataLen = data.length;
-  }
-  let offset = 0;
-  while (offset < dataLen || dataLen == 0) {
-    let len = dataLen - offset;
-    if (len >= MAX_DATA_LEN - 8) {
-      len = MAX_DATA_LEN - 9;
-    }
-    let extendedCommand = new Array(8 + len);
-    extendedCommand[0] = 0x49;
-    extendedCommand[1] = 6 + len;
-    extendedCommand[2] = (offset >> 8) & 0xff;
-    extendedCommand[3] = offset & 0xff;
-    extendedCommand[4] = command[0];
-    extendedCommand[5] = command[1];
-    extendedCommand[6] = (dataLen >> 8) & 0xff;
-    extendedCommand[7] = dataLen & 0xff;
-    let i;
-    for (i = 0; i < len; i++) {
-      extendedCommand[8 + i] = data[offset + i];
-    }
-    offset += len;
-    result.push(mt_Utils.toHexString(extendedCommand));
-
-    if (dataLen == 0) break;
-  }
-  return result;
-}
-
 function getExtCommandArray(commandStr) {
   let command = mt_Utils.hexToBytes(commandStr);
   let result = [];
@@ -97,9 +53,19 @@ function getExtCommandArray(commandStr) {
   let offset = 0;
   while (offset < dataLen || dataLen == 0) {
     let len = dataLen - offset;
-    if (len >= MAX_DATA_LEN - 8) {
-      len = MAX_DATA_LEN - 9;
-    }
+
+     if (len >= MAX_DATA_LEN - 8) {
+       len = MAX_DATA_LEN - 9;  //leaves five bytes at end of zeros
+     }
+
+    //  if (len >= MAX_DATA_LEN - 4) {
+    //    len = MAX_DATA_LEN - 5;  //leaves one bytes at end of zeros
+    //  }
+
+    // if (len >= MAX_DATA_LEN - 3) {
+    //   len = MAX_DATA_LEN - 4;    //leaves zero bytes at end of zeros
+    // }
+
     let extendedCommand = new Array(8 + len);
     extendedCommand[0] = 0x49;
     extendedCommand[1] = 6 + len;
@@ -121,152 +87,119 @@ function getExtCommandArray(commandStr) {
   return result;
 }
 
-// export async function sendExtendedCommand(cmdNumber, cmdData) {
-//   try {
-//     let deviceResponse = "";
-//     let rc = "";
-//     let msgComplete = true;
-//     let extendedResponse = "";
-//     let cmds = getExtendedCommandArray(cmdNumber, cmdData);
-//     for (let index = 0; index < cmds.length; index++) {
-//       deviceResponse = await sendDeviceCommand(cmds[index]);
-//       rc = deviceResponse.substring(2, 4);
-//       switch (rc) {
-//         case "0A": //more data is available
-//           extendedResponse = parseExtendedResponse(deviceResponse);
-//           if (extendedResponse.length > 0) {
-//             msgComplete = true;
-//           } else {
-//             msgComplete = false;
-//           }
-//           break;
-//         case "0B": //buffering data
-//           msgComplete = true;
-//           extendedResponse = deviceResponse;
-//           break;
-//         default:
-//           msgComplete = true;
-//           extendedResponse = deviceResponse;
-//       }
-//     }
+export async function sendCommandCMAC(command) {
 
-//     while (!msgComplete) {
-//       //we need to get more data...
-//       deviceResponse = await sendDeviceCommand("4A00");
-//       rc = deviceResponse.substring(2, 4);
-//       switch (rc) {
-//         case "0A":
-//           extendedResponse = parseExtendedResponse(deviceResponse);
-//           if (extendedResponse.length > 0) {
-//             msgComplete = true;
-//           } else {
-//             msgComplete = false;
-//           }
-//           break;
-//         case "0B":
-//           extendedResponse = deviceResponse;
-//           break;
-//         default:          
-//           extendedResponse = deviceResponse;
-//       }
-//     }
-//     return  extendedResponse;
-//   } catch (error) {
-//     return error;
-//   }
-// }
-
-// export async function sendExtCommand(cmdData) {
-//   try {
-//     let deviceResponse = "";      
-//     let rc = "";
-//     let index;
-//     let msgComplete = true;
-//     let extendedResponse = "";
-//     let cmds = getExtCommandArray(cmdData);
-//     for (index = 0; index < cmds.length; index++) {
-      
-//       deviceResponse = await sendDeviceCommand(cmds[index]);      
-//       rc = deviceResponse.substring(0, 2);
-//       switch (rc) {
-//         case "0A": //more data is available
-//           extendedResponse = MT_Parse.parseExtendedResponse(deviceResponse);
-//           if (extendedResponse.length > 0) {
-//             msgComplete = true;
-//           } else {
-//             msgComplete = false;
-//           }
-//           break;
-//         case "0B": //buffering data
-//           msgComplete = true;
-//           extendedResponse = deviceResponse;
-//           break;
-//         default:
-//           msgComplete = true;
-//           extendedResponse = deviceResponse;
-//       }
-//     }
-
-//     while (!msgComplete) {
-//       //we need to get more data...
-//       deviceResponse = await sendDeviceCommand("4A00");
-//       rc = deviceResponse.substring(0, 2);
-//       switch (rc) {
-//         case "0A":
-//           extendedResponse = MT_Parse.parseExtendedResponse(deviceResponse);
-//           if (extendedResponse.length > 0) {
-//             msgComplete = true;
-//           } else {
-//             msgComplete = false;
-//           }
-//           break;
-//         case "0B":
-//           extendedResponse = deviceResponse;
-//           break;
-//         default:
-//           extendedResponse = deviceResponse;
-//       }
-//     }
-//     return extendedResponse;
-//   } catch (error) {
-//     throw error;
-//   }
-// }
-
-export async function sendCommand(cmdToSend) {
-  try {
-    if (window.mt_device_hid == null) {
-      EmitObject({
-        Name: "OnError",
-        Source: "SendCommand",
-        Data: "Device is null",
-      });
-      return 0;
-    }
-    if (!window.mt_device_hid.opened) {
-      EmitObject({
-        Name: "OnError",
-        Source: "SendCommand",
-        Data: "Device is not open",
-      });
-      return 0;
-    }
-    
-    const Response = await sendDeviceCommand(cmdToSend);
-    return Response;
-  } 
-  catch (error) 
+let response = null;
+let deviceChallenge = null;
+let deviceKeySlotInfo = null;
+let cmacResponse = null;
+try {
+  deviceChallenge =  await sendCommand(`070000020001`);
+  deviceKeySlotInfo = await sendCommand(`070300021102`);
+  cmacResponse = await mt_RS3.GenerateCMAC("iDynamo5GenIII", deviceChallenge.HexString, deviceKeySlotInfo.HexString, command,);
+  if (cmacResponse.status.ok)
   {
-    return error;
+    response =  await sendCommand(cmacResponse.data.commandWithMAC);
   }
+  else
+  {
+    response = cmacResponse.status.text;
+  }
+  return response;  
+} 
+catch (error) 
+{
+  return error.message;
+}
 }
 
+
+ export async function sendCommand(cmdData) {
+   try {
+      if (window.mt_device_hid == null) {
+       EmitObject({
+         Name: "OnError",
+         Source: "SendCommand",
+         Data: "Device is null",
+       });
+       return "";
+     }
+     if (!window.mt_device_hid.opened) {
+       EmitObject({
+         Name: "OnError",
+         Source: "SendCommand",
+         Data: "Device is not open",
+       });
+       return "";
+      }
+
+     let deviceResponse = "";      
+     let rc = "";
+     let index;
+     let msgComplete = true;
+     let extendedResponse = "";
+     let cmds = getExtCommandArray(mt_Utils.sanitizeHexData(cmdData));
+     for (index = 0; index < cmds.length; index++) {
+      
+       deviceResponse = await sendDeviceCommand(cmds[index]);      
+       rc = deviceResponse.substring(0, 2);
+       switch (rc) {
+         case "0A": //more data is available
+           extendedResponse = MT_Parse.parseExtendedResponse(deviceResponse);
+           if (extendedResponse.length > 0) {
+             msgComplete = true;
+           } else {
+             msgComplete = false;
+           }
+           break;
+         case "0B": //buffering data
+           msgComplete = true;
+           extendedResponse = deviceResponse;
+           break;
+         default:
+           msgComplete = true;
+           extendedResponse = deviceResponse;
+       }
+     }
+
+     while (!msgComplete) {
+       //we need to get more data...
+       deviceResponse = await sendDeviceCommand("4A00");
+       rc = deviceResponse.substring(0, 2);
+       switch (rc) {
+         case "0A":
+           extendedResponse = MT_Parse.parseExtendedResponse(deviceResponse);
+           if (extendedResponse.length > 0) {
+             msgComplete = true;
+           } else {
+             msgComplete = false;
+           }
+           break;
+         case "0B":
+           extendedResponse = deviceResponse;
+           break;
+         default:
+           extendedResponse = deviceResponse;
+       }
+     }
+     
+     
+     //return extendedResponse;
+     return MT_Parse.parseID5Response(extendedResponse);
+   } catch (error) {
+    EmitObject({
+      Name: "OnError",
+      Source: "sendExtCommand",
+      Data: error.message,
+    });
+   }
+ }
 
 async function sendDeviceCommand(cmdToSend) {
   return new Promise(async (resolve, reject) => {
     try {
             
-      let cmdInput = buildCmdArray(cmdToSend, _devinfo.ReportLen);
+      let cmdInput = buildCmdArray(cmdToSend, _devinfo.ReportLen);      
       let numBytes = await window.mt_device_hid.sendFeatureReport(_devinfo.ReportID, cmdInput);
       let dv = await getDeviceResponse();
       resolve(dv);
