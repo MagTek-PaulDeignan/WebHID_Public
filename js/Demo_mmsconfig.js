@@ -26,9 +26,6 @@ let CertExpirationDays = 396;
 
 let ShowDeviceResponses = true;
 
-let ShowDeviceResponses = true;
-
-
 document
   .querySelector("#getDeviceIP")
   .addEventListener("click", getDeviceIP);

@@ -347,26 +347,6 @@ const NFCUIDLogger = async (e) => {
 
 ShowDeviceResponses = false;
 mt_UI.LogData(`Received NFC UID : ${e.Name}: ${e.Data}`);
-// resp = await mt_MMS.sendCommand("AA00810401641100840B1100810160820100830100");
-// resp = await mt_MMS.sendCommand("AA00810401671100840D110081033A04278201008301FF");
-// let tag84 = mt_Utils.getTagValue("84", "", resp.TLVData, false); 
-// let tag82 = mt_Utils.getTagValue("82", "", tag84.substring(4), false); 
-// let tagFC = mt_Utils.getTagValue("FC", "", tag82, false); 
-// tagData =  mt_Utils.getTagValue("DF7A", "", tagFC, false);
-
-// if (tagData.length > 0){
-//   mt_UI.LogData(`Fast Read ${tagData}`);
-// }
-
-//  resp = await mt_MMS.sendCommand("AA00810401261100840C1100810230 00 8201008301FF");
-//  resp = await mt_MMS.sendCommand("AA00810401261100840C1100810230 04 820100830100");
-//  resp = await mt_MMS.sendCommand("AA00810401261100840C1100810230 08 820100830100");
-//  resp = await mt_MMS.sendCommand("AA00810401261100840C1100810230 0C 820100830100");
-//  resp = await mt_MMS.sendCommand("AA00810401261100840C1100810230 10 820100830100");
-//  resp = await mt_MMS.sendCommand("AA00810401261100840C1100810230 14 820100830100");
-//  resp = await mt_MMS.sendCommand("AA00810401261100840C1100810230 18 820100830100");
-//  resp = await mt_MMS.sendCommand("AA00810401261100840C1100810230 20 8201008301FF");
-
 //  if (tagData.length == 0){
 //    mt_UI.LogData(`Reading Fast`);
 //        resp = await mt_MMS.sendCommand(`AA0081 04 0126110084 0D 1100 8103 30 002C   8201008301FF`);  
@@ -390,7 +370,6 @@ mt_UI.LogData(`Received NFC UID : ${e.Name}: ${e.Data}`);
      } 
      resp = await mt_MMS.sendCommand(`AA00810401261100840C1100810230${mt_Utils.makeHex(index*4, 2)}8201008301FF`);  
 
-     //}
 
     //this is to demo opening web pages from a URI that was read via NFC 
     //let retData = mt_Utils.getTagValue("DF7A", "", resp, false)
