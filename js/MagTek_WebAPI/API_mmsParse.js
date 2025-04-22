@@ -425,10 +425,6 @@ function parseNotificationFromDevice(Msg) {
         let EPB = mt_Utils.getTagValue("99", "", data, false);
         let KSN = mt_Utils.getTagValue("DFDF41", "", data, false);
         let EncType = mt_Utils.getTagValue("DFDF42", "", data, false);
-
-
-
-
         EmitObject({ Name: "OnPINComplete", Data: { PBF:PBF,EPB:EPB,KSN:KSN,EncType:EncType, TLV:Msg.TLVData }});
         break;
       case "0905":
