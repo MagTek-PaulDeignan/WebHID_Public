@@ -138,7 +138,7 @@ export function getBasicAuth() {
     let url =  `${BaseURL}api/Transaction/EMV`;
     try 
     {
-      return await postRequest(url, JSON.stringify(request));
+      return await postRequest(url, JSON.stringify(request, replacerFloatToFixed));            
     } 
     catch (error) 
     {
@@ -160,6 +160,9 @@ export function getBasicAuth() {
       });
       
       let json = await response.json();
+
+      //console.log(`req : ${data}`);
+      //console.log(`resp: ${JSON.stringify(json,null,2)}`);
       
       let resp = 
       {
@@ -180,3 +183,9 @@ export function getBasicAuth() {
   }
 
   
+  const replacerFloatToFixed = (key, value) => {
+    if (typeof value === 'number') {
+      return Number.isFinite(value) ? parseFloat(value.toFixed(2)) : value;
+    }
+    return value;
+  };

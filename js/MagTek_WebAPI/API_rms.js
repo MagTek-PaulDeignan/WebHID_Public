@@ -77,7 +77,6 @@ export let ProfileName =  ""
           APIKey: apiKey,
         }),
       });
-      //return await response.json();
       let json = await response.json();
       let resp = {
         status: {

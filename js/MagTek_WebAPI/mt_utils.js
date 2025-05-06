@@ -573,3 +573,172 @@ export function calculateTimeDifference(date1, date2, unit = 'milliseconds') {
               throw new Error('Invalid unit. Use milliseconds, seconds, minutes, hours, or days.');
       }
 }
+
+
+export function impliedDollarAmt(argAmount) {
+  if (argAmount == undefined ) return 0;
+  const amount = parseFloat(argAmount / 100);
+  return amount;
+}
+
+
+export function parseHardwareID(input){
+ 
+  if (input.length < 9) return parseID_Unknown(input);
+  
+  let deviceID = input.substring(0, 2);
+  
+  switch (deviceID) {
+    case "36":  //DynaFlex
+      return parseID_DynaFlex(input);
+      break;
+    case "39":  //DynaProx
+      return parseID_DynaProx(input);
+      break;
+    case "40":  //DynaFlex II PED
+      return parseID_DynaFlexIIPED(input);
+      break;
+    case "41":  //DynaFlex II
+      return parseID_DynaFlexII(input);
+      break;
+    case "42":  //DynaFlex II Go
+      return parseID_DynaFlexIIGo(input);
+      break;
+    default:
+      return parseID_Unknown(input);
+      break;
+  }
+}
+
+
+
+function parseID_DynaFlex(input){
+  const resp =
+  {
+    Name:"DynaFlex",
+    HasContact: true,
+    HasContactless: true,    
+    HasMSR: true,
+    HasManualEntry: false,
+    HasBCR: false,
+    HasDisplay: false,
+    HasSound: true,
+    HasSigCap: false,
+    
+    HasUSB: true,
+    HasWLAN: false,
+    HasBLE: false,
+    
+    
+  }
+  if(input.substring(5,6) == "4" )
+  {
+    resp.HasDisplay = true;   
+    resp.HasSigCap = true;
+    resp.HasManualEntry = true;
+    resp.Name = "DynaFlex Pro"
+  } 
+  if(input.substring(10,12) == "-Q " ) resp.HasBCR = true;   
+  if(input.substring(10,12) == "-KQ" ) resp.HasBCR = true;   
+  return resp;
+}
+function parseID_DynaProx(input){
+  const resp =
+  {
+    Name:"DynaProx",
+    HasContact: false,
+    HasContactless: true,
+    HasMSR: false,
+    HasBCR: false,
+    HasDisplay: false,
+    HasSound: true,
+    HasSigCap: false,
+    HasWLAN: false,
+    HasBLE: false,
+    HasManualEntry: false,
+    HasUSB: true
+  }
+  if(input.substring(5,6) == "3" ) resp.HasBCR = true;   
+  return resp;
+}
+
+function parseID_DynaFlexIIPED(input){
+  const resp =
+  {
+    Name:"DynaFlexIIPED",
+    HasContact: true,
+    HasContactless: true,
+    HasMSR: true,
+    HasBCR: false,
+    HasDisplay: true,
+    HasSound: true,
+    HasSigCap: true,
+    HasWLAN: false,
+    HasBLE: false,
+    HasManualEntry: false,
+    HasUSB: true
+  }
+  if(input.substring(5,6) == "5" ) resp.HasBCR = true; 
+  if(input.substring(7,8) == "W" ) resp.HasWLAN = true; 
+  return resp;
+}
+
+function parseID_DynaFlexII(input){
+  const resp =
+  {
+    Name:"DynaFlexII",
+    HasContact: true,
+    HasContactless: true,
+    HasMSR: true,
+    HasBCR: false,
+    HasDisplay: false,
+    HasSound: true,
+    HasSigCap: false,
+    HasWLAN: false,
+    HasBLE: false,
+    HasManualEntry: false,
+    HasUSB: true
+  }
+  if(input.substring(5,6) == "5") resp.HasBCR = true;   
+  return resp;
+}
+
+function parseID_DynaFlexIIGo(input){
+  const resp =
+  {
+    Name:"DynaFlexIIGo",
+    HasContact: true,
+    HasContactless: true,
+    HasMSR: true,
+    HasBCR: false,
+    HasDisplay: false,
+    HasSound: true,
+    HasSigCap: false,
+    HasWLAN: false,
+    HasBLE: false,
+    HasManualEntry: false,
+    HasUSB: true
+  }
+  if(input.substring(5,6) == "5" ) resp.HasBCR = true; 
+  if(input.substring(7,8) == "B" ) resp.HasBLE = true; 
+  return resp;
+}
+
+function parseID_Unknown(input){
+  const resp =
+  {
+    Name:"Unknown",
+    HasContact: false,
+    HasContactless: false,
+    HasMSR: false,
+    HasBCR: false,
+    HasDisplay: false,
+    HasSound: false,
+    HasSigCap: false,
+    HasWLAN: false,
+    HasBLE: false,
+    HasManualEntry: false,
+    HasUSB: false
+  }
+  return resp;
+}

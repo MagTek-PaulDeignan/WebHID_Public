@@ -60,6 +60,26 @@ export function parseMMSPacket(data) {
       });
   }
 }
+
+export function ParseMMSResponseMessage(Msg) {
+  const MMSResponseMessage = {
+    MsgHeader: Msg.MsgHeader,
+    MsgVersion: Msg.MsgVersion,
+    MsgType: Msg.MsgType,
+    RefNum: Msg.RefNum,
+    RespID: Msg.RespID,
+    TLVData: Msg.TLVData,
+    HexString: Msg.HexString,
+    OperationStatus: parseOpStatus(Msg),
+    OperationDetail: parseOpDetail(Msg),
+    OperationStatusCode: mt_Utils.getTagValue("82", "", Msg.TLVData, false).substring(0,2),
+    OperationDetailCode: mt_Utils.getTagValue("82", "", Msg.TLVData, false).substring(2,8)
+  };
+return MMSResponseMessage;
+}
+
+
+
 export function ParseMMSMessage(Msg) {
   const MMSMessage = {
     MsgHeader: mt_Utils.makeHex(Msg[0], 2),
@@ -68,8 +88,9 @@ export function ParseMMSMessage(Msg) {
     RefNum: mt_Utils.makeHex(Msg[5], 2),
     RespID: mt_Utils.makeHex((Msg[6] << 8) | Msg[7], 4),
     TLVData: mt_Utils.toHexString(Msg.slice(8, Msg.length)),
-    HexString: mt_Utils.toHexString(Msg)
+    HexString: mt_Utils.toHexString(Msg),
   };
+
 
   if (LogMMStoConsole) {
     mt_Utils.debugLog("++++++++++++++++++++++++++++++++++++++++++++++++++++");
@@ -425,10 +446,6 @@ function parseNotificationFromDevice(Msg) {
         let EPB = mt_Utils.getTagValue("99", "", data, false);
         let KSN = mt_Utils.getTagValue("DFDF41", "", data, false);
         let EncType = mt_Utils.getTagValue("DFDF42", "", data, false);
-
-
-
-
         EmitObject({ Name: "OnPINComplete", Data: { PBF:PBF,EPB:EPB,KSN:KSN,EncType:EncType, TLV:Msg.TLVData }});
         break;
       case "0905":
@@ -573,9 +590,13 @@ function parseRequestFromDevice(Msg) {
   EmitObject({ Name: "OnRequestFromDevice", Data: NotifyDetail });
 }
 function parseResponseFromDevice(Msg) {
-  let NotifyDetail = Msg.TLVData;
-  window.mt_device_response = Msg; 
-  EmitObject({ Name: "OnDeviceResponse", Data: Msg });  
+  //let NotifyDetail = Msg.TLVData;
+  //window.mt_device_response = Msg; 
+  //EmitObject({ Name: "OnDeviceResponse", Data: Msg });  
+  
+  const MMSResponse = ParseMMSResponseMessage(Msg);
+  window.mt_device_response = MMSResponse; 
+  EmitObject({ Name: "OnDeviceResponse", Data: MMSResponse });
 }
 function parseRequestFromHost(Msg) {
   let NotifyDetail = mt_Utils.getTagValue("82", "", Msg.TLVData, false);
@@ -686,6 +707,341 @@ export function buildCmdsArray(commandstring, reportLen) {
   return cmdArray;
 }
 
+function parseOpStatus(Msg) {
+  //we only parse Op Status for Device Responses.
+  if (Msg.MsgType != "82") return "";
+  let OpStatus = mt_Utils.getTagValue("82", "", Msg.TLVData, false);
+  switch (OpStatus.substring(0,2)) {
+    case "00":
+      return "OK, Done"
+      break;      
+    case "01":
+      return "OK, Started / Running"
+      break;
+    case "40":
+      return "OK, Done with Warnings"
+      break;
+    case "41":
+      return "OK, Started / Running with Warnings"
+      break;
+    case "80":
+      return "Failed to start operation (missing parameters, etc.)"
+      break;
+    case "81":
+      return "Failed during operation"
+      break;
+    default:
+      return "Unknown Operation Status"
+      break;
+    }
+}
+
+function parseOpDetail(Msg) {
+//we only parse OpDetail for Device Responses.
+if (Msg.MsgType != "82") return "";
+let OpStatus = mt_Utils.getTagValue("82", "", Msg.TLVData, false);
+switch (OpStatus.substring(2,8)) {
+  case "000000":
+    return "All good / requested operation was successful."
+    break;      
+  case "000002":
+    return "Requested Operation Failed"
+    break;    
+    case "000010": 
+    return "Setting up RTC data and time failure"
+    break;
+  case "000011": 
+    return "Setting up RTC alarm failure"
+    break;
+  case "000012": 
+    return "Key generation failure"
+    break;
+  case "000013": 
+    return "Tamper setting is locked, can’t be changed"
+    break;
+  case "000014": 
+    return "Tamper setting requires system reset to continue"
+    break;
+  case "000015": 
+    return "Tamper status can’t be cleared, failure"
+    break;
+  case "000016": 
+    return "Device has been tampered, need attention"
+    break;
+  case "000017": 
+    return "Tamper module failed for other cases"
+    break;
+  case "000018": 
+    return "Setting WLAN SoftAP password failure"
+    break;
+  
+  // ---- Message Handler ----  
+  case "010101": 
+    return "Generic Failure"
+    break;
+  case "010102": 
+    return "Bad message parameter. The host has sent a message to the device that is not constructed properly"
+    break;
+  case "010109": 
+    return "Device offline, can not process messages. For example,the device returns this detail code when it does not have keys injected or has registered a tamper"
+    break;
+  case "010110": 
+    return "PIN Key Not Mapped"
+    break;
+  case "010113": 
+    return "Feature Not Available"
+    break;
+  
+  // ---- Request Handler ----  
+  case "020000": 
+    return "Reserved"
+    break;
+  case "020100": 
+    return "Reserved"
+    break;
+  case "020101": 
+    return "Generic Failure"
+    break;
+  case "020102": 
+    return "Bad Message Parameter"
+    break;
+  case "020103": 
+    return "Response Payload too big"
+    break;
+  case "020107": 
+    return "Internal FW Failure"
+    break;
+  case "02010A": 
+    return "Image Failure"
+    break;
+  case "020119": 
+    return "Key does not exist"
+    break;
+  case "02011A": 
+    return "Not Secured"
+    break;
+  case "02011B": 
+    return "Passcode validation failed"
+    break;
+  case "02011C": 
+    return "Device is locked"
+    break;
+  case "020200": 
+    return "Reserved"
+    break;
+  case "020304": 
+    return "Failed, device state issue, no transaction"
+    break;
+  case "020305": 
+    return "Failed, device state issue, cannot cancel"
+    break;
+  case "020308": 
+    return "Failed, device state, Transaction in Progress"
+    break;
+  case "02030C": 
+    return "Failed, device state, Signature Not allowed"
+    break;
+  case "02030D": 
+    return "Failed, device state, Wrong Transaction State"
+    break;
+  case "02030E": 
+    return "Failed, device state, Invalid PIN Entry State"
+    break;
+  case "02030F": 
+    return "Failed, device state, PIN Entry in Session"
+    break;
+  case "020311": 
+    return "Failed, device state, Barcode Read in Progress"
+    break;
+  case "020312": 
+    return "Failed, device state, Pass-through command Not Activated"
+    break;
+  case "020314": 
+    return "Failed, device state, UI Settings in Progress"
+    break;
+  case "020315": 
+    return "Failed, device state, Buzzer in Progress"
+    break;
+  case "020316": 
+    return "Failed, device state, Low Battery (5% or less)"
+    break;
+  case "020413": 
+    return "Failed, BCR hardware not found"
+    break;
+  case "020501": 
+    return "Invalid TR31parameter"
+    break;
+  case "020502": 
+    return "Invalid AES length"
+    break;
+  case "020503": 
+    return "Invalid 16-Byte Boundary"
+    break;
+  case "020504": 
+    return "Invalid Length in Message"
+    break;
+  case "020505": 
+    return "Invalid number of optional KBH"
+    break;
+  case "020506": 
+    return "Error in conversion of data type"
+    break;
+  case "020507": 
+    return "Invalid KCV algorithm"
+    break;
+  case "020508": 
+    return "Invalid KCV length"
+    break;
+  case "020509": 
+    return "Invalid Optional KBH ID"
+    break;
+  case "02050A": 
+    return "Invalid KBH ID"
+    break;
+  case "02050B": 
+    return "Invalid algorithm used in KBH"
+    break;
+  case "02050C": 
+    return "Invalid KBH usage"
+    break;
+  case "02050D": 
+    return "Invalid KBH length"
+    break;
+  case "02050E": 
+    return "Invalid version ID for key derivation"
+    break;
+  case "02050F": 
+    return "Invalid KBH mode of use"
+    break;
+  case "020510": 
+    return "TR31 engine not installed"
+    break;
+  case "020511": 
+    return "Invalid Cryptographic operation"
+    break;
+  case "020512": 
+    return "MAC Verification Failed"
+    break;
+  case "020513": 
+    return "Error in Decrypting Key data"
+    break;
+  case "020514": 
+    return "Error in computing MAC over entire message"
+    break;
+  case "020515": 
+    return "Invalid MAC length"
+    break;
+  case "020516": 	
+    return "KDF Error"
+    break;
+  case "020517": 
+    return "Buffer Insufficient"
+    break;
+  case "020518": 
+    return "Invalid Storage KPM"
+    break;
+  case "020519": 
+    return "Invalid Storage Secure RAM"
+    break;
+  case "02051A": 
+    return "Invalid Key ID specified in option block"
+    break;
+  case "02051B": 
+    return "Unsupported Key ID specified in option block"
+    break;
+  case "02051C": 
+    return "Invalid Key ID Relationship"
+    break;
+  case "02051D": 
+    return "Protection Key ID not loaded"
+    break;
+  case "02051E": 
+    return "Invalid Data Tag MagTek Custom option block"
+    break;
+  case "02051F": 
+    return "Invalid KCV"
+    break;
+  case "020520": 
+    return "Invalid Data"
+    break;
+  case "020521": 
+    return "Invalid DUKPT key derivation"
+    break;
+  case "020522": 
+    return "Invalid Exportability"
+    break;
+  case "020523": 
+    return "Invalid Key Class"
+    break;
+  case "020524": 
+    return "Invalid DSN"
+    break;
+  case "020525": 
+    return "Invalid Challenge"
+    break;
+  case "020526": 
+    return "Key Undeletable"
+    break;
+  case "020527": 
+    return "Key not present"
+    break;
+  case "020528": 
+    return "Unsupported Keyset ID"
+    break;
+  case "020529": 
+    return "KPM Error"
+    break;
+  case "02052A": 
+    return "Secure RAM Error"
+    break;
+  case "02052B": 
+    return "Duplicated Key"
+    break;
+  case "02052C": 
+    return "Invalid Key Usage Rule"
+    break;
+  case "02052D": 
+    return "Self-test Key Corrupted"
+    break;
+  case "02052E": 
+    return "Self-test System Key Bitmap Corrupted"
+    break;
+  case "02052F": 
+    return "Self-test System Key Missing"
+    break;
+  case "020530": 
+    return "Self-test System Key Not Loaded"
+    break;
+  case "020531": 
+    return "Invalid Key Storage Limit"
+    break;
+  case "020532": 
+    return "Duplicated Key set"
+    break;
+  case "020533": 
+    return "Key Restriction"
+    break;
+  case "020534": 
+    return "Key Transported by Weaker key"
+    break;
+  case "020535": 
+    return "Repeat Key Agreement"
+    break;
+  case "020536": 
+    return "Security not activated"
+    break;
+  case "020537": 
+    return "Self-test key relocated"
+    break;
+  case "020538": 
+    return "Invalid Self-test Scanned Versus Saved Bitmap"
+    break;
+  default:
+    return "Unknown Operation Detail"
+    break;
+  }  
+};
+
 
 Array.prototype.zeroFill = function (len) {
   for (let i = this.length; i < len; i++) {
@@ -693,3 +1049,4 @@ Array.prototype.zeroFill = function (len) {
   }
   return this;
 };
+
