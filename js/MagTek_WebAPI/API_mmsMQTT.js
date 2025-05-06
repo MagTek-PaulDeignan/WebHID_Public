@@ -181,7 +181,7 @@ function CheckMQTTError (err) {
 
 function onMQTTMessage(topic, message) {
 
-  console.log(`onMQTTMessage:  ${topic}: ${message}` );
+  //console.log(`onMQTTMessage:  ${topic}: ${message}` );
   let data = "";
         
     let topicArray = topic.split('/');
@@ -197,7 +197,7 @@ function onMQTTMessage(topic, message) {
             if(_client)
               {              
               EmitObject({Name:"OnDeviceOpen", Device:_client});
-              console.log(`open --- ${topic} ${message}`); 
+              ///console.log(`open --- ${topic} ${message}`); 
               }
             else
               {
@@ -216,12 +216,12 @@ function onMQTTMessage(topic, message) {
               if (message[0] == 170)  // this must be in DynaFlex Binary Mode ("170 = 0xAA")
               {
                 mt_MMS.ParseMMSMessage(message);
-                console.log(`In Binary Mode`)
+                //console.log(`In Binary Mode`)
               }
               else
               {
                 mt_MMS.ParseMMSMessage(mt_Utils.hexToBytes(message.toString()));
-                console.log(`In ASCII Mode`)
+                //console.log(`In ASCII Mode`)
               }
             }
           break;
