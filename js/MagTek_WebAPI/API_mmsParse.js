@@ -741,49 +741,50 @@ function parseOpDetail(Msg) {
 if (Msg.MsgType != "82") return "";
 let OpStatus = mt_Utils.getTagValue("82", "", Msg.TLVData, false);
 switch (OpStatus.substring(2,8)) {
-  case "000000":
-    return "All good / requested operation was successful."
-    break;      
-  case "000002":
+  case "000000":  
+    return "OK - Requested Operation Successful"
+    break;
+  case "000002": 
     return "Requested Operation Failed"
-    break;    
-    case "000010": 
-    return "Setting up RTC data and time failure"
+    break;
+  case "000010": 
+    return "RTC Setup - Data and Time Failure"
     break;
   case "000011": 
-    return "Setting up RTC alarm failure"
+    return "RTC Setup - Alarm failure"
     break;
   case "000012": 
-    return "Key generation failure"
+    return "Key Generation Failure"
     break;
   case "000013": 
-    return "Tamper setting is locked, can’t be changed"
+    return "Tamper Setting Locked, Cannot be Changed"
     break;
   case "000014": 
-    return "Tamper setting requires system reset to continue"
+    return "Tamper Setting Requires System Reset"
     break;
   case "000015": 
-    return "Tamper status can’t be cleared, failure"
+    return "Tamper Status Cannot be Cleared, Failure"
     break;
   case "000016": 
-    return "Device has been tampered, need attention"
+    return "Device Tampered"
     break;
   case "000017": 
-    return "Tamper module failed for other cases"
+    return "Tamper Module Failed"
     break;
   case "000018": 
-    return "Setting WLAN SoftAP password failure"
+    return "Setting WLAN Soft-AP Password Failure"
     break;
   
-  // ---- Message Handler ----  
+  // ---- Message Handler ----
+  
   case "010101": 
     return "Generic Failure"
     break;
   case "010102": 
-    return "Bad message parameter. The host has sent a message to the device that is not constructed properly"
+    return "Bad Message Parameter. Message Not Constructed Properly"
     break;
   case "010109": 
-    return "Device offline, can not process messages. For example,the device returns this detail code when it does not have keys injected or has registered a tamper"
+    return "Device Offline, Cannot Process Messages"
     break;
   case "010110": 
     return "PIN Key Not Mapped"
@@ -792,7 +793,8 @@ switch (OpStatus.substring(2,8)) {
     return "Feature Not Available"
     break;
   
-  // ---- Request Handler ----  
+  // ---- Request Handler ----
+  
   case "020000": 
     return "Reserved"
     break;
@@ -806,70 +808,70 @@ switch (OpStatus.substring(2,8)) {
     return "Bad Message Parameter"
     break;
   case "020103": 
-    return "Response Payload too big"
+    return "Response Payload Too Large"
     break;
   case "020107": 
-    return "Internal FW Failure"
+    return "Internal Firmware Failure"
     break;
   case "02010A": 
     return "Image Failure"
     break;
   case "020119": 
-    return "Key does not exist"
+    return "Key Does Not Exist"
     break;
   case "02011A": 
     return "Not Secured"
     break;
   case "02011B": 
-    return "Passcode validation failed"
+    return "Passcode Validation Failed"
     break;
   case "02011C": 
-    return "Device is locked"
+    return "Device Locked"
     break;
   case "020200": 
     return "Reserved"
     break;
   case "020304": 
-    return "Failed, device state issue, no transaction"
+    return "Failed Device State, No Transaction"
     break;
   case "020305": 
-    return "Failed, device state issue, cannot cancel"
+    return "Failed Device State, Cannot Cancel"
     break;
   case "020308": 
-    return "Failed, device state, Transaction in Progress"
+    return "Failed Device State, Transaction in Progress"
     break;
   case "02030C": 
-    return "Failed, device state, Signature Not allowed"
+    return "Failed Device State, Signature Not Allowed"
     break;
   case "02030D": 
-    return "Failed, device state, Wrong Transaction State"
+    return "Failed Device State, Incorrect Transaction State"
     break;
   case "02030E": 
-    return "Failed, device state, Invalid PIN Entry State"
+    return "Failed Device State, Invalid PIN Entry State"
     break;
   case "02030F": 
-    return "Failed, device state, PIN Entry in Session"
+    return "Failed Device State, PIN Entry in Session"
     break;
   case "020311": 
-    return "Failed, device state, Barcode Read in Progress"
+    return "Failed Device State, Barcode Read in Progress"
     break;
   case "020312": 
-    return "Failed, device state, Pass-through command Not Activated"
+    return "Failed Device State, Pass-through Command Not Activated"
     break;
   case "020314": 
-    return "Failed, device state, UI Settings in Progress"
+    return "Failed Device State, UI Settings in Progress"
     break;
   case "020315": 
-    return "Failed, device state, Buzzer in Progress"
+    return "Failed Device State, Buzzer in Progress"
     break;
   case "020316": 
-    return "Failed, device state, Low Battery (5% or less)"
+    return "Failed Device State, Low Battery (5% or less)"
     break;
   case "020413": 
-    return "Failed, BCR hardware not found"
+    return "Failed, BCR Hardware Not Found"
     break;
   case "020501": 
-    return "Invalid TR31parameter"
+    return "Invalid TR31 Parameter"
     break;
   case "020502": 
     return "Invalid AES length"
@@ -884,7 +886,7 @@ switch (OpStatus.substring(2,8)) {
     return "Invalid number of optional KBH"
     break;
   case "020506": 
-    return "Error in conversion of data type"
+    return "Error Data Type Conversion"
     break;
   case "020507": 
     return "Invalid KCV algorithm"
@@ -908,25 +910,25 @@ switch (OpStatus.substring(2,8)) {
     return "Invalid KBH length"
     break;
   case "02050E": 
-    return "Invalid version ID for key derivation"
+    return "Invalid version ID for Key Derivation"
     break;
   case "02050F": 
-    return "Invalid KBH mode of use"
+    return "Invalid KBH Use-Mode"
     break;
   case "020510": 
-    return "TR31 engine not installed"
+    return "TR31 Engine Not Installed"
     break;
   case "020511": 
-    return "Invalid Cryptographic operation"
+    return "Invalid Cryptographic Operation"
     break;
   case "020512": 
     return "MAC Verification Failed"
     break;
   case "020513": 
-    return "Error in Decrypting Key data"
+    return "Error in Decrypting Key Data"
     break;
   case "020514": 
-    return "Error in computing MAC over entire message"
+    return "Error in Computing MAC Message"
     break;
   case "020515": 
     return "Invalid MAC length"
@@ -944,10 +946,10 @@ switch (OpStatus.substring(2,8)) {
     return "Invalid Storage Secure RAM"
     break;
   case "02051A": 
-    return "Invalid Key ID specified in option block"
+    return "Invalid Key ID Specified in Option Block"
     break;
   case "02051B": 
-    return "Unsupported Key ID specified in option block"
+    return "Unsupported Key ID specified in Option Block"
     break;
   case "02051C": 
     return "Invalid Key ID Relationship"
@@ -956,7 +958,7 @@ switch (OpStatus.substring(2,8)) {
     return "Protection Key ID not loaded"
     break;
   case "02051E": 
-    return "Invalid Data Tag MagTek Custom option block"
+    return "Invalid Data Tag MagTek Custom Option Block"
     break;
   case "02051F": 
     return "Invalid KCV"
@@ -983,7 +985,7 @@ switch (OpStatus.substring(2,8)) {
     return "Key Undeletable"
     break;
   case "020527": 
-    return "Key not present"
+    return "Key Not Present"
     break;
   case "020528": 
     return "Unsupported Keyset ID"
@@ -1016,7 +1018,7 @@ switch (OpStatus.substring(2,8)) {
     return "Invalid Key Storage Limit"
     break;
   case "020532": 
-    return "Duplicated Key set"
+    return "Duplicated Key Set"
     break;
   case "020533": 
     return "Key Restriction"
@@ -1028,10 +1030,10 @@ switch (OpStatus.substring(2,8)) {
     return "Repeat Key Agreement"
     break;
   case "020536": 
-    return "Security not activated"
+    return "Security Not Activated"
     break;
   case "020537": 
-    return "Self-test key relocated"
+    return "Self-test Key Relocated"
     break;
   case "020538": 
     return "Invalid Self-test Scanned Versus Saved Bitmap"

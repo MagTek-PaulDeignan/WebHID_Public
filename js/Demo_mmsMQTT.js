@@ -180,7 +180,6 @@ async function parseCommand(message) {
       break;
     case "UPDATETAGSRMS":
       updateTagsRMS(); 
-
       break;
     case "HEXTOBASE64":
       let b64Data = mt_Utils.hexToBase64(cmd[1])
