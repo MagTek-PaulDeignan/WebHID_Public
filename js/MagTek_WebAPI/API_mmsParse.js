@@ -713,22 +713,22 @@ function parseOpStatus(Msg) {
   let OpStatus = mt_Utils.getTagValue("82", "", Msg.TLVData, false);
   switch (OpStatus.substring(0,2)) {
     case "00":
-      return "OK, Done"
+      return "OK, Success"
       break;      
     case "01":
-      return "OK, Started / Running"
+      return "OK, Started"
       break;
     case "40":
-      return "OK, Done with Warnings"
+      return "OK, With Warnings"
       break;
     case "41":
-      return "OK, Started / Running with Warnings"
+      return "OK, Started with Warnings"
       break;
     case "80":
-      return "Failed to start operation (missing parameters, etc.)"
+      return "Failed to Start"
       break;
     case "81":
-      return "Failed during operation"
+      return "Failed Operation"
       break;
     default:
       return "Unknown Operation Status"
