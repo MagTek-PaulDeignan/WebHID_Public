@@ -118,7 +118,6 @@ async function configureStandard() {
             CashBack: 0
           }
     
-          
             Amount.SubTotal =  mt_Utils.impliedDollarAmt(mt_Utils.getTagValue('DF2A', '00', window.mt_device_ARQCData.substring(4), false));
             Amount.Tax = mt_Utils.impliedDollarAmt(mt_Utils.getTagValue('DF5E', '00', window.mt_device_ARQCData.substring(4), false));
             Amount.Tip = mt_Utils.impliedDollarAmt(mt_Utils.getTagValue('DF5D', '00', window.mt_device_ARQCData.substring(4), false));
@@ -142,18 +141,43 @@ async function configureStandard() {
                   {
                     mt_UI.LogData(`=====================Processor Response KVPs=====================`);
                     for (var key in saleResp.data.Details) {
-                      if (saleResp.data.Details.hasOwnProperty(key))
+                      if (saleResp.data.Details.hasOwnProperty(key)) {
+                        mt_UI.LogData(`${key}: ${saleResp.data.Details[key]}`);
+
+                        if (!key.endsWith("Receipt")) 
                         {
-                          mt_UI.LogData(`${key}: ${saleResp.data.Details[key]}` );
+                          mt_UI.LogData(`${key}: ${saleResp.data.Details[key]}`);
+                        } 
+                        else 
+                        {
+                          let Outdata = saleResp.data.Details[key].replace(/\\n/g,"\n");
+                          let JSONData = {
+                            Header: "",
+                            Body: `${Outdata}`,
+                            Footer: "",
+                          };
+
+                          let PrinterPath = mt_Utils.getEncodedValue("MPPG_Printer","");
+                          if (PrinterPath.length > 0) 
+                          {
+                            mt_MQTT.PrintData(PrinterPath,JSON.stringify(JSONData));
+                          } 
+                          else 
+                          {
+                            mt_UI.LogData(`============================${key}============================`);
+                            mt_UI.LogData(`${Outdata}`);
+                            mt_UI.LogData(`============================${key}============================`);
+                          }
                         }
+                      }
                     }
                     mt_UI.LogData(`======================Processor Response KVPs======================`);
                   }
 
-                  mt_UI.LogData(``);
-                  mt_UI.LogData(`======================Transaction Response Details======================`);
-                  mt_UI.LogData(JSON.stringify(saleResp.data, null, 2));
-                  mt_UI.LogData(`======================Transaction Response Details======================`);                
+                  //mt_UI.LogData(``);
+                  //mt_UI.LogData(`======================Transaction Response Details======================`);
+                  //mt_UI.LogData(JSON.stringify(saleResp.data, null, 2));
+                  //mt_UI.LogData(`======================Transaction Response Details======================`);                
               }
               else
               {
