@@ -158,9 +158,25 @@ async function handleClearButton() {
                           else
                           {
                             let Outdata = saleResp.data.Details[key].replace(/\\n/g, '\n');
-                            mt_UI.LogData(`============================${key}=============================`);
-                            mt_UI.LogData(`${Outdata}`);
-                            mt_UI.LogData(`============================${key}============================`);          
+                            let JSONData = 
+                                  {
+                                    Header:"",
+                                    Body: `${Outdata}`,
+                                    Footer:""
+                                  };
+                            
+                            let PrinterPath = mt_Utils.getEncodedValue("MPPG_Printer", "");
+                            if(PrinterPath.length > 0 )
+                            {
+                                mt_MQTT.PrintData(PrinterPath, JSON.stringify(JSONData));
+                            }
+                            else
+                            {
+                              mt_UI.LogData(`============================${key}============================`);
+                              mt_UI.LogData(`${Outdata}`);
+                              mt_UI.LogData(`============================${key}============================`);          
+                            }
+                            
                           }
                         }
                     }

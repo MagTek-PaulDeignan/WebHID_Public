@@ -223,6 +223,13 @@ export function CheckForHID(){
     LogData("See: https://developer.mozilla.org/en-US/docs/Web/API/WebHID_API#browser_compatibility");
   } 
 }
+export function CheckForSerial(){
+  if (!navigator.hid)
+  {
+    LogData("This Browser/OS does not support WEB Serial");
+    LogData("See: https://developer.mozilla.org/en-US/docs/Web/API/Web_Serial_API#browser_compatibility");
+  } 
+}
 
 export function StringNoNulls(data){
   let resp = JSON.stringify(data,(key, value) => {

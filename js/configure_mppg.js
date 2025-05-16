@@ -29,6 +29,9 @@ async function handleDOMLoaded() {
 
   item = document.getElementById("txProcessorName");
   item.value = mt_Utils.getEncodedValue("MPPG_ProcessorName", "VFNZUyAtIFBJTE9U");
+
+  item = document.getElementById("txPrinter");
+  item.value = mt_Utils.getEncodedValue("MPPG_Printer", "");
   
 }
 
@@ -48,6 +51,10 @@ async function handleSaveButton() {
 
   item = document.getElementById("txProcessorName");
   mt_Utils.saveEncodedValue("MPPG_ProcessorName", item.value);
+
+  item = document.getElementById("txPrinter");
+  mt_Utils.saveEncodedValue("MPPG_Printer", item.value);
+
 
   item = document.getElementById("status");
   item.innerText = " : Saved"  
