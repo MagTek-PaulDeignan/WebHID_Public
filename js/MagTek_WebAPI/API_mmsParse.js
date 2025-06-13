@@ -371,6 +371,7 @@ function parseContactlessDetail(Msg) {
 }
 
 function parseBarcodeDetail(Msg) {
+  console.log(Msg.HexData)
   let NotifyDetail = mt_Utils.getTagValue("82", "", Msg.TLVData, false);
   let Detail = NotifyDetail.substring(2, 8);
   switch (Detail) {
@@ -487,10 +488,13 @@ function parseNotificationFromDevice(Msg) {
         let Message = mt_Utils.hexToASCII(NotifyDetail.substring(44));
         EmitObject({ Name: "OnUIDisplayMessage", Data: Message });
         break;
-      case "1805":
-        console.log(`1805- ${Msg.HexString}`)
+      case "1805":        
         NotifyDetail = Msg.TLVData;
+        
+        window.mt_device_response = window.mt_device_delayedresponse;         
         EmitObject({ Name: "OnUIHostActionComplete", Data: NotifyDetail });
+        EmitObject({ Name: "OnDeviceResponse", Data: window.mt_device_response });
+        
         break;
       default:
         NotifyDetail = mt_Utils.toHexString(Msg.TLVData);
@@ -564,6 +568,7 @@ function parseUserEventDetail(Msg) {
       EmitObject({ Name: "OnTouchUp", Data: { Xpos: xPos, Ypos: yPos } });
       break;
     case "07": //Barcode Detected
+    console.log(Msg.HexString)
       NotifyDetail = mt_Utils.getTagValue("84", "", Msg.TLVData, false);
       EmitObject({
         Name: "OnBarcodeDetected",
@@ -590,13 +595,19 @@ function parseRequestFromDevice(Msg) {
   EmitObject({ Name: "OnRequestFromDevice", Data: NotifyDetail });
 }
 function parseResponseFromDevice(Msg) {
-  //let NotifyDetail = Msg.TLVData;
-  //window.mt_device_response = Msg; 
-  //EmitObject({ Name: "OnDeviceResponse", Data: Msg });  
-  
+
   const MMSResponse = ParseMMSResponseMessage(Msg);
-  window.mt_device_response = MMSResponse; 
-  EmitObject({ Name: "OnDeviceResponse", Data: MMSResponse });
+  if (MMSResponse.RespID == "1805")
+  {
+    window.mt_device_delayedresponse = MMSResponse;
+    EmitObject({ Name: "OnDeviceDelayedResponse", Data: MMSResponse });
+  }
+  else
+  {
+    window.mt_device_response = MMSResponse; 
+    EmitObject({ Name: "OnDeviceResponse", Data: MMSResponse });
+  }
+  
 }
 function parseRequestFromHost(Msg) {
   let NotifyDetail = mt_Utils.getTagValue("82", "", Msg.TLVData, false);

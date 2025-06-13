@@ -224,11 +224,23 @@ export function CheckForHID(){
   } 
 }
 export function CheckForSerial(){
-  if (!navigator.hid)
+  if (!navigator.serial)
   {
     LogData("This Browser/OS does not support WEB Serial");
     LogData("See: https://developer.mozilla.org/en-US/docs/Web/API/Web_Serial_API#browser_compatibility");
   } 
+}
+export function CheckForBLE(){
+  if (!navigator.bluetooth)
+  {
+    LogData("This Browser/OS does not support WEB Bluetooth");
+    LogData("See: https://developer.mozilla.org/en-US/docs/Web/API/Web_Bluetooth_API#browser_compatibility");
+    if (isiOS()) LogData("   We recommend using Bluefy on your iOS device:  https://apps.apple.com/us/app/bluefy-web-ble-browser/id1492822055");
+  } 
+}
+
+function isiOS() {
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 }
 
 export function StringNoNulls(data){
