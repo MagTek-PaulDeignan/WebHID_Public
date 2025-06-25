@@ -11,12 +11,16 @@ DO NOT REMOVE THIS COPYRIGHT
 */
 
 import * as mt_Utils from "./MagTek_WebAPI/mt_utils.js";
-import * as mt_MMS from "./MagTek_WebAPI/API_mmsBLE.js";
+//import * as mt_MMS from "./MagTek_WebAPI/API_mmsBLE.js";
 import * as mt_UI from "./mt_ui.js";
 import * as mt_RMS_API from "./MagTek_WebAPI/API_rms.js";
 import "./MagTek_WebAPI/mt_events.js";
 import * as mt_XML2JSON from "./MagTek_WebAPI/mt_xml2json.js";
 import * as mt_MMS_Commands from "./MagTek_WebAPI/API_mmsCommands.js"
+
+import DeviceFactory from "./MagTek_WebAPI/device/device_factory.js";
+let mt_MMS = DeviceFactory.getDevice("MMS_BLE");
+
 
 let defaultRMSURL = 'https://svc1.magensa.net/rms/api';
 let defaultRMSAPIKey = 'TVRQdWJsaWMtQUVFQ0Q0NEEtODc1NS00QUEwLUFENTgtNTNDMzNGQkJCNEE4';
@@ -592,8 +596,8 @@ async function parseFirmwareFile(file, fileType = 1){
     reader.onload = async function(e) {
       const firmwareBuffer = new Uint8Array(reader.result);
       let response =  await mt_MMS_Commands.GetLoadFimrwarefromByteArray(fileType, firmwareBuffer);
-        mt_UI.LogData(`commit ${response.commitCmd}`);
-        mt_UI.LogData(`fw ${response.firmwareCmd}`);
+        //mt_UI.LogData(`commit ${response.commitCmd}`);
+        //mt_UI.LogData(`fw ${response.firmwareCmd}`);
       window.mt_device_CommitCmd = response.commitCmd;
       mt_MMS.sendCommand(response.firmwareCmd);
     };

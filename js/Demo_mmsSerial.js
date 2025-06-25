@@ -591,8 +591,8 @@ async function parseFirmwareFile(file, fileType = 1){
     reader.onload = async function(e) {
       const firmwareBuffer = new Uint8Array(reader.result);
       let response =  await mt_MMS_Commands.GetLoadFimrwarefromByteArray(fileType, firmwareBuffer);
-        mt_UI.LogData(`commit ${response.commitCmd}`);
-        mt_UI.LogData(`fw ${response.firmwareCmd}`);
+        //mt_UI.LogData(`commit ${response.commitCmd}`);
+        //mt_UI.LogData(`fw ${response.firmwareCmd}`);
       window.mt_device_CommitCmd = response.commitCmd;
       mt_MMS.sendCommand(response.firmwareCmd);
     };

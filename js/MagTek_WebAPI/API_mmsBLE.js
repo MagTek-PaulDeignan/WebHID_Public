@@ -19,7 +19,7 @@ export let _activeCommandMode = true;
 
 let messageSndCounter = 0;
 let messageRcvCounter = 0;
-let device; // Global variable to hold the connected Bluetooth device
+let device; //  the connected Bluetooth device
 let dynaFlexService;
 let messageFromHostCharacteristic;
 let messageToHostCharacteristic;
@@ -202,12 +202,11 @@ export async function openDevice() {
     // }
     }
 
-    //
-
                 // Add a listener for when the device disconnects
+                device.removeEventListener('gattserverdisconnected', onDisconnected);
                 device.addEventListener('gattserverdisconnected', onDisconnected);
 
-                console.log(`Connecting to "${device.name || device.id}"...`);
+                //console.log(`Connecting to "${device.name || device.id}"...`);
 
                 // Connect to the GATT server
                 server = await device.gatt.connect();
@@ -223,11 +222,11 @@ export async function openDevice() {
                 await new Promise(resolve => setTimeout(resolve, 500)); // Wait for 500ms
                 // Get the DynaFlex service
                 dynaFlexService = await server.getPrimaryService(DYNAFLEX_SERVICE_UUID);
-                console.log('DynaFlex Service:', dynaFlexService);
+                //console.log('DynaFlex Service:', dynaFlexService);
 
                 // Get the "Message From Host" characteristic
                 messageFromHostCharacteristic = await dynaFlexService.getCharacteristic(MESSAGE_FROM_HOST_CHARACTERISTIC_UUID);
-                console.log('Message From Host Characteristic:', messageFromHostCharacteristic);
+                //console.log('Message From Host Characteristic:', messageFromHostCharacteristic);
 
                 // Get the "Message To Host" characteristic
                 messageToHostCharacteristic = await dynaFlexService.getCharacteristic(MESSAGE_TO_HOST_CHARACTERISTIC_UUID);
@@ -236,18 +235,15 @@ export async function openDevice() {
                 // Enable notifications for "Message To Host" characteristic
                 await messageToHostCharacteristic.startNotifications();
                 messageToHostCharacteristic.addEventListener('characteristicvaluechanged', handleMessageToHostNotifications);
-                console.log('Notifications enabled for "Message To Host".');
+                //console.log('Notifications enabled for "Message To Host".');
 
-                console.log(`name: ${device.name}, id: ${device.id}`);
-                console.log('Connected to:', device);
-                console.log('GATT Server:', server);
+                //console.log(`name: ${device.name}, id: ${device.id}`);
+                //console.log('Connected to:', device);
+                //console.log('GATT Server:', server);
                 return device;
 
             } catch (error) {
-                //console.log(error.message);
-                //console.error('Bluetooth connection error:', error);
-                //connectButton.disabled = false; // Re-enable button on error
-                EmitObject({Name:"OnError", Source: "OpenDevice", Data: "Error opening device"});
+                EmitObject({Name:"OnError", Source: "OpenDevice", Data: error.message});
             }
     //
 };
@@ -262,11 +258,11 @@ export async function closeDevice(){
               await messageToHostCharacteristic.stopNotifications();
               messageToHostCharacteristic.removeEventListener('characteristicvaluechanged', handleMessageToHostNotifications);    
               
-              console.log('Notifications stopped and event listener removed.');
+              //console.log('Notifications stopped and event listener removed.');
             } 
         catch (error) 
             {
-              console.warn('Failed to stop notifications or remove event listener:', error);
+              //console.warn('Failed to stop notifications or remove event listener:', error);
             }
       }
     device.gatt.disconnect();

@@ -18,6 +18,9 @@ import "./MagTek_WebAPI/mt_events.js";
 import * as mt_XML2JSON from "./MagTek_WebAPI/mt_xml2json.js";
 import * as mt_MMS_Commands from "./MagTek_WebAPI/API_mmsCommands.js"
 
+//import DeviceFactory from "./MagTek_WebAPI/device/device_factory.js";
+//let mt_MMS = DeviceFactory.getDevice("MMS_HID");
+
 let defaultRMSURL = 'https://svc1.magensa.net/rms/api';
 let defaultRMSAPIKey = 'TVRQdWJsaWMtQUVFQ0Q0NEEtODc1NS00QUEwLUFENTgtNTNDMzNGQkJCNEE4';
 let defaultRMSProfileName = 'TWFnVGVrX1Byb2R1Y3Rpb24=';
@@ -311,7 +314,8 @@ const deviceOpenLogger = async (e) => {
    let cmds = await mt_Utils.FetchCommandsfromURL("cmds/onOpen.txt");
    if (cmds.status.ok){
      await parseCommands('Updating Device', cmds.data);
-   }
+   }  
+
 };
 const dataLogger = (e) => {
   mt_UI.LogData(`Received Data: ${e.Name}: ${e.Data}`);
@@ -590,8 +594,8 @@ async function parseFirmwareFile(file, fileType = 1){
     reader.onload = async function(e) {
       const firmwareBuffer = new Uint8Array(reader.result);
       let response =  await mt_MMS_Commands.GetLoadFimrwarefromByteArray(fileType, firmwareBuffer);
-        mt_UI.LogData(`commit ${response.commitCmd}`);
-        mt_UI.LogData(`fw ${response.firmwareCmd}`);
+        //mt_UI.LogData(`commit ${response.commitCmd}`);
+        //mt_UI.LogData(`fw ${response.firmwareCmd}`);
       window.mt_device_CommitCmd = response.commitCmd;
       mt_MMS.sendCommand(response.firmwareCmd);
     };
