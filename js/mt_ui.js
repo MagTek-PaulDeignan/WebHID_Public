@@ -216,6 +216,28 @@ export function hideSpinner() {
   loadingSpinner.style.visibility = "hidden";
 }
 
+export function CheckForDevice(device){
+switch (device.toLowerCase()) 
+{
+  case "mms_hid":
+    CheckForHID();
+    break;
+  case "mms_ble":
+    CheckForBLE();
+    break;
+  case "mms_serial":
+    CheckForSerial();  
+    break;
+  case "mms_mqtt":    
+    break;
+  case "mms_wss":    
+    break;
+  default:
+    LogData(`Unknown device: ${device}`);
+    break;
+}
+}
+
 export function CheckForHID(){
   if (!navigator.hid)
   {
