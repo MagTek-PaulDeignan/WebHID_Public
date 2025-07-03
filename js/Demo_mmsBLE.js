@@ -18,7 +18,7 @@ import "./MagTek_WebAPI/mt_events.js";
 import * as mt_XML2JSON from "./MagTek_WebAPI/mt_xml2json.js";
 import * as mt_MMS_Commands from "./MagTek_WebAPI/API_mmsCommands.js"
 
-import DeviceFactory from "./MagTek_WebAPI/device/device_factory.js";
+import DeviceFactory from "./MagTek_WebAPI/device/API_device_factory.js";
 let mt_MMS = DeviceFactory.getDevice("MMS_BLE");
 
 

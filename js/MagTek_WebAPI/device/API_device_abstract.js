@@ -89,34 +89,24 @@ class AbstractDevice {
     return await this.sendCommand(mt_Utils.base64ToHex(cmdToSendB64));
   }
 
-/**
+  /**
    * @method GetDeviceSN
    * @description
    * Sends a specific command to get the device's serial number and parses the response.
-   * Overrides the abstract method.
    * @returns {Promise<string>} A promise that resolves with the device serial number.
    */
   async GetDeviceSN() {
-    let resp = await this.sendCommand("AA0081040100D101841AD10181072B06010401F609850102890AE208E106E104E102C100");
-    let str = resp.TLVData.substring(24);
-    let tag89 = mt_Utils.getTagValue("89", "", str, false);
-    let data = mt_Utils.getTagValue("C1", "", tag89, false);
-    return data.substring(0, 7);
+   throw new Error("Method 'GetDeviceSN()' must be implemented by a concrete device class.");
   }
 
   /**
    * @method GetDeviceFWID
    * @description
    * Sends a specific command to get the device's firmware ID and parses the response.
-   * Overrides the abstract method.
    * @returns {Promise<string>} A promise that resolves with the device firmware ID.
    */
   async GetDeviceFWID() {
-    let resp = await this.sendCommand("AA0081040102D101841AD10181072B06010401F609850102890AE108E206E204E202C200");
-    let str = resp.TLVData.substring(24);
-    let tag89 = mt_Utils.getTagValue("89", "", str, false);
-    let data = mt_Utils.getTagValue("C2", "", tag89, true);
-    return data;
+  throw new Error("Method 'GetDeviceFWID()' must be implemented by a concrete device class.");  
   }
 
   /**

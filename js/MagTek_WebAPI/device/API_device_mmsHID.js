@@ -25,7 +25,7 @@ class MMSHIDDevice extends AbstractDevice {
   /**
    * @constructor
    * @description
-   * Initializes HID-specific properties.
+   * Initializes MMS HID-specific properties.
    */
   constructor() {
     super(); // Call the parent constructor
@@ -33,13 +33,31 @@ class MMSHIDDevice extends AbstractDevice {
     this._filters = mt_Configs.MMSfilters; // HID device filters from configuration
     this.mtDeviceType = ""; // Device type identifier (e.g., "MMS", "V5")
     this._device = null; // Holds the connected HID device instance
+    this.connectListenerRef = null;
+    this.disConnectListenerRef = null;
+    this.InputReportListenerRef = null;
 
     //Add the hid event listener for connect/plug in
-    navigator.hid.addEventListener("connect", ({ device }) => {
-    this._emitObject({Name:"OnDeviceConnect", Device:device});});
+    //navigator.hid.addEventListener("connect", ({ device }) => {
+    //this._emitObject({Name:"OnDeviceConnect", Device:device});}
+    //);
+
     //Add the hid event listener for disconnect/unplug
-    navigator.hid.addEventListener("disconnect", ({ device }) => {
-    this._emitObject({Name:"OnDeviceDisconnect", Device:device});});
+    // navigator.hid.addEventListener("disconnect", ({ device }) => {
+    // this._emitObject({Name:"OnDeviceDisconnect", Device:device});}
+    //);
+
+    if(this.connectListenerRef != null){
+      navigator.hid.removeEventListener("connect", this.connectListenerRef);
+    }
+    this.connectListenerRef =  this.connectListener.bind(this);
+    navigator.hid.addEventListener("connect", this.connectListenerRef); 
+    
+    if(this.disConnectListenerRef != null){
+      navigator.hid.removeEventListener("disconnect", this.disConnectListenerRef);
+    }
+    this.disConnectListenerRef = this.disConnectListener.bind(this);
+    navigator.hid.addEventListener("disconnect", this.disConnectListenerRef);     
   }
 
   /**
@@ -158,11 +176,16 @@ class MMSHIDDevice extends AbstractDevice {
       }
 
       // Open the device if it's not already opened
+      
       if (!this._device.opened) {
         await this._device.open();
         // Add listener for incoming data reports
-        this._device.removeEventListener("inputreport", this._handleInputReport.bind(this));
-        this._device.addEventListener("inputreport", this._handleInputReport.bind(this));
+        
+        if (this.InputReportListenerRef != null){
+          this._device.removeEventListener("inputreport", this.InputReportListenerRef);
+        }
+        this.InputReportListenerRef = this._handleInputReport.bind(this)
+        this._device.addEventListener("inputreport", this.InputReportListenerRef);
       }
 
       // If device is successfully opened
@@ -174,9 +197,11 @@ class MMSHIDDevice extends AbstractDevice {
         // Emit OnDeviceOpen based on device type
         switch (this.mtDeviceType) {
           case "MMS":
-          case "V5": // V5 also seems to use HID, though its parser is separate
             this._emitObject({ Name: "OnDeviceOpen", Device: this._device });
             break;
+          // case "V5": // V5 also seems to use HID, though its parser is separate
+          //   this._emitObject({ Name: "OnDeviceOpen", Device: this._device });
+          //   break;
           default:
             this._emitObject({
               Name: "OnError",
@@ -209,7 +234,10 @@ class MMSHIDDevice extends AbstractDevice {
     window.mt_device_WasOpened = false; // Global flag
     if (this._device != null && this._device.opened) {
       // Remove input report listener before closing
-      this._device.removeEventListener("inputreport", this._handleInputReport.bind(this));
+      if( this.InputReportListenerRef != null){
+        this._device.removeEventListener("inputreport", this.InputReportListenerRef);
+      }
+      
       await this._device.close();
       this._emitObject({ Name: "OnDeviceClose", Device: this._device });
       this._device = null; // Clear device reference
@@ -252,6 +280,43 @@ class MMSHIDDevice extends AbstractDevice {
         break;
     }
   }
-}
 
+  connectListener({deviceObject}){
+    this._emitObject({Name:"OnDeviceConnect", Device:device});
+  }
+
+  disConnectListener({deviceObject}){
+    this._emitObject({Name:"OnDeviceConnect", Device:device});
+  }
+
+  /**
+   * @method GetDeviceSN
+   * @description
+   * Sends a specific command to get the device's serial number and parses the response.
+   * Overrides the abstract method.
+   * @returns {Promise<string>} A promise that resolves with the device serial number.
+   */
+  async GetDeviceSN() {
+    let resp = await this.sendCommand("AA0081040100D101841AD10181072B06010401F609850102890AE208E106E104E102C100");
+    let str = resp.TLVData.substring(24);
+    let tag89 = mt_Utils.getTagValue("89", "", str, false);
+    let data = mt_Utils.getTagValue("C1", "", tag89, false);
+    return data.substring(0, 7);
+  }
+
+  /**
+   * @method GetDeviceFWID
+   * @description
+   * Sends a specific command to get the device's firmware ID and parses the response.
+   * Overrides the abstract method.
+   * @returns {Promise<string>} A promise that resolves with the device firmware ID.
+   */
+  async GetDeviceFWID() {
+    let resp = await this.sendCommand("AA0081040102D101841AD10181072B06010401F609850102890AE108E206E204E202C200");
+    let str = resp.TLVData.substring(24);
+    let tag89 = mt_Utils.getTagValue("89", "", str, false);
+    let data = mt_Utils.getTagValue("C2", "", tag89, true);
+    return data;
+  }
+}
 export default MMSHIDDevice;

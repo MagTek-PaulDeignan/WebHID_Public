@@ -11,15 +11,15 @@ DO NOT REMOVE THIS COPYRIGHT
 */
 
 import * as mt_Utils from "./MagTek_WebAPI/mt_utils.js";
-import * as mt_MMS from "./MagTek_WebAPI/API_mmsHID.js";
+//import * as mt_MMS from "./MagTek_WebAPI/API_mmsHID.js";
 import * as mt_UI from "./mt_ui.js";
 import * as mt_RMS_API from "./MagTek_WebAPI/API_rms.js";
 import "./MagTek_WebAPI/mt_events.js";
 import * as mt_XML2JSON from "./MagTek_WebAPI/mt_xml2json.js";
 import * as mt_MMS_Commands from "./MagTek_WebAPI/API_mmsCommands.js"
 
-//import DeviceFactory from "./MagTek_WebAPI/device/device_factory.js";
-//let mt_MMS = DeviceFactory.getDevice("MMS_HID");
+import DeviceFactory from "./MagTek_WebAPI/device/API_device_factory.js";
+let mt_MMS = DeviceFactory.getDevice("MMS_HID");
 
 let defaultRMSURL = 'https://svc1.magensa.net/rms/api';
 let defaultRMSAPIKey = 'TVRQdWJsaWMtQUVFQ0Q0NEEtODc1NS00QUEwLUFENTgtNTNDMzNGQkJCNEE4';
@@ -68,20 +68,6 @@ async function handleDOMLoaded() {
     mt_UI.setUSBConnected("Connected");
   });
 
-
-  //Add the hid event listener for connect/plug in
-  navigator.hid.addEventListener("connect", async ({ device }) => {
-    EmitObject({Name:"OnDeviceConnect", Device:device});
-    if (window.mt_device_WasOpened) {
-      await mt_Utils.wait(_openTimeDelay);
-      await handleOpenButton();
-    }
-  });
-
-  //Add the hid event listener for disconnect/unplug
-  navigator.hid.addEventListener("disconnect", ({ device }) => {
-    EmitObject({Name:"OnDeviceDisconnect", Device:device});
-  });
 }
 
 async function handleCloseButton() {
@@ -287,7 +273,7 @@ async function parseCommand(message) {
       break;  
     case "PARSEHARDWAREID":
       mt_UI.LogData(JSON.stringify(mt_Utils.parseHardwareID(cmd[1])));
-      break;  
+      break;
     default:
       mt_Utils.debugLog("Unknown Command");
   }
@@ -298,8 +284,12 @@ function ClearAutoCheck() {
   chk.checked = false;
 }
 
-const deviceConnectLogger = (e) => {
+const deviceConnectLogger = async (e) => {
   mt_UI.setUSBConnected("Connected");
+  if (window.mt_device_WasOpened) {
+       await mt_Utils.wait(_openTimeDelay);
+       await handleOpenButton();
+     }
 };
 const deviceDisconnectLogger = (e) => {
   mt_UI.setUSBConnected("Disconnected");
@@ -501,9 +491,7 @@ const contactCardInsertedLogger = (e) => {
     _AwaitingContactEMV = false;
     ClearAutoCheck();
     mt_UI.LogData(`Auto Starting EMV...`);
-    mt_MMS.sendCommand(
-      "AA008104010010018430100182010AA30981010082010183010084020003861A9C01009F02060000000001009F03060000000000005F2A020840"
-    );
+    mt_MMS.sendCommand("AA008104010010018430100182010AA30981010082010183010084020003861A9C01009F02060000000001009F03060000000000005F2A020840");
   }
 };
 
@@ -519,9 +507,7 @@ const msrSwipeDetectedLogger = (e) => {
   if (_autoStart.checked & chk.checked & (e.Data.toLowerCase() == "idle")) {
     ClearAutoCheck();
     mt_UI.LogData(`Auto Starting MSR...`);
-    mt_MMS.sendCommand(
-      "AA008104010010018430100182010AA30981010182010183010084020003861A9C01009F02060000000001009F03060000000000005F2A020840"
-    );
+    mt_MMS.sendCommand("AA008104010010018430100182010AA30981010182010183010084020003861A9C01009F02060000000001009F03060000000000005F2A020840");
   }
 };
 

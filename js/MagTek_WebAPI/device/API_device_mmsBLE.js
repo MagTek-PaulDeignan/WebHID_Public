@@ -48,6 +48,7 @@ class MMSBLEDevice extends AbstractDevice {
     this.MESSAGE_TO_HOST_CHARACTERISTIC_UUID = 'fed49118-c7e2-4a61-9ed5-e6dd65c3071b';
     this._filters = mt_Configs.MMSfilters; // Device filters from configuration
     this.mtDeviceType = ""; // Device type identifier
+    this.handleMessageToHostNotificationsRef = null;
   }
 
   /**
@@ -230,9 +231,13 @@ class MMSBLEDevice extends AbstractDevice {
       }
 
       // Add a listener for when the device disconnects
-      this.device.addEventListener('gattserverdisconnected', this._onDisconnected.bind(this));
+      if (this.disconnectedRef != null){
+        this.device.removeEventListener('gattserverdisconnected', this.disconnectedRef);
+      }
+      this.disconnectedRef = this._onDisconnected.bind(this);
+      this.device.addEventListener('gattserverdisconnected', this.disconnectedRef);
 
-      console.log(`Connecting to "${this.device.name || this.device.id}"...`);
+      //console.log(`Connecting to "${this.device.name || this.device.id}"...`);
 
       // Connect to the GATT server
       server = await this.device.gatt.connect();
@@ -244,26 +249,31 @@ class MMSBLEDevice extends AbstractDevice {
       window.mt_device_WasOpened = true; // Global flag, as per original structure
       this._emitObject({ Name: "OnDeviceOpen", Device: this.device });
 
-      console.log('Discovering services and characteristics...');
+      //console.log('Discovering services and characteristics...');
       await new Promise(resolve => setTimeout(resolve, 500)); // Small delay for service discovery
 
       // Get the DynaFlex service
       this.dynaFlexService = await server.getPrimaryService(this.DYNAFLEX_SERVICE_UUID);
-      console.log('DynaFlex Service:', this.dynaFlexService);
+      //console.log('DynaFlex Service:', this.dynaFlexService);
 
       // Get the "Message From Host" characteristic (for sending commands)
       this.messageFromHostCharacteristic = await this.dynaFlexService.getCharacteristic(this.MESSAGE_FROM_HOST_CHARACTERISTIC_UUID);
-      console.log('Message From Host Characteristic:', this.messageFromHostCharacteristic);
+      //console.log('Message From Host Characteristic:', this.messageFromHostCharacteristic);
 
       // Get the "Message To Host" characteristic (for receiving notifications)
       this.messageToHostCharacteristic = await this.dynaFlexService.getCharacteristic(this.MESSAGE_TO_HOST_CHARACTERISTIC_UUID);
 
       // Enable notifications for "Message To Host" characteristic
       await this.messageToHostCharacteristic.startNotifications();
-      this.messageToHostCharacteristic.addEventListener('characteristicvaluechanged', this._handleMessageToHostNotifications.bind(this));
-      console.log('Notifications enabled for "Message To Host".');
+      if(this.messageToHostNotificationsRef != null){
+        this.messageToHostCharacteristic.removeEventListener('characteristicvaluechanged', this.messageToHostNotificationsRef);
+      }
 
-      console.log(`Connected to: ${this.device.name}, id: ${this.device.id}`);
+      this.messageToHostNotificationsRef = this._handleMessageToHostNotifications.bind(this);
+      this.messageToHostCharacteristic.addEventListener('characteristicvaluechanged', this.messageToHostNotificationsRef);
+      //console.log('Notifications enabled for "Message To Host".');
+
+      //console.log(`Connected to: ${this.device.name}, id: ${this.device.id}`);
       return this.device;
 
     } catch (error) {
@@ -287,7 +297,10 @@ class MMSBLEDevice extends AbstractDevice {
       if (this.messageToHostCharacteristic) {
         try {
           await this.messageToHostCharacteristic.stopNotifications();
-          this.messageToHostCharacteristic.removeEventListener('characteristicvaluechanged', this._handleMessageToHostNotifications.bind(this));
+          if(this.messageToHostNotificationsRef != null){
+            this.messageToHostCharacteristic.removeEventListener('characteristicvaluechanged', this.messageToHostNotificationsRef);
+          }
+          
           console.log('Notifications stopped and event listener removed.');
         } catch (error) {
           console.warn('Failed to stop notifications or remove event listener:', error);
@@ -403,6 +416,37 @@ class MMSBLEDevice extends AbstractDevice {
       this.messageSndCounter++;
     }
   }
+
+  /**
+   * @method GetDeviceSN
+   * @description
+   * Sends a specific command to get the device's serial number and parses the response.
+   * Overrides the abstract method.
+   * @returns {Promise<string>} A promise that resolves with the device serial number.
+   */
+  async GetDeviceSN() {
+    let resp = await this.sendCommand("AA0081040100D101841AD10181072B06010401F609850102890AE208E106E104E102C100");
+    let str = resp.TLVData.substring(24);
+    let tag89 = mt_Utils.getTagValue("89", "", str, false);
+    let data = mt_Utils.getTagValue("C1", "", tag89, false);
+    return data.substring(0, 7);
+  }
+
+  /**
+   * @method GetDeviceFWID
+   * @description
+   * Sends a specific command to get the device's firmware ID and parses the response.
+   * Overrides the abstract method.
+   * @returns {Promise<string>} A promise that resolves with the device firmware ID.
+   */
+  async GetDeviceFWID() {
+    let resp = await this.sendCommand("AA0081040102D101841AD10181072B06010401F609850102890AE108E206E204E202C200");
+    let str = resp.TLVData.substring(24);
+    let tag89 = mt_Utils.getTagValue("89", "", str, false);
+    let data = mt_Utils.getTagValue("C2", "", tag89, true);
+    return data;
+  }
+
 }
 
 export default MMSBLEDevice;
