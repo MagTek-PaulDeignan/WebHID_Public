@@ -37,16 +37,6 @@ class MMSHIDDevice extends AbstractDevice {
     this.disConnectListenerRef = null;
     this.InputReportListenerRef = null;
 
-    //Add the hid event listener for connect/plug in
-    //navigator.hid.addEventListener("connect", ({ device }) => {
-    //this._emitObject({Name:"OnDeviceConnect", Device:device});}
-    //);
-
-    //Add the hid event listener for disconnect/unplug
-    // navigator.hid.addEventListener("disconnect", ({ device }) => {
-    // this._emitObject({Name:"OnDeviceDisconnect", Device:device});}
-    //);
-
     if(this.connectListenerRef != null){
       navigator.hid.removeEventListener("connect", this.connectListenerRef);
     }
@@ -281,12 +271,12 @@ class MMSHIDDevice extends AbstractDevice {
     }
   }
 
-  connectListener({deviceObject}){
+  connectListener({device}){
     this._emitObject({Name:"OnDeviceConnect", Device:device});
   }
 
-  disConnectListener({deviceObject}){
-    this._emitObject({Name:"OnDeviceConnect", Device:device});
+  disConnectListener({device}){
+    this._emitObject({Name:"OnDeviceDisconnect", Device:device});
   }
 
   /**

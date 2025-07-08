@@ -184,7 +184,11 @@ class MMSMQTTDevice extends AbstractDevice {
       }
       // Subscribe to general device list topic
       this._client.subscribe(`${mt_AppSettings.MQTT.MMS_DeviceList}`, this._checkMQTTError.bind(this));
-      this._emitObject({ Name: "OnDeviceOpen", Device: this._client }); // Signal device is "open" (connected)
+      
+      if(this._devPath.length > 0){
+          //this._emitObject({ Name: "OnDeviceOpen", Device: this._client }); // Signal device is "open" (connected)
+      }
+      
     }
   }
 
@@ -222,12 +226,14 @@ class MMSMQTTDevice extends AbstractDevice {
         case "Status":
           data = message.toString();
           this._emitObject({ Name: "OnMQTTStatus", Data: { Topic: topic, Message: data } });
+          
           // Check if the status is for the current device path
           if (`${topicArray[topicArray.length - 3]}/${topicArray[topicArray.length - 2]}` === this._devPath) {
             if (data.toLowerCase() === "connected") {
               if (this._client) {
                 // If a specific device connected status is received for our path
-                this._emitObject({ Name: "OnDeviceConnect", Device: this._client });
+                //this._emitObject({ Name: "OnDeviceConnect", Device: this._client });
+                this._emitObject({ Name: "OnDeviceOpen", Device: this._client });
               } else {
                 // Handle case where client might be null unexpectedly
                 this._emitObject({ Name: "OnDeviceConnect", Device: null });

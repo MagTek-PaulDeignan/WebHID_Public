@@ -13,8 +13,11 @@ DO NOT REMOVE THIS COPYRIGHT
 import * as mt_Utils from "./MagTek_WebAPI/mt_utils.js";
 import * as mt_UI from "./mt_ui.js";
 import * as mt_RMS_API from "./MagTek_WebAPI/API_rms.js";
-import * as mt_MMSMQTT_API from "./MagTek_WebAPI/API_mmsMQTT.js";
+//import * as mt_MMSMQTT_API from "./MagTek_WebAPI/API_mmsMQTT.js";
 import * as mt_MMS_Commands from "./MagTek_WebAPI/API_mmsCommands.js"
+
+import DeviceFactory from "./MagTek_WebAPI/device/API_device_factory.js";
+let mt_MMSMQTT_API = DeviceFactory.getDevice("MMS_MQTT");
 
 let timeStart = null;
 let timeEnd = null;
@@ -78,7 +81,7 @@ async function handleDOMLoaded() {
 }
 
 async function handleCloseButton() {
-  await mt_MMSMQTT_API.CloseMQTT();
+  await mt_MMSMQTT_API.closeDevice();
   mt_UI.ClearLog();
 }
 async function handleClearButton() {
@@ -95,7 +98,7 @@ async function handleOpenButton() {
   mt_MMSMQTT_API.setPassword(password);
   mt_MMSMQTT_API.setPath(devPath);  
   timeStart = Date.now();
-  mt_MMSMQTT_API.OpenMQTT();
+  mt_MMSMQTT_API.openDevice();
 }
 
 async function handleSendCommandButton() {
@@ -113,7 +116,7 @@ async function parseCommand(message) {
       //mt_Utils.debugLog("GETDEVINFO " + getDeviceInfo());      
       break;
     case "SENDCOMMAND":
-      await mt_MMSMQTT_API.SendCommand(cmd[1]);
+      await mt_MMSMQTT_API.sendCommand(cmd[1]);
       break;
     case "SENDBASE64COMMAND":
       await mt_MMSMQTT_API.sendBase64Command(cmd[1]);
@@ -122,16 +125,16 @@ async function parseCommand(message) {
       mt_MMSMQTT_API.sendBase64Command(cmd[1]);
       break;
     case "PCIRESET":
-      mt_MMSMQTT_API.SendCommand("AA00810401121F0184021F01");      
+      mt_MMSMQTT_API.sendCommand("AA00810401121F0184021F01");      
       break;
     case "GETDEVICELIST":
       devices = getDeviceList();      
       break;
     case "OPENDEVICE":      
-      mt_MMSMQTT_API.OpenMQTT();
+      mt_MMSMQTT_API.openDevice();
       break;
     case "CLOSEDEVICE":      
-    mt_MMSMQTT_API.CloseMQTT();
+    mt_MMSMQTT_API.closeDevice();
       break;
     case "WAIT":
       _DeviceDetected = false;
@@ -192,7 +195,7 @@ async function parseCommand(message) {
     case "UPDATEFIRMARE":  case "UPDATEFIRMWARE":
       let fwResponse =  await mt_MMS_Commands.GetLoadFimrwareFromBase64(cmd[1],cmd[2]);
       window.mt_device_CommitCmd = fwResponse.commitCmd;
-      await mt_MMSMQTT_API.SendCommand(fwResponse.firmwareCmd);
+      await mt_MMSMQTT_API.sendCommand(fwResponse.firmwareCmd);
       break;    
     default:
       mt_UI.LogData("Unknown Command");
@@ -206,6 +209,7 @@ function ClearAutoCheck() {
 }
 
 const deviceConnectLogger = (e) => {
+  timeEnd = Date.now();
   mt_UI.setUSBConnected("Connected");
   _DeviceDetected = false;
 };
@@ -214,12 +218,13 @@ const deviceDisconnectLogger = (e) => {
   _DeviceDetected = false;
 };
 const deviceCloseLogger = (e) => {
+  timeEnd = Date.now();
   mt_UI.setUSBConnected("Closed");
   _DeviceDetected = false;
 };
 const deviceOpenLogger = (e) => {
   timeEnd = Date.now();
-  mt_UI.LogData(`Time to open MQTT: ${mt_Utils.calculateTimeDifference(timeStart,timeEnd)} ms`);
+  //mt_UI.LogData(`Time to open MQTT: ${mt_Utils.calculateTimeDifference(timeStart, timeEnd)} ms`);
   mt_UI.setUSBConnected("Opened");
   _DeviceDetected = true;
 };
@@ -229,8 +234,8 @@ const dataLogger = (e) => {
 
 const NFCUIDLogger = (e) => {
   mt_UI.LogData(`Received NFC UID : ${e.Name}: ${e.Data}`);
-  mt_MMSMQTT_API.SendCommand("AA00810401641100840B1100810160820100830100");
-  mt_MMSMQTT_API.SendCommand("AA00810401671100840D110081033A04278201008301FF");
+  mt_MMSMQTT_API.sendCommand("AA00810401641100840B1100810160820100830100");
+  mt_MMSMQTT_API.sendCommand("AA00810401671100840D110081033A04278201008301FF");
 };
 
 
@@ -324,7 +329,7 @@ const contactlessCardDetectedLogger = async (e) => {
     }
     if (!_contactSeated) {
       // We didn't get a contact seated, do start the contactless transaction
-      mt_MMSMQTT_API.SendCommand("AA00810401031001843D1001820178A3098101008201008301038402020386279C01009F02060000000001009F03060000000000005F2A0208405F3601029F150200009F530100");
+      mt_MMSMQTT_API.sendCommand("AA00810401031001843D1001820178A3098101008201008301038402020386279C01009F02060000000001009F03060000000000005F2A0208405F3601029F150200009F530100");
     }
   }
 };
@@ -345,7 +350,7 @@ const contactCardInsertedLogger = (e) => {
     _AwaitingContactEMV = false;
     ClearAutoCheck();
     mt_UI.LogData(`Auto Starting EMV...`);
-    mt_MMSMQTT_API.SendCommand("AA008104010010018430100182010AA30981010082010183010084020003861A9C01009F02060000000001009F03060000000000005F2A020840");
+    mt_MMSMQTT_API.sendCommand("AA008104010010018430100182010AA30981010082010183010084020003861A9C01009F02060000000001009F03060000000000005F2A020840");
   }
 };
 
@@ -361,7 +366,7 @@ const msrSwipeDetectedLogger = (e) => {
   if (_autoStart.checked & chk.checked & (e.Data.toLowerCase() == "idle")) {
     ClearAutoCheck();
     mt_UI.LogData(`Auto Starting MSR...`);
-    mt_MMSMQTT_API.SendCommand("AA008104010010018430100182010AA30981010182010183010084020003861A9C01009F02060000000001009F03060000000000005F2A020840");
+    mt_MMSMQTT_API.sendCommand("AA008104010010018430100182010AA30981010182010183010084020003861A9C01009F02060000000001009F03060000000000005F2A020840");
   }
 };
 
@@ -387,7 +392,7 @@ switch (e.Data) {
       if (window.mt_device_CommitCmd != undefined)
         {
           mt_UI.LogData("Committing Firmware...");
-          mt_MMSMQTT_API.SendCommand(window.mt_device_CommitCmd);  
+          mt_MMSMQTT_API.sendCommand(window.mt_device_CommitCmd);  
         }
       break;
     case "820408010A03":
@@ -450,7 +455,7 @@ async function parseFirmwareFile(file, fileType = 1){
         //mt_UI.LogData(`commit ${response.commitCmd}`);
         //mt_UI.LogData(`fw ${response.firmwareCmd}`);
       window.mt_device_CommitCmd = response.commitCmd;
-      mt_MMSMQTT_API.SendCommand(response.firmwareCmd);
+      mt_MMSMQTT_API.sendCommand(response.firmwareCmd);
     };
   reader.readAsArrayBuffer(file); 
 }
@@ -473,7 +478,7 @@ async function updateFirmwareRMS(){
     let executionTimeSec = executionTimeMs / 1000;
     mt_UI.LogData(`Execution time: ${executionTimeSec} seconds`);
     ShowDeviceResponses = false;
-    await mt_MMSMQTT_API.SendCommand('AA0081040155180384081803810100820114');
+    await mt_MMSMQTT_API.sendCommand('AA0081040155180384081803810100820114');
     ShowDeviceResponses = true;    
   }
   else
@@ -597,7 +602,7 @@ async function updateAllTagsRMS(fw,sn) {
 
    for (let index = 0; index < updateCommands.length; index++) {
     ShowDeviceResponses = false;
-    resp = await mt_MMSMQTT_API.SendCommand(updateCommands[index]);
+    resp = await mt_MMSMQTT_API.sendCommand(updateCommands[index]);
     ShowDeviceResponses = true;
     bStatus = await updateMMSTags(fw, sn, resp);
   }

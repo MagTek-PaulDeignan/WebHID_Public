@@ -568,7 +568,7 @@ function parseUserEventDetail(Msg) {
       EmitObject({ Name: "OnTouchUp", Data: { Xpos: xPos, Ypos: yPos } });
       break;
     case "07": //Barcode Detected
-    console.log(Msg.HexString)
+      //console.log(Msg.HexString)
       NotifyDetail = mt_Utils.getTagValue("84", "", Msg.TLVData, false);
       EmitObject({
         Name: "OnBarcodeDetected",
