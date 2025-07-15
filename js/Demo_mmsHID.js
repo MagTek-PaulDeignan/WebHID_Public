@@ -11,7 +11,6 @@ DO NOT REMOVE THIS COPYRIGHT
 */
 
 import * as mt_Utils from "./MagTek_WebAPI/mt_utils.js";
-//import * as mt_MMS from "./MagTek_WebAPI/API_mmsHID.js";
 import * as mt_UI from "./mt_ui.js";
 import * as mt_RMS_API from "./MagTek_WebAPI/API_rms.js";
 import "./MagTek_WebAPI/mt_events.js";

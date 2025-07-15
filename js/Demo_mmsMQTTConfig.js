@@ -136,7 +136,6 @@ async function getWLANMode(){
   {
     let Tag84 = mt_Utils.getTagValue("84","",Resp.TLVData);            
     let val = mt_Utils.getTagValue("D1","",Tag84.substring(26),false);
-    //mt_UI.UpdateValue("wirelessAddressMode",val);
     switch (val) {
       case "00":
         mode = "MQTT"        

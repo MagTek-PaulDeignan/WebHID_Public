@@ -11,11 +11,12 @@ DO NOT REMOVE THIS COPYRIGHT
 */
 
 import * as mt_Utils from "./MagTek_WebAPI/mt_utils.js";
-import * as mt_MQTT from "./MagTek_WebAPI/API_mmsMQTT.js";
 import * as mt_UI from "./mt_ui.js";
 import * as mt_Unigate from "./MagTek_WebAPI/API_Unigate.js";
 import * as mt_QMFA from "./MagTek_WebAPI/qMFAAPI.js";
 import "./MagTek_WebAPI/mt_events.js";
+import DeviceFactory from "./MagTek_WebAPI/device/API_device_factory.js";
+let mt_MQTT = DeviceFactory.getDevice("MMS_MQTT");
 
 
 let ShowDeviceResponses = true;
@@ -86,7 +87,7 @@ async function handleDOMLoaded() {
 };
 
 async function handleCloseButton() {
-  await mt_MQTT.CloseMQTT();
+  await mt_MQTT.closeDevice();
   mt_UI.ClearLog();
 }
 async function handleClearButton() {
@@ -97,13 +98,13 @@ async function handleClearButton() {
 }
 
 async function configure1B() {
-  let resp = await mt_MQTT.SendCommand("AA0081040108D111841BD11181072B06010401F609850101890BE109E107E105E203C10101");
-  resp = await mt_MQTT.SendCommand("AA0081040155D111842ED1118501018704010101028921C21F01000000001500000000200000000025020000000001000000000300000000");
+  let resp = await mt_MQTT.sendCommand("AA0081040108D111841BD11181072B06010401F609850101890BE109E107E105E203C10101");
+  resp = await mt_MQTT.sendCommand("AA0081040155D111842ED1118501018704010101028921C21F01000000001500000000200000000025020000000001000000000300000000");
 
 }
 
 async function configureStandard() {
-  let resp = await mt_MQTT.SendCommand("AA0081040108D111841BD11181072B06010401F609850101890BE109E107E105E203C10100");  
+  let resp = await mt_MQTT.sendCommand("AA0081040108D111841BD11181072B06010401F609850101890BE109E107E105E203C10100");  
 }
 
 
@@ -200,7 +201,7 @@ async function handleOpenButton() {
   mt_MQTT.setUserName(userName);
   mt_MQTT.setPassword(password);
   mt_MQTT.setPath(devPath);  
-  mt_MQTT.OpenMQTT();
+  mt_MQTT.openDevice();
   //SetAutoCheck();
   SetTechnologies(true, true, true);
 }
@@ -220,16 +221,16 @@ async function parseCommand(message) {
       //mt_Utils.debugLog("GETDEVINFO " + getDeviceInfo());      
       break;
     case "SENDCOMMAND":
-      mt_MQTT.SendCommand(cmd[1]);
+      mt_MQTT.sendCommand(cmd[1]);
       break;
     case "GETDEVICELIST":
       devices = getDeviceList();      
       break;
     case "OPENDEVICE":      
-      mt_MQTT.OpenMQTT();      
+      mt_MQTT.openDevice();      
       break;
     case "CLOSEDEVICE":      
-      mt_MQTT.CloseMQTT();
+      mt_MQTT.closeDevice();
       break;
     case "WAIT":
       await mt_Utils.wait(cmd[1]);
@@ -390,7 +391,7 @@ const contactlessCardDetectedLogger = async (e) => {
     }
     if (!_contactSeated) {
       // We didn't get a contact seated, do start the contactless transaction
-      mt_MQTT.SendCommand("AA008104010010018430100182010AA30981010082010083010184020003861A9C01009F02060000000001009F03060000000000005F2A020840");
+      mt_MQTT.sendCommand("AA008104010010018430100182010AA30981010082010083010184020003861A9C01009F02060000000001009F03060000000000005F2A020840");
     }
   }
 };
@@ -411,7 +412,7 @@ const contactCardInsertedLogger = (e) => {
     _AwaitingContactEMV = false;
     ClearAutoCheck();
     mt_UI.LogData(`Auto Starting EMV...`);
-    mt_MQTT.SendCommand("AA008104010010018430100182010AA30981010082010183010084020003861A9C01009F02060000000001009F03060000000000005F2A020840");
+    mt_MQTT.sendCommand("AA008104010010018430100182010AA30981010082010183010084020003861A9C01009F02060000000001009F03060000000000005F2A020840");
   }
 };
 
@@ -427,7 +428,7 @@ const msrSwipeDetectedLogger = (e) => {
   if (_autoStart.checked & chk.checked & (e.Data.toLowerCase() == "idle")) {
     ClearAutoCheck();
     mt_UI.LogData(`Auto Starting MSR...`);
-    mt_MQTT.SendCommand("AA008104010010018430100182010AA30981010182010183010084020003861A9C01009F02060000000001009F03060000000000005F2A020840");
+    mt_MQTT.sendCommand("AA008104010010018430100182010AA30981010182010183010084020003861A9C01009F02060000000001009F03060000000000005F2A020840");
   }
 };
 

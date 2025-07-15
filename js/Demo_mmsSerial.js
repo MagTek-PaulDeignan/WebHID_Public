@@ -11,12 +11,15 @@ DO NOT REMOVE THIS COPYRIGHT
 */
 
 import * as mt_Utils from "./MagTek_WebAPI/mt_utils.js";
-import * as mt_MMS from "./MagTek_WebAPI/API_mmsSerial.js";
 import * as mt_UI from "./mt_ui.js";
 import * as mt_RMS_API from "./MagTek_WebAPI/API_rms.js";
 import "./MagTek_WebAPI/mt_events.js";
 import * as mt_XML2JSON from "./MagTek_WebAPI/mt_xml2json.js";
 import * as mt_MMS_Commands from "./MagTek_WebAPI/API_mmsCommands.js"
+
+import DeviceFactory from "./MagTek_WebAPI/device/API_device_factory.js";
+let mt_MMS = DeviceFactory.getDevice("MMS_SERIAL");
+
 
 let defaultRMSURL = 'https://svc1.magensa.net/rms/api';
 let defaultRMSAPIKey = 'TVRQdWJsaWMtQUVFQ0Q0NEEtODc1NS00QUEwLUFENTgtNTNDMzNGQkJCNEE4';

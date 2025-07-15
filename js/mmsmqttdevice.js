@@ -11,11 +11,13 @@ DO NOT REMOVE THIS COPYRIGHT
 */
 
 import * as mt_Utils from "./MagTek_WebAPI/mt_utils.js";
-import * as mt_Device from "./MagTek_WebAPI/API_mmsHID.js";
 import * as mt_UI from "./mt_ui.js";
 import * as mt_AppSettings from "./MagTek_WebAPI/config/appsettings.js";
 import mqtt  from "./MagTek_WebAPI/mqtt.esm.js";
 import "./MagTek_WebAPI/mt_events.js";
+import DeviceFactory from "./MagTek_WebAPI/device/API_device_factory.js";
+let mt_Device = DeviceFactory.getDevice("MMS_HID");
+
 
 let url = mt_Utils.getEncodedValue('MQTTURL','d3NzOi8vZGV2ZWxvcGVyLmRlaWduYW4uY29tOjgwODQvbXF0dA==');
 let devPath = mt_Utils.getEncodedValue('MQTTDevice','');
@@ -53,26 +55,6 @@ async function handleDOMLoaded() {
   devices.forEach((device) => {
     mt_UI.LogData(`${device.productName}`);
     mt_UI.setUSBConnected("Connected");
-  });
-
-
-  //Add the hid event listener for connect/plug in
-  navigator.hid.addEventListener("connect", async ({ device }) => {
-    EmitObject({Name:"OnDeviceConnect", Device:device});
-    if (window.mt_device_WasOpened) {
-      await mt_Utils.wait(_openTimeDelay);
-      await handleOpenButton();
-    }
-  });
-
-  //Add the hid event listener for disconnect/unplug
-  navigator.hid.addEventListener("disconnect", ({ device }) => {
-    let options = {
-      retain: true
-    }
-    
-    client.publish(`${mt_AppSettings.MQTT.MMS_Base_Pub}${devPath}/Status`, 'disconnected', options);
-    EmitObject({Name:"OnDeviceDisconnect", Device:device});
   });
 
   await mt_Utils.wait(_openTimeDelay);
@@ -122,11 +104,21 @@ async function handleDeviceNameSave(){
   mt_UI.LogData (`Device name has been saved: ${friendlyName}`);
 }
 
-const deviceConnectLogger = (e) => {
+const deviceConnectLogger = async (e) => {
   mt_UI.setUSBConnected("Connected");
+    //   if (window.mt_device_WasOpened) {
+    //   await mt_Utils.wait(_openTimeDelay);
+    //   await handleOpenButton();
+    // }
+
 };
 const deviceDisconnectLogger = (e) => {
   mt_UI.setUSBConnected("Disconnected");
+  let options = {
+      	retain: true
+  }
+  client.publish(`${mt_AppSettings.MQTT.MMS_Base_Pub}${devPath}/Status`, 'disconnected', options);
+    //EmitObject({Name:"OnDeviceDisconnect", Device:device});
 };
 const deviceCloseLogger = (e) => {
   mt_UI.setUSBConnected("Closed");
