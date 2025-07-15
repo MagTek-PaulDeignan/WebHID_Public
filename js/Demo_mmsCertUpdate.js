@@ -25,12 +25,11 @@ let _AwaitingContactEMV = false;
 export let _contactlessDelay = parseInt(mt_Utils.getEncodedValue("ContactlessDelay", "500"));
 export let _openTimeDelay = 1500;
 let CertExpirationWarningDays = 30;
-//let CertExpirationDays = 396;
-let CertExpirationDays = 20;
+let CertExpirationDays = 396;
+//let CertExpirationDays = 20;
 let fwID = null;
 
 mt_CertMgr.setURL("https://rms.magensa.net/Qwantum/CertificateManager");
-//mt_CertMgr.setURL("https://localhost:7021");
 mt_CertMgr.setWebAPIKey("MTSandbox-F0FA3140-1E50-4331-8BB9-F33BF9CB32FB");
 mt_CertMgr.setProfile("SandBox");
 
@@ -101,6 +100,7 @@ async function setNoTLS(){
   if (resp.status.ok){
     await parseCommands('Trust Configuration Update', resp.data.loadCommands);
   }
+  await setWLANMode("02");
   ShowDeviceResponses = true;
 }
 async function setTLS(){
@@ -116,6 +116,7 @@ async function setTLS(){
   if (resp.status.ok){
     await parseCommands('Trust Configuration Update', resp.data.loadCommands);
   }
+  await setWLANMode("02");
   ShowDeviceResponses = true;
 }
 
@@ -132,45 +133,119 @@ async function setmTLS(){
   if (resp.status.ok){
     await parseCommands('Trust Configuration Update', resp.data.loadCommands);
   }
+  await setWLANMode("02");
   ShowDeviceResponses = true;
 }
+
+
+
+
+async function getWLANMode(){  
+  let mode = "";
+  let Resp = await mt_MMS.sendCommand("AA00 8104 0155D101 840F D101 850101 870402020101 8902 D100");
+  if (Resp.OperationDetailCode == "000000" && Resp.OperationStatusCode =="00")  
+  {
+    let Tag84 = mt_Utils.getTagValue("84","",Resp.TLVData);            
+    let val = mt_Utils.getTagValue("D1","",Tag84.substring(26),false);
+    switch (val) {
+      case "00":
+        mode = "MQTT"        
+        break;
+      case "02":
+        mode = "WebSocket Server"        
+        break;
+    
+      default:
+        mode = "Unknown Mode"        
+        break;
+    }
+    
+    mt_UI.LogData(`WLAN Mode: ${mode}`);
+  }
+
+
+}
+async function setWLANMode(hexMode) {  
+  let mode = "";
+  let val = "02";
+    switch (hexMode) {
+      case "00":
+        mode = "MQTT"
+        val = "00";        
+        break;
+      default:
+        mode = "WebSocket Server";
+        val = "02";
+        break;
+    }
+
+  let Resp = await mt_MMS.sendCommand(`AA00 81040155D111 8410 D111 850101 870402020101 8903 D101 ${val}`);
+  if (Resp.OperationDetailCode == "000000" && Resp.OperationStatusCode =="00")  
+  {
+    mt_UI.LogData(`WLAN Mode: ${mode}`);
+  }
+
+
+}
+
+
 async function getAddressMode(){
 
-  mt_UI.LogData("Getting Wireless Address Mode...");
   let Resp = await mt_MMS.sendCommand("AA0081040116D101841AD10181072B06010401F609850101890AE208E206E104E102C500");
-  let Tag82 = mt_Utils.getTagValue("82","",Resp.TLVData);
-  if(Tag82 == "00000000")
+  if (Resp.OperationDetailCode == "000000" && Resp.OperationStatusCode =="00")
   {
     let Tag84 = mt_Utils.getTagValue("84","",Resp.TLVData);        
-    mt_UI.UpdateValue("wirelessAddressMode",mt_Utils.getTagValue("C3","",Tag84.substring(48),false));
+    let val = mt_Utils.getTagValue("C5","",Tag84.substring(48),false);
+    let mode = "";
+    switch (val) {
+      case "00000000":
+        mode = "Static IP";
+        break;
+      default:
+        mode = "DHCP";
+        break;
+    }
+    mt_UI.LogData(`Wireless Address Mode: ${mode}`);
   }
 }
 async function setAddressMode(){
-  mt_UI.LogData("Setting Wireless Address Mode DHCP ...");
+  mt_UI.LogData("Setting Wireless Address Mode DHCP");
   let Resp = await mt_MMS.sendCommand("AA0081040117D111841ED11181072B06010401F609850101890EE20CE20AE108E106C50400000001");
-  let Tag82 = mt_Utils.getTagValue("82","",Resp.TLVData);
-  if(Tag82 == "00000000")
+  if (Resp.OperationDetailCode == "000000" && Resp.OperationStatusCode == "00")
   {
     let Tag84 = mt_Utils.getTagValue("84","",Resp.TLVData);        
-    mt_UI.UpdateValue("wirelessAddressMode",mt_Utils.getTagValue("C3","",Tag84.substring(48),false));
+    let val = mt_Utils.getTagValue("C5","",Tag84.substring(48),false);    
   }
 }
 
-async function getWireLessSecurityMode(){
+async function getWirelessSecurityMode(){
 
-  mt_UI.LogData("Getting Wireless Security Mode...");
   let Resp = await mt_MMS.sendCommand("AA0081040113D101841AD10181072B06010401F609850101890AE208E206E104E102C300");
-  let Tag82 = mt_Utils.getTagValue("82","",Resp.TLVData);
-  if(Tag82 == "00000000")
+  if (Resp.OperationDetailCode == "000000" && Resp.OperationStatusCode == "00")
   {
     let Tag84 = mt_Utils.getTagValue("84","",Resp.TLVData);        
-    mt_UI.UpdateValue("wirelessSecurityMode",mt_Utils.getTagValue("C3","",Tag84.substring(48),false));
+    let val = mt_Utils.getTagValue("C3","",Tag84.substring(48),false);
+    let mode = "";
+    switch (val) {
+      case "00":
+        mode = "PSK";
+        break;
+      case "01":
+        mode = "EAP-PEAP";
+        break;
+      default:
+        mode = "Unknown Security Mode";
+        break;
+    }
+    mt_UI.LogData(`Wireless Security Mode: ${mode}`);
   }
 }
-async function setWireLessSecurityPSKMode(){
-  mt_UI.LogData("Setting Wireless Security PSK Mode...");
+async function setWirelessSecurityMode(){
+  mt_UI.LogData("Setting Wireless Security PSK Mode");
   let Resp = await mt_MMS.sendCommand("AA0081040114D111841BD11181072B06010401F609850101890BE209E207E105E103C30100");  
 }
+
+
 
 async function getDeviceIP(){
   ShowDeviceResponses = false;
@@ -191,7 +266,7 @@ async function getCSR() {
   fwID = await mt_MMS.GetDeviceFWID();
   Resp = await mt_MMS.sendCommand("AA0081040155EF028402EF02");  
   Resp = await mt_MMS.sendCommand("AA0081040107EF038405EF03810100");
-  Resp = await mt_MMS.sendCommand("AA0081040108D821840BD821810404000000870101");  
+  Resp = await mt_MMS.sendCommand("AA0081040108D821840BD821810404000000870101");    
   ShowDeviceResponses = true;
 }
 
@@ -214,6 +289,7 @@ async function getCertificate(){
 }
 
 async function ResetDevice(){
+  await setWLANMode("02");
   mt_UI.updateProgressBar("",-1);  
   mt_UI.LogData("Resetting Device...");
   ShowDeviceResponses = false;
@@ -380,8 +456,16 @@ const deviceDisconnectLogger = (e) => {
 const deviceCloseLogger = (e) => {
   mt_UI.setUSBConnected("Closed");
 };
-const deviceOpenLogger = (e) => {
+const deviceOpenLogger = async (e) => {
   mt_UI.setUSBConnected("Opened");
+  ShowDeviceResponses = false;
+  await getWLANMode();
+  await getAddressMode();
+  await getDeviceIP();
+  await getDeviceName()
+  await getSSID();
+  ShowDeviceResponses = true;
+  
 };
 const dataLogger = (e) => {
   mt_UI.LogData(`Received Data: ${e.Name}: ${e.Data}`);

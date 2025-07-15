@@ -57,22 +57,6 @@ async function handleDOMLoaded() {
     mt_UI.setUSBConnected("Connected");
   });
 
-
-  // //Add the hid event listener for connect/plug in
-  // navigator.hid.addEventListener("connect", async ({ device }) => {
-  //   EmitObject({Name:"OnDeviceConnect", Device:device});
-  // });
-
-  // //Add the hid event listener for disconnect/unplug
-  // navigator.hid.addEventListener("disconnect", ({ device }) => {
-  //   let options = {
-  //     retain: true
-  //   }
-    
-  //   client.publish(`${mt_AppSettings.MQTT.MMS_Base_Pub}${devPath}/Status`, 'disconnected', options);
-  //   EmitObject({Name:"OnDeviceDisconnect", Device:device});
-  // });
-
   await mt_Utils.wait(_openTimeDelay);
   await handleOpenButton();
 

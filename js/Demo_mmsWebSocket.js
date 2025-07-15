@@ -12,8 +12,10 @@ DO NOT REMOVE THIS COPYRIGHT
 
 import * as mt_Utils from "./MagTek_WebAPI/mt_utils.js";
 import * as mt_UI from "./mt_ui.js";
-import * as mt_WSS from "./MagTek_WebAPI/API_mmsWebSocket.js";
 import "./MagTek_WebAPI/mt_events.js";
+
+import DeviceFactory from "./MagTek_WebAPI/device/API_device_factory.js";
+let mt_WSS = DeviceFactory.getDevice("MMS_WEBSOCKET");
 
 let retval = "";
 let wsAddress = mt_Utils.getEncodedValue('WSAddress','');
@@ -59,7 +61,7 @@ async function handleDOMLoaded() {
 }
 
 async function handleCloseButton() {
-  mt_WSS.CloseWS();
+  mt_WSS.closeDevice();
   mt_UI.ClearLog();
 }
 async function handleClearButton() {
@@ -71,7 +73,7 @@ async function handleOpenButton() {
   try {
     timeStart = Date.now();
     mt_WSS.setURL(wsAddress);
-    mt_WSS.OpenWS();
+    mt_WSS.openDevice();
   } catch (error) {
   }
 }
@@ -92,19 +94,19 @@ async function parseCommand(message) {
       //mt_Utils.debugLog("GETDEVINFO " + getDeviceInfo());      
       break;
     case "SENDCOMMAND":
-      mt_WSS.SendCommand(cmd[1]);
+      mt_WSS.sendCommand(cmd[1]);
       break;
     case "PCIRESET":
-      mt_WSS.SendCommand("AA00810401121F0184021F01");      
+      mt_WSS.sendCommand("AA00810401121F0184021F01");      
       break;
     case "GETDEVICELIST":
       devices = getDeviceList();      
       break;
     case "OPENDEVICE":      
-      mt_WSS.OpenWS();     
+      mt_WSS.openDevice();     
       break;
     case "CLOSEDEVICE":      
-      mt_WSS.CloseWS();
+      mt_WSS.closeDevicwe();
       break;
     case "WAIT":
       wait(cmd[1]);
@@ -214,7 +216,7 @@ const contactlessCardDetectedLogger = async (e) => {
     }
     if (!_contactSeated) {
       // We didn't get a contact seated, do start the contactless transaction
-      mt_WSS.SendCommand("AA008104010010018430100182010AA30981010082010083010184020003861A9C01009F02060000000001009F03060000000000005F2A020840");
+      mt_WSS.sendCommand("AA008104010010018430100182010AA30981010082010083010184020003861A9C01009F02060000000001009F03060000000000005F2A020840");
     }
   }
 };
@@ -235,7 +237,7 @@ const contactCardInsertedLogger = (e) => {
     _AwaitingContactEMV = false;
     ClearAutoCheck();
     mt_UI.LogData(`Auto Starting EMV...`);
-    mt_WSS.SendCommand("AA008104010010018430100182010AA30981010082010183010084020003861A9C01009F02060000000001009F03060000000000005F2A020840");
+    mt_WSS.sendCommand("AA008104010010018430100182010AA30981010082010183010084020003861A9C01009F02060000000001009F03060000000000005F2A020840");
   }
 };
 
@@ -251,7 +253,7 @@ const msrSwipeDetectedLogger = (e) => {
   if (_autoStart.checked & chk.checked & (e.Data.toLowerCase() == "idle")) {
     ClearAutoCheck();
     mt_UI.LogData(`Auto Starting MSR...`);
-    mt_WSS.SendCommand("AA008104010010018430100182010AA30981010182010183010084020003861A9C01009F02060000000001009F03060000000000005F2A020840");
+    mt_WSS.sendCommand("AA008104010010018430100182010AA30981010182010183010084020003861A9C01009F02060000000001009F03060000000000005F2A020840");
   }
 };
 
