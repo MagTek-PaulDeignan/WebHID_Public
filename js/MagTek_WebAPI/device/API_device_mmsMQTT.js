@@ -226,7 +226,6 @@ class MMSMQTTDevice extends AbstractDevice {
         case "Status":
           data = message.toString();
           this._emitObject({ Name: "OnMQTTStatus", Data: { Topic: topic, Message: data } });
-          
           // Check if the status is for the current device path
           if (`${topicArray[topicArray.length - 3]}/${topicArray[topicArray.length - 2]}` === this._devPath) {
             if (data.toLowerCase() === "connected") {
