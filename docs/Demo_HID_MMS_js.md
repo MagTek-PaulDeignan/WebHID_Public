@@ -38,7 +38,7 @@ Devices supported include:
    - Utility functions for processing commands, delays, and TLV parsing.
 
 2. mt_MMS:
-   - File: `./API_mmsHID.js`
+   
    - API for interacting with HID devices, including sending commands and retrieving device information.
 
 3. mt_UI:

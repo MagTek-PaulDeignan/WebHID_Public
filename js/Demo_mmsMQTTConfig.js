@@ -33,9 +33,7 @@ mt_CertMgr.setURL("https://rms.magensa.net/Qwantum/CertificateManager");
 mt_CertMgr.setWebAPIKey("MTSandbox-F0FA3140-1E50-4331-8BB9-F33BF9CB32FB");
 mt_CertMgr.setProfile("SandBox");
 
-
 let ShowDeviceResponses = true;
-
 
 
 document
@@ -77,6 +75,11 @@ async function getConfig() {
   await getMQTTBroker();
   await getMQTTPort();
   await getMQTTUser();
+  
+  let item = document.getElementById("mqttOrg");
+  item.value = mt_Utils.getEncodedValue("MQTTOrg", "TWFnVGVrLw==");
+
+
   await getMQTTSubTopic();
   await getMQTTPubTopic();
   mt_UI.LogData(`Done - Getting MQTT Configuration`);
@@ -96,6 +99,10 @@ async function setConfig()
   await setMQTTBroker("developer.deignan.com");
   await setMQTTUser();
   await setMQTTPassword();
+
+  let item = document.getElementById("mqttOrg");
+  mt_Utils.saveEncodedValue("MQTTOrg", item.value);
+
   await setMQTTSubTopic();
   await setMQTTPubTopic();
   mt_UI.LogData(`Done - Saving MQTT Configuration`);
@@ -340,7 +347,7 @@ async function getMQTTSubTopic() {
   {
     let Tag84 = mt_Utils.getTagValue("84","",Resp.TLVData);       
     let val = mt_Utils.getTagValue("C4","",Tag84.substring(26),true);
-    mt_UI.UpdateValue("mqttSubTopic",val);
+    //mt_UI.UpdateValue("mqttSubTopic",val);
     mt_UI.LogData(`MQTT Subscribe Topic: ${val}`);
   }
 }
@@ -350,9 +357,12 @@ async function setMQTTSubTopic()
   let resp = "";
   let val = "";
   
-  let name = mt_UI.GetValue("mqttSubTopic");  
-  if(name.length > 0)
+  let org = mt_UI.GetValue("mqttOrg");  
+  if(org.length > 0)
   {
+    let devType = mt_Utils.filterString(mt_MMS._device.productName);
+    let devSN = await getDevSN();
+    let  name  = `${org}${devType}/${devSN}/SendCommand`;
     val = mt_Utils.AsciiToHexPad(name, 0x40);
     mt_UI.LogData(`Setting MQTT Subscribe Topic: ${name}`);
     resp = await mt_MMS.sendCommand(`AA0081040155D111844FD1118501018704020201028942C440${val}`); 
@@ -366,7 +376,7 @@ async function getMQTTPubTopic() {
   {
     let Tag84 = mt_Utils.getTagValue("84","",Resp.TLVData);       
     let val = mt_Utils.getTagValue("C5","",Tag84.substring(26),true);
-    mt_UI.UpdateValue("mqttPubTopic",val);
+    //mt_UI.UpdateValue("mqttPubTopic", val);
     mt_UI.LogData(`MQTT Publish Topic: ${val}`);
   }
 }
@@ -377,9 +387,13 @@ async function setMQTTPubTopic()
   let resp = "";
   let val = "";
   
-  let name = mt_UI.GetValue("mqttPubTopic");  
-  if(name.length > 0)
+  let org = mt_UI.GetValue("mqttOrg");  
+  if(org.length > 0)
   {
+    let devType = mt_Utils.filterString(mt_MMS._device.productName);
+    let devSN = await getDevSN();
+    let name  = `${org}${devType}/${devSN}`;
+
     val = mt_Utils.AsciiToHexPad(name, 0x40);
     mt_UI.LogData(`Setting MQTT Publish Topic: ${name}`);
     resp = await mt_MMS.sendCommand(`AA0081040155D111844FD1118501018704020201028942C540${val}`); 
@@ -410,6 +424,15 @@ async function setSSID() {
     val = mt_Utils.AsciiToHexPad(name, 0x3F);
     mt_UI.LogData("Setting Wireless Password: **********");
     resp = await mt_MMS.sendCommand(`AA0081040107D1118459D11181072B06010401F6098501018949E247E245E143E141C23F${val}`);  
+  }
+}
+
+async function getDevSN(){
+  try {
+    let resp = await mt_MMS.sendCommand('AA00810401B5D1018418D10181072B06010401F6098501028704020101018902C100');
+    return mt_Utils.filterString(resp.TLVData.substring(68, 75));
+  } catch (error) {
+    return "";
   }
 }
 
@@ -450,9 +473,11 @@ async function handleClearButton() {
   mt_UI.UpdateValue("ssidPwd","");
   mt_UI.UpdateValue("mqttUser","");
   mt_UI.UpdateValue("mqttPassword","");
-  mt_UI.UpdateValue("mqttSubTopic","");
-  mt_UI.UpdateValue("mqttPubTopic","");  
+  //mt_UI.UpdateValue("mqttSubTopic","");
+  //mt_UI.UpdateValue("mqttPubTopic","");  
 }
+
+
 
 async function handleOpenButton() {
   window.mt_device_hid = await mt_MMS.openDevice();

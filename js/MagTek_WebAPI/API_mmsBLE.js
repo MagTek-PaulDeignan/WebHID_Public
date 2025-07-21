@@ -236,7 +236,6 @@ export async function openDevice() {
                 await messageToHostCharacteristic.startNotifications();
                 messageToHostCharacteristic.addEventListener('characteristicvaluechanged', handleMessageToHostNotifications);
                 //console.log('Notifications enabled for "Message To Host".');
-
                 //console.log(`name: ${device.name}, id: ${device.id}`);
                 //console.log('Connected to:', device);
                 //console.log('GATT Server:', server);

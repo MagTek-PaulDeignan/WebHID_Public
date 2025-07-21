@@ -1,4 +1,4 @@
-// API_mmsBLE.js
+// API_device_mmsBLE.js
 /* DO NOT REMOVE THIS COPYRIGHT
  Copyright 2020-2025 MagTek, Inc, Paul Deignan.
  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), 

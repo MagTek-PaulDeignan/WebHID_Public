@@ -60,7 +60,7 @@ function EmitObject(e_obj) {
 
 export async function SendCommand(cmdHexString) {
     window.mt_device_response = null;
-    _client.publish(`${mt_AppSettings.MQTT.ID5G3_Base_Sub}${_devPath}/ID5G3Message`, cmdHexString);
+    _client.publish(`${_devPath}/ID5G3Message`, cmdHexString);
     let Resp = await waitForDeviceResponse();
     return Resp;
 };
@@ -157,10 +157,12 @@ async function onMQTTConnect(_connack) {
   if(_client != null){
   // Subscribe to a topic
   
-  await _client.unsubscribe(`${mt_AppSettings.MQTT.ID5G3_Base_Pub}${_devPath}/ID5G3Message`, CheckMQTTError);  
+  //await _client.unsubscribe(`${mt_AppSettings.MQTT.ID5G3_Base_Pub}${_devPath}/ID5G3Message`, CheckMQTTError);  
+  await _client.unsubscribe(`${_devPath}/ID5G3Message`, CheckMQTTError);  
   await _client.unsubscribe(`${mt_AppSettings.MQTT.ID5G3_DeviceList}`, CheckMQTTError);
 
-  await _client.subscribe(`${mt_AppSettings.MQTT.ID5G3_Base_Pub}${_devPath}/ID5G3Message`, CheckMQTTError);
+  //await _client.subscribe(`${mt_AppSettings.MQTT.ID5G3_Base_Pub}${_devPath}/ID5G3Message`, CheckMQTTError);
+  await _client.subscribe(`${_devPath}/ID5G3Message`, CheckMQTTError);
   await _client.subscribe(`${mt_AppSettings.MQTT.ID5G3_DeviceList}`, CheckMQTTError);  
 }
 };
@@ -178,11 +180,12 @@ function CheckMQTTError (err) {
 function onMQTTMessage(topic, message) {
     let data = message.toString();
     let topicArray = topic.split('/');
-    if(topicArray.length >= 5){
+    if(topicArray.length >= 3){
       switch (topicArray[topicArray.length-1]) {
         case "Status":
         EmitObject({Name:"OnMQTTStatus", Data: { Topic:topic, Message:data} }); 
-          if( `${topicArray[topicArray.length-3]}/${topicArray[topicArray.length-2]}` == _devPath){
+          //if( `${topicArray[topicArray.length-3]}/${topicArray[topicArray.length-2]}` == _devPath){
+          if( `${mt_Utils.removeLastPathSegment(topic)}` == _devPath){
           if( data.toLowerCase() == "connected")
           {
             if(_client)

@@ -96,6 +96,7 @@ async function handleOpenButton() {
   mt_MMSMQTT_API.setUserName(userName);
   mt_MMSMQTT_API.setPassword(password);
   mt_MMSMQTT_API.setPath(devPath);  
+  mt_MMSMQTT_API.setDeviceList(mt_Utils.getEncodedValue("MQTTDeviceList", "TWFnVGVrLysvKy9TdGF0dXM="));
   timeStart = Date.now();
   mt_MMSMQTT_API.openDevice();
 }
@@ -380,8 +381,11 @@ const fileLogger = (e) => {
 
 const mqttStatus = e => {
   let topicArray = e.Data.Topic.split('/');
-  let data = e.Data.Message;
-  mt_UI.AddDeviceLink(topicArray[topicArray.length-3], `${topicArray[topicArray.length-2]}`,data, `${window.location.pathname}?devpath=${topicArray[topicArray.length-3]}/${topicArray[topicArray.length-2]}`);
+  let deviceStatus = e.Data.Message;
+  let deviceType = topicArray[topicArray.length-3];
+  let deviceName = topicArray[topicArray.length-2];  
+  let deviceURL = `${window.location.pathname}?devpath=${mt_Utils.removeLastPathSegment(e.Data.Topic)}`;
+  mt_UI.AddDeviceLink(deviceType, deviceName ,deviceStatus, deviceURL);
 }
 
 

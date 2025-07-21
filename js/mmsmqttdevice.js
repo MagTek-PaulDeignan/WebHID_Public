@@ -15,6 +15,7 @@ import * as mt_UI from "./mt_ui.js";
 import * as mt_AppSettings from "./MagTek_WebAPI/config/appsettings.js";
 import mqtt  from "./MagTek_WebAPI/mqtt.esm.js";
 import "./MagTek_WebAPI/mt_events.js";
+
 import DeviceFactory from "./MagTek_WebAPI/device/API_device_factory.js";
 let mt_Device = DeviceFactory.getDevice("MMS_HID");
 
@@ -24,6 +25,8 @@ let devPath = mt_Utils.getEncodedValue('MQTTDevice','');
 let friendlyName = mt_Utils.getEncodedValue('MQTTDeviceFriendlyName','');
 let userName = mt_Utils.getEncodedValue('MQTTUser','RGVtb0NsaWVudA==');
 let password = mt_Utils.getEncodedValue('MQTTPassword','ZDNtMENMdjFjMQ==');
+
+let mqttOrg = mt_Utils.getEncodedValue('MQTTOrg','TWFnVGVrLw==');
 
 let client = null;
 export let _openTimeDelay = 1500;
@@ -59,7 +62,6 @@ async function handleDOMLoaded() {
 
   await mt_Utils.wait(_openTimeDelay);
   await handleOpenButton();
-
 }
 
 async function handleCloseButton() {
@@ -78,11 +80,11 @@ async function handleOpenButton() {
 
   if (friendlyName.length > 0 )
   {
-    devPath = `${mt_Utils.filterString(window.mt_device_hid.productName)}/${mt_Utils.filterString(friendlyName)}-${mt_Utils.filterString(devSN)}`;
+    devPath = `${mqttOrg}${mt_Utils.filterString(window.mt_device_hid.productName)}/${mt_Utils.filterString(friendlyName)}-${mt_Utils.filterString(devSN)}`;
   }
   else
   {
-    devPath = `${mt_Utils.filterString(window.mt_device_hid.productName)}/${mt_Utils.filterString(devSN)}`;
+    devPath = `${mqttOrg}${mt_Utils.filterString(window.mt_device_hid.productName)}/${mt_Utils.filterString(devSN)}`;
   }
   
   OpenMQTT();
@@ -106,19 +108,13 @@ async function handleDeviceNameSave(){
 
 const deviceConnectLogger = async (e) => {
   mt_UI.setUSBConnected("Connected");
-    //   if (window.mt_device_WasOpened) {
-    //   await mt_Utils.wait(_openTimeDelay);
-    //   await handleOpenButton();
-    // }
-
 };
 const deviceDisconnectLogger = (e) => {
   mt_UI.setUSBConnected("Disconnected");
   let options = {
       	retain: true
   }
-  client.publish(`${mt_AppSettings.MQTT.MMS_Base_Pub}${devPath}/Status`, 'disconnected', options);
-    //EmitObject({Name:"OnDeviceDisconnect", Device:device});
+  client.publish(`${devPath}/Status`, 'disconnected', options);    
 };
 const deviceCloseLogger = (e) => {
   mt_UI.setUSBConnected("Closed");
@@ -127,8 +123,8 @@ const deviceOpenLogger = (e) => {
   mt_UI.setUSBConnected("Opened");
 };
 const fromDeviceLogger = (e) => {
-  
 };
+
 // const inputReportLogger = (e) => {
 //   mt_UI.LogData(`Input Report: ${e.Data}`);
 // };
@@ -141,7 +137,7 @@ const MMSMessageLogger = (e) => {
     let options = {
       retain: false
     }
-    client.publish(`${mt_AppSettings.MQTT.MMS_Base_Pub}${devPath}/MMSMessage`, e.Data, options);
+    client.publish(`${devPath}/MMSMessage`, e.Data, options);    
   }
 };
 
@@ -155,7 +151,7 @@ function OpenMQTT(){
     reconnectPeriod: 1000,
     keepalive: 60,
     will: {
-      topic:`${mt_AppSettings.MQTT.MMS_Base_Pub}${devPath}/Status`,
+      topic:`${devPath}/Status`,
       retain: true,
       payload:"disconnected"
     }
@@ -174,7 +170,7 @@ function CloseMQTT(){
       retain: true
     }
     
-    client.publish(`${mt_AppSettings.MQTT.MMS_Base_Pub}${devPath}/Status`, 'disconnected', options);
+    client.publish(`${devPath}/Status`, 'disconnected', options);
     client.end();
     client = null;      
   }
@@ -186,10 +182,11 @@ function onMQTTConnect() {
   let options = {
     retain: true
   }
-  client.unsubscribe(`${mt_AppSettings.MQTT.MMS_Base_Sub}${devPath}/MMSMessage`, CheckMQTTError)
-  client.publish(`${mt_AppSettings.MQTT.MMS_Base_Pub}${devPath}/Status`, 'connected', options);
-  client.subscribe(`${mt_AppSettings.MQTT.MMS_Base_Sub}${devPath}/MMSMessage`, CheckMQTTError)
-  mt_UI.LogData(`Connected to: ${mt_AppSettings.MQTT.MMS_Base_Sub}${devPath}`);
+  client.unsubscribe(`${devPath}/SendCommand`, CheckMQTTError)
+  client.publish(`${devPath}/Status`, 'connected', options);
+  client.subscribe(`${devPath}/SendCommand`, CheckMQTTError)
+  
+  mt_UI.LogData(`Connected to: ${devPath}`);
   let path = `${mt_AppSettings.MQTT.MMS_PageURL}${devPath}`
   mt_UI.UpdateQRCodewithLink(path);
 
@@ -207,7 +204,19 @@ function CheckMQTTError (err) {
 
 function onMQTTMessage(topic, message) {
     let data = message.toString();    
-    mt_Device.sendCommand(data);
+    let topicArray = topic.split("/");
+    switch (topicArray[topicArray.length-1]) {
+    case "Status":
+      console.log(`status ${topic}: ${message}`);
+      break;
+    case "SendCommand":
+      mt_Device.sendCommand(data);
+     break;
+    default:
+      console.log(`unknown ${topic}: ${message}`);
+      break;
+    }
+    
 };
 
 

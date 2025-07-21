@@ -581,6 +581,46 @@ export function impliedDollarAmt(argAmount) {
   return amount;
 }
 
+/**
+ * Removes the last segment of a path string, splitting by '/'.
+ *
+ * @param {string} pathString The input path string (e.g., 'MagTek/Server/DynaFlex/B547D37/Status').
+ * @returns {string} The path string with the last segment removed (e.g., 'MagTek/Server/DynaFlex/B547D37').
+ */
+export function removeLastPathSegment(pathString) {
+  // Split the string by the '/' delimiter
+  const parts = pathString.split('/');
+
+  // If there's only one part or the string is empty, return an empty string
+  // as there's no "last part" to remove in a meaningful way for this context.
+  if (parts.length <= 1) {
+    return '';
+  }
+
+  // Remove the last element from the array
+  parts.pop();
+
+  // Join the remaining parts back together with '/'
+  return parts.join('/');
+}
+
+
+ /**
+ * Replaces the first occurrence of a specified substring with another string.
+ *
+ * @param {string} originalString The string in which to perform the replacement.
+ * @param {string} stringToReplace The substring to find and replace.
+ * @param {string} replacementString The string to replace with.
+ * @returns {string} The new string with the replacement made.
+ */
+export function replaceSubstring(originalString, stringToReplace, replacementString) {
+  // The String.prototype.replace() method is used here.
+  // By default, it replaces only the first occurrence.
+  // If you needed to replace all occurrences, you would use a regular expression with the 'g' flag:
+  // return originalString.replace(new RegExp(stringToReplace, 'g'), replacementString);
+  return originalString.replace(stringToReplace, replacementString);
+}
+
 
 export function parseHardwareID(input){
  
