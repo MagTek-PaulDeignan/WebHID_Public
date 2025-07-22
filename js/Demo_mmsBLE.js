@@ -254,7 +254,7 @@ async function parseCommand(message) {
       mt_UI.LogData(fw);
       break;
     case "UPDATEFIRMWARERMS":
-      updateFirmwareRMS(); 
+      updateFirmwareRMS(cmd[1]); 
       break;
     case "UPDATETAGSRMS":
       updateTagsRMS(); 
@@ -650,20 +650,44 @@ switch (e.Data) {
   }
 }
 
-async function updateFirmwareRMS(){
+async function updateFirmwareRMS(fwSpec){
+  let fwType = "fw-main";
+  if (fwSpec) fwType = fwSpec;
+  
+  let fw = null;
   let startTime = Date.now();
   mt_RMS_API.setURL(mt_Utils.getEncodedValue('RMSBaseURL', defaultRMSURL, false));
   mt_RMS_API.setAPIKey(mt_Utils.getEncodedValue('RMSAPIKey',defaultRMSAPIKey));
   mt_RMS_API.setProfileName(mt_Utils.getEncodedValue('RMSProfileName',defaultRMSProfileName));
   
   ShowDeviceResponses = false;
-  let fw = await mt_MMS.GetDeviceFWID();
+  
+    switch (fwType.toLowerCase()) {
+    case "fw-boot":
+      fw = await mt_MMS.GetDeviceBootFWID();
+      break;
+    case "fw-wifi":
+      fw = await mt_MMS.GetDeviceWifiFWID();
+      break;
+    case "fw-ble":
+      fw = await mt_MMS.GetDeviceBLEFWID();
+      break;
+    default:
+      fw = await mt_MMS.GetDeviceFWID();
+      break;
+  }
+ 
   let sn = await mt_MMS.GetDeviceSN();
   ShowDeviceResponses = true;
 
   if(mt_RMS_API.BaseURL.length > 0 && mt_RMS_API.APIKey.length > 0 && mt_RMS_API.ProfileName.length > 0)
   {        
-    await updateFirmwareRMSWebAPI(fw,sn);    
+    
+    if (fw.length > 0)
+    {
+      await updateFirmwareRMSWebAPI(fw,sn);    
+    }
+    
     let endTime = Date.now();
     let executionTimeMs = endTime - startTime;
     let executionTimeSec = executionTimeMs / 1000;
@@ -704,13 +728,8 @@ async function updateTagsRMS(){
 
 async function updateFirmwareRMSWebAPI(fwID, deviceSN, interfaceType = 'USB', downloadPayload = true) {
   try {
-    mt_UI.LogData(`Checking Firmware...`);
+    mt_UI.LogData(`Checking Firmware ${fwID}...`);
     let strVersion = mt_Utils.getEncodedValue("RMSVersion","");    
-    // if(strVersion == '0'  &&  fwID.substring(0,10) == '1000009712')
-    // {
-    //   fwID = '1000009712-AB1-PRD';
-    //   mt_UI.LogData(`Forcing Firmware Update`);
-    // } 
     ShowDeviceResponses = false;
     //Sending Please Wait
     //await mt_MMS.sendCommand('AA008104015518038408180381010082010E');    
