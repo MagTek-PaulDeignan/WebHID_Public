@@ -62,10 +62,10 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
       <label>Wifi:</label>
       <div class="form-group row">
         <div class="col-lg">
-          <label for="ssidName">SSID Name:</label> <input type="text" class="form-control" name="ssidName" id="ssidName" aria-describedby="helpId" value="" placeholder="SSID Name">
+          <label for="ssidName">SSID Name:</label> <input type="text" class="form-control" name="ssidName" id="ssidName" aria-describedby="helpId" value="" placeholder="SSID Name" maxlength="32">
         </div>
         <div class="col-lg">
-        <label for="ssidPwd">SSID Password:</label> <input type="password" class="form-control" name="ssidPwd" id="ssidPwd" aria-describedby="helpId" value="" placeholder="SSID Password">          
+        <label for="ssidPwd">SSID Password:</label> <input type="password" class="form-control" name="ssidPwd" id="ssidPwd" aria-describedby="helpId" value="" placeholder="SSID Password" maxlength="63">          
         </div>
       </div>
     </div>
@@ -75,26 +75,22 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
         <label>MQTT:</label>
         <div class="form-group row">
           <div class="col-lg">  
-            <label for="mqttUser">User:</label> <input type="text" class="form-control" name="mqttUser" id="mqttUser" aria-describedby="helpId" value="" placeholder="MQTT User">
+            <label for="mqttUser">User:</label> <input type="text" class="form-control" name="mqttUser" id="mqttUser" aria-describedby="helpId" value="" placeholder="MQTT User" maxlength="32">
           </div>
           <div class="col-lg">  
-            <label for="mqttPassword">Password:</label> <input type="password" class="form-control" name="mqttPassword" id="mqttPassword" aria-describedby="helpId" value="" placeholder="MQTT Password">
+            <label for="mqttPassword">Password:</label> <input type="password" class="form-control" name="mqttPassword" id="mqttPassword" aria-describedby="helpId" value="" placeholder="MQTT Password" maxlength="32">
           </div>
         </div>
         <hr> 
         <div class="form-group row">
             <div class="col-lg">  
-              <label for="mqttOrg">Org Node:</label> <input type="text" class="form-control" name="mqttOrg" id="mqttOrg" aria-describedby="helpId" value="" placeholder="Org Node">
+              <label for="mqttOrg">Org Node:</label> <input type="text" class="form-control" name="mqttOrg" id="mqttOrg" aria-describedby="helpId" value="" placeholder="Org Node" maxlength="191">
             </div>
           </div>
-        
-        
-
-        
-      
-      <hr>
-
     <br>
 
+    <audio id="audioUpdateComplete">
+    <source src="./sounds/MQTTConfigupdateComplete.mp3" type="audio/mpeg">
+    </audio>
   </body>
 </html>

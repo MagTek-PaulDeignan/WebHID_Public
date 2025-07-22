@@ -26,7 +26,7 @@ let friendlyName = mt_Utils.getEncodedValue('MQTTDeviceFriendlyName','');
 let userName = mt_Utils.getEncodedValue('MQTTUser','RGVtb0NsaWVudA==');
 let password = mt_Utils.getEncodedValue('MQTTPassword','ZDNtMENMdjFjMQ==');
 
-let mqttOrg = mt_Utils.getEncodedValue('MQTTOrg','TWFnVGVrLw==');
+let mqttOrg = mt_Utils.getEncodedValue('MQTTOrg','TWFnVGVrL1VTL0NBL1NlYWxCZWFjaC9OYW1lLw==');
 
 let client = null;
 export let _openTimeDelay = 1500;
@@ -86,7 +86,6 @@ async function handleOpenButton() {
   {
     devPath = `${mqttOrg}${mt_Utils.filterString(window.mt_device_hid.productName)}/${mt_Utils.filterString(devSN)}`;
   }
-  
   OpenMQTT();
 }
 
@@ -111,9 +110,7 @@ const deviceConnectLogger = async (e) => {
 };
 const deviceDisconnectLogger = (e) => {
   mt_UI.setUSBConnected("Disconnected");
-  let options = {
-      	retain: true
-  }
+  let options = {retain: true};
   client.publish(`${devPath}/Status`, 'disconnected', options);    
 };
 const deviceCloseLogger = (e) => {
@@ -165,10 +162,7 @@ function OpenMQTT(){
 function CloseMQTT(){
   if(client)
   {
-    let options = 
-    {
-      retain: true
-    }
+    let options = {retain: true};
     
     client.publish(`${devPath}/Status`, 'disconnected', options);
     client.end();
@@ -179,9 +173,7 @@ function CloseMQTT(){
 
 function onMQTTConnect() {  
   // Subscribe to a topic
-  let options = {
-    retain: true
-  }
+  let options = {retain: true};
   client.unsubscribe(`${devPath}/SendCommand`, CheckMQTTError)
   client.publish(`${devPath}/Status`, 'connected', options);
   client.subscribe(`${devPath}/SendCommand`, CheckMQTTError)

@@ -67,10 +67,7 @@ async function handleDOMLoaded() {
 
   //Add the hid event listener for disconnect/unplug
   navigator.hid.addEventListener("disconnect", ({ device }) => {
-    let options = {
-      retain: true
-    }
-    
+    let options = {retain: true};
     client.publish(`${mt_AppSettings.MQTT.ID5G3_Base_Pub}${devPath}/Status`, 'disconnected', options);
     EmitObject({Name:"OnDeviceDisconnect", Device:device});
   });
@@ -188,11 +185,7 @@ function OpenMQTT(){
 function CloseMQTT(){
   if(client)
   {
-    let options = 
-    {
-      retain: true
-    }
-    
+    let options = {retain: true};
     client.publish(`${mt_AppSettings.MQTT.ID5G3_Base_Pub}${devPath}/Status`, 'disconnected', options);
     client.end();
     client = null;      
@@ -202,9 +195,7 @@ function CloseMQTT(){
 
 function onMQTTConnect() {  
   // Subscribe to a topic
-  let options = {
-    retain: true
-  }
+  let options = {retain: true};
   
   client.unsubscribe(`${mt_AppSettings.MQTT.ID5G3_Base_Sub}${devPath}/ID5G3Message`, CheckMQTTError)
   client.publish(`${mt_AppSettings.MQTT.ID5G3_Base_Pub}${devPath}/Status`, 'connected', options);

@@ -37,7 +37,7 @@ async function handleDOMLoaded() {
   item.value = mt_Utils.getEncodedValue("WSAddress", "d3M6Ly8xOTIuMTY4LjEuMjAw");
   
   item = document.getElementById("txMQTTOrg");
-  item.value = mt_Utils.getEncodedValue("MQTTOrg", "TWFnVGVrLw==");
+  item.value = mt_Utils.getEncodedValue("MQTTOrg", "TWFnVGVrL1VTL0NBL1NlYWxCZWFjaC9OYW1lLw==");
 
   item = document.getElementById("txMQTTURL");
   item.value = mt_Utils.getEncodedValue("MQTTURL", "d3NzOi8vZGV2ZWxvcGVyLmRlaWduYW4uY29tOjgwODQvbXF0dA==");
@@ -52,7 +52,7 @@ async function handleDOMLoaded() {
   item.value = mt_Utils.getEncodedValue("MQTTPassword", "ZDNtMENMdjFjMQ==");
 
   item = document.getElementById("txMQTTDeviceList");
-  item.value = mt_Utils.getEncodedValue("MQTTDeviceList", "TWFnVGVrLysvKy9TdGF0dXM=");
+  item.value = mt_Utils.getEncodedValue("MQTTDeviceList", "TWFnVGVrL1VTLysvKy8rLysvKy9TdGF0dXM=");
 
   item = document.getElementById("txContactlessDelay");
   item.value = mt_Utils.getEncodedValue("ContactlessDelay", "NTAw");

@@ -204,7 +204,7 @@ async function handleOpenButton() {
   mt_MQTT.setUserName(userName);
   mt_MQTT.setPassword(password);
   mt_MQTT.setPath(devPath);  
-  mt_MQTT.setDeviceList(mt_Utils.getEncodedValue("MQTTDeviceList", "TWFnVGVrLysvKy9TdGF0dXM="));
+  mt_MQTT.setDeviceList(mt_Utils.getEncodedValue("MQTTDeviceList", "TWFnVGVrL1VTLysvKy8rLysvKy9TdGF0dXM="));
   mt_MQTT.openDevice();  
   SetTechnologies(true, true, true);  
   

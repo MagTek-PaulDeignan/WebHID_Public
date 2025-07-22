@@ -96,7 +96,7 @@ async function handleOpenButton() {
   mt_MMSMQTT_API.setUserName(userName);
   mt_MMSMQTT_API.setPassword(password);
   mt_MMSMQTT_API.setPath(devPath);  
-  mt_MMSMQTT_API.setDeviceList(mt_Utils.getEncodedValue("MQTTDeviceList", "TWFnVGVrLysvKy9TdGF0dXM="));
+  mt_MMSMQTT_API.setDeviceList(mt_Utils.getEncodedValue("MQTTDeviceList", "TWFnVGVrL1VTLysvKy8rLysvKy9TdGF0dXM="));
   timeStart = Date.now();
   mt_MMSMQTT_API.openDevice();
 }
@@ -285,8 +285,8 @@ const fromDeviceLogger = (e) => {
         let StartPos = retData.indexOf("5504");
         if(StartPos > 0 )
         {
-            let len = parseInt(retData.substring(StartPos-2,StartPos),16)*2 - 2;
-            let uri = mt_Utils.hexToASCII(retData.substring(StartPos+4, StartPos+4 + len));
+            let len = parseInt(retData.substring(StartPos - 2,StartPos),16)*2 - 2;
+            let uri = mt_Utils.hexToASCII(retData.substring(StartPos + 4, StartPos + 4 + len));
             mt_UI.LogData(`Opening: ${uri}` );
             window.open(`https://${uri}`, '_blank');
         }

@@ -21,8 +21,7 @@ let _devPath = "";
 let _userName = "";
 let _password = "";
 let _client = null;
-//let _deviceList = "MagTek/+/+/Status";
-let _deviceList = mt_Utils.getEncodedValue("MQTTDeviceList", "TWFnVGVrLysvKy9TdGF0dXM=");
+let _deviceList = mt_Utils.getEncodedValue("MQTTDeviceList", "TWFnVGVrL1VTLysvKy8rLysvKy9TdGF0dXM=");
 
 
 export let _activeCommandMode = true;

@@ -77,7 +77,7 @@ async function getConfig() {
   await getMQTTUser();
   
   let item = document.getElementById("mqttOrg");
-  item.value = mt_Utils.getEncodedValue("MQTTOrg", "TWFnVGVrLw==");
+  item.value = mt_Utils.getEncodedValue("MQTTOrg", "TWFnVGVrL1VTL0NBL1NlYWxCZWFjaC9OYW1lLw==");
 
 
   await getMQTTSubTopic();
@@ -89,7 +89,7 @@ async function getConfig() {
 
 async function setConfig()
 {
-  ShowDeviceResponses = false;
+  ShowDeviceResponses = true;
   mt_UI.LogData(`Saving MQTT Configuration`);
   await setWirelessSecurityMode();
   await setAddressMode();
@@ -107,8 +107,9 @@ async function setConfig()
   await setMQTTPubTopic();
   mt_UI.LogData(`Done - Saving MQTT Configuration`);
   mt_UI.LogData("");
-  ShowDeviceResponses = true;
-  
+  await document.getElementById("audioUpdateComplete").play(); 
+  await ResetDevice();
+  ShowDeviceResponses = true;  
 }
 
 async function setMQTTTrustConfig(){
@@ -117,7 +118,7 @@ async function setMQTTTrustConfig(){
   let fwpart = fw.split("-");
   let fwType = fwpart[fwpart.length -1];
   let Resp = null;
-  ShowDeviceResponses = true;
+  //ShowDeviceResponses = true;
   switch (fwType) {
     case "PRD":
       mt_UI.LogData(`Setting Root Certificate and Trust Config for PRD Device`);
@@ -133,7 +134,7 @@ async function setMQTTTrustConfig(){
       mt_UI.LogData(`Unknown Device: ${fw} Type No Trust Config`);
       break;
   }
-    ShowDeviceResponses = false;
+    //ShowDeviceResponses = false;
 
 }
 async function getWLANMode(){  
@@ -254,9 +255,9 @@ async function getDeviceIP(){
 async function ResetDevice(){
   mt_UI.updateProgressBar("",-1);  
   mt_UI.LogData("Resetting Device...");
-  ShowDeviceResponses = false;
+  //ShowDeviceResponses = false;
   let Resp = await mt_MMS.sendCommand("AA00810401121F0184021F01"); 
-  ShowDeviceResponses = true; 
+  //ShowDeviceResponses = true; 
   
 }
 
@@ -288,7 +289,7 @@ async function setMQTTBroker(Name) {
   let name = Name;
   if(name.length > 0)
   {
-    let val = mt_Utils.AsciiToHexPad(name, 0x20);
+    let val = mt_Utils.AsciiToHexPad(name, 0x40);
     mt_UI.LogData(`Setting MQTT Broker: ${name}`);
     let resp = await mt_MMS.sendCommand(`AA0081040155D111844FD1118501018704020201028942C140${val}`); 
   }
@@ -346,7 +347,8 @@ async function getMQTTSubTopic() {
   if (Resp.OperationDetailCode == "000000" && Resp.OperationStatusCode == "00")
   {
     let Tag84 = mt_Utils.getTagValue("84","",Resp.TLVData);       
-    let val = mt_Utils.getTagValue("C4","",Tag84.substring(26),true);
+    let Tag89 = mt_Utils.getTagValue("89","",Tag84.substring(4)); 
+    let val = mt_Utils.getTagValue("C4","",Tag89,true);
     //mt_UI.UpdateValue("mqttSubTopic",val);
     mt_UI.LogData(`MQTT Subscribe Topic: ${val}`);
   }
@@ -362,10 +364,17 @@ async function setMQTTSubTopic()
   {
     let devType = mt_Utils.filterString(mt_MMS._device.productName);
     let devSN = await getDevSN();
-    let  name  = `${org}${devType}/${devSN}/SendCommand`;
-    val = mt_Utils.AsciiToHexPad(name, 0x40);
+    let name = `${org}${devType}/${devSN}/SendCommand`;
+    
+    
     mt_UI.LogData(`Setting MQTT Subscribe Topic: ${name}`);
-    resp = await mt_MMS.sendCommand(`AA0081040155D111844FD1118501018704020201028942C440${val}`); 
+    //Short Form  64 Bytes
+    //val = mt_Utils.AsciiToHexPad(name, 0x40);
+    //resp = await mt_MMS.sendCommand(`AA0081040155D111844FD1118501018704020201028942C440${val}`); 
+    
+    //Long Form  224 Bytes
+    val = mt_Utils.AsciiToHexPad(name, 224);
+    resp = await mt_MMS.sendCommand(`AA0081040155D11184 8200F3 D11185010187040202010289 8200E4 C4 8200E0${val}`); 
   }
 }
 
@@ -375,7 +384,8 @@ async function getMQTTPubTopic() {
   if (Resp.OperationDetailCode == "000000" && Resp.OperationStatusCode == "00")
   {
     let Tag84 = mt_Utils.getTagValue("84","",Resp.TLVData);       
-    let val = mt_Utils.getTagValue("C5","",Tag84.substring(26),true);
+    let Tag89 = mt_Utils.getTagValue("89","",Tag84.substring(4)); 
+    let val = mt_Utils.getTagValue("C5","",Tag89,true);
     //mt_UI.UpdateValue("mqttPubTopic", val);
     mt_UI.LogData(`MQTT Publish Topic: ${val}`);
   }
@@ -394,9 +404,16 @@ async function setMQTTPubTopic()
     let devSN = await getDevSN();
     let name  = `${org}${devType}/${devSN}`;
 
-    val = mt_Utils.AsciiToHexPad(name, 0x40);
+    
+    
     mt_UI.LogData(`Setting MQTT Publish Topic: ${name}`);
-    resp = await mt_MMS.sendCommand(`AA0081040155D111844FD1118501018704020201028942C540${val}`); 
+    //Short form 64 bytes
+    //val = mt_Utils.AsciiToHexPad(name, 0x40);
+    //resp = await mt_MMS.sendCommand(`AA0081040155D111844FD1118501018704020201028942C540${val}`); 
+    
+    //Long form 224 bytes
+    val = mt_Utils.AsciiToHexPad(name, 224);
+    resp = await mt_MMS.sendCommand(`AA00 81 04 0155D111 84 8200F3 D111 85 01 01 87 04 02020102 89 8200E4 C5 8200E0${val}`); 
   }
 }
 
@@ -409,9 +426,6 @@ async function setSSID() {
   
   if(name.length > 0)
   {
-    // mt_UI.LogData("Setting DHCP Mode");
-    // resp = await mt_MMS.sendCommand("AA0081040117D111841ED11181072B06010401F609850101890EE20CE20AE108E106C50400000001");
-
     val = mt_Utils.AsciiToHexPad(name, 0x20);
     mt_UI.LogData(`Setting SSID: ${name}`);
     resp = await mt_MMS.sendCommand(`AA0081040107D111843AD11181072B06010401F609850101892AE228E226E124E122C120${val}`); 
@@ -603,7 +617,14 @@ const batchLogger = (e) => {
   mt_UI.LogData(`${e.Source} Batch Data: ${e.Data}`);
 };
 const fromDeviceLogger = (e) => {
-  if (ShowDeviceResponses) mt_UI.LogData(`Device Response: ${e.Data.HexString}`);
+  if (ShowDeviceResponses)
+  {
+        //mt_UI.LogData(`Device Response: ${e.Data.HexString}`);
+        mt_UI.LogData(`Device Response Status Code: ${e.Data.OperationStatusCode}${e.Data.OperationDetailCode}`);
+        mt_UI.LogData(`Device Response Status: ${e.Data.OperationStatus} : ${e.Data.OperationDetail}`);
+  }
+    
+  
   
 };
 const inputReportLogger = (e) => {
@@ -649,8 +670,7 @@ const userEventLogger = (e) => {
 const fileLogger = async (e) => {
   
     let resp = null;
-
-    
+   
     let tagData = mt_Utils.getTagValue("84", "", e.Data.TLVData.substring(8), false);
     let tagFileName = mt_Utils.getTagValue("C1", "", tagData.substring(16), false);
     let tagFileContents = mt_Utils.getTagValue("CE", "", tagData.substring(16), false);
@@ -691,7 +711,7 @@ const fileLogger = async (e) => {
        
       break;
       case '04000000':
-        ShowDeviceResponses = false;
+        //ShowDeviceResponses = false;
         //CertExpirationDays = parseInt(mt_UI.GetValue("certDays"));
         mt_UI.LogData(`CSR signed for ${CertExpirationDays} days... `);
         
@@ -709,7 +729,7 @@ const fileLogger = async (e) => {
           //mt_UI.LogData("=============================");
           await parseCommands('Certificate Update', resp.data.certificateLoadCommands);
         }
-        ShowDeviceResponses = true;
+        //ShowDeviceResponses = true;
         break;
       default:
         mt_UI.LogData(`File: ${tagFileName} ${e.Data.HexString}`);
