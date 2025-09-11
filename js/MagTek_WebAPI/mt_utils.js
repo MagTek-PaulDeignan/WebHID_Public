@@ -10,6 +10,39 @@ DO NOT REMOVE THIS COPYRIGHT
  WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
+export function isBase16(str) {
+  // Check if the string is null, undefined, or not a string
+  if (typeof str !== 'string') {
+    return false;
+  }
+  
+  // Check if the string has an even length
+  if (str.length % 2 !== 0) {
+    return false;
+  }
+
+  // Use a regular expression to check for valid hex characters
+  // The 'i' flag makes the check case-insensitive
+  const hexRegex = /^[0-9a-f]+$/i;
+  
+  return hexRegex.test(str);
+}
+
+export function isBase64(str) {
+  // Check if the input is a string
+  if (typeof str !== 'string') {
+    return false;
+  }
+
+  // The main check is done using a single regular expression.
+  // This regex is optimized to check for all Base64 validity rules.
+  // The 'i' flag ensures case-insensitive matching for the alphabet.
+  const base64Regex = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/;
+
+  // Test the string against the regular expression
+  return base64Regex.test(str);
+}
+
 export function byteArrayToBase64(byteArray) {
   const binaryString = Array.from(byteArray)
       .map(byte => String.fromCharCode(byte))
@@ -256,6 +289,7 @@ export function sanitizeHexData(hexdata) {
   // Regular expression to match only hexadecimal characters
   const hexOnlyRegex = /[^0-9a-fA-F]/g;
   // Remove all non-hexadecimal characters
+
   return hexdata.replace(hexOnlyRegex, "");
 }
 
@@ -580,6 +614,47 @@ export function impliedDollarAmt(argAmount) {
   const amount = parseFloat(argAmount / 100);
   return amount;
 }
+
+/**
+ * Removes the last segment of a path string, splitting by '/'.
+ *
+ * @param {string} pathString The input path string (e.g., 'MagTek/Server/DynaFlex/B547D37/Status').
+ * @returns {string} The path string with the last segment removed (e.g., 'MagTek/Server/DynaFlex/B547D37').
+ */
+export function removeLastPathSegment(pathString) {
+  // Split the string by the '/' delimiter
+  const parts = pathString.split('/');
+
+  // If there's only one part or the string is empty, return an empty string
+  // as there's no "last part" to remove in a meaningful way for this context.
+  if (parts.length <= 1) {
+    return '';
+  }
+
+  // Remove the last element from the array
+  parts.pop();
+
+  // Join the remaining parts back together with '/'
+  return parts.join('/');
+}
+
+
+ /**
+ * Replaces the first occurrence of a specified substring with another string.
+ *
+ * @param {string} originalString The string in which to perform the replacement.
+ * @param {string} stringToReplace The substring to find and replace.
+ * @param {string} replacementString The string to replace with.
+ * @returns {string} The new string with the replacement made.
+ */
+export function replaceSubstring(originalString, stringToReplace, replacementString) {
+  // The String.prototype.replace() method is used here.
+  // By default, it replaces only the first occurrence.
+  // If you needed to replace all occurrences, you would use a regular expression with the 'g' flag:
+  // return originalString.replace(new RegExp(stringToReplace, 'g'), replacementString);
+  return originalString.replace(stringToReplace, replacementString);
+}
+
 
 
 export function parseHardwareID(input){

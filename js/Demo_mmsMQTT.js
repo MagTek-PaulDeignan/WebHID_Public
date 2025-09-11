@@ -96,6 +96,7 @@ async function handleOpenButton() {
   mt_MMSMQTT_API.setUserName(userName);
   mt_MMSMQTT_API.setPassword(password);
   mt_MMSMQTT_API.setPath(devPath);  
+  mt_MMSMQTT_API.setDeviceList(mt_Utils.getEncodedValue("MQTTDeviceList", "TWFnVGVrL1VTLysvKy8rLysvKy9TdGF0dXM="));
   timeStart = Date.now();
   mt_MMSMQTT_API.openDevice();
 }
@@ -178,7 +179,7 @@ async function parseCommand(message) {
       mt_UI.LogData(fw);
       break;
     case "UPDATEFIRMWARERMS":
-      updateFirmwareRMS(); 
+      updateFirmwareRMS(cmd[1]); 
       break;
     case "UPDATETAGSRMS":
       updateTagsRMS(); 
@@ -284,8 +285,8 @@ const fromDeviceLogger = (e) => {
         let StartPos = retData.indexOf("5504");
         if(StartPos > 0 )
         {
-            let len = parseInt(retData.substring(StartPos-2,StartPos),16)*2 - 2;
-            let uri = mt_Utils.hexToASCII(retData.substring(StartPos+4, StartPos+4 + len));
+            let len = parseInt(retData.substring(StartPos - 2,StartPos),16)*2 - 2;
+            let uri = mt_Utils.hexToASCII(retData.substring(StartPos + 4, StartPos + 4 + len));
             mt_UI.LogData(`Opening: ${uri}` );
             window.open(`https://${uri}`, '_blank');
         }
@@ -380,8 +381,11 @@ const fileLogger = (e) => {
 
 const mqttStatus = e => {
   let topicArray = e.Data.Topic.split('/');
-  let data = e.Data.Message;
-  mt_UI.AddDeviceLink(topicArray[topicArray.length-3], `${topicArray[topicArray.length-2]}`,data, `${window.location.pathname}?devpath=${topicArray[topicArray.length-3]}/${topicArray[topicArray.length-2]}`);
+  let deviceStatus = e.Data.Message;
+  let deviceType = topicArray[topicArray.length-3];
+  let deviceName = topicArray[topicArray.length-2];  
+  let deviceURL = `${window.location.pathname}?devpath=${mt_Utils.removeLastPathSegment(e.Data.Topic)}`;
+  mt_UI.AddDeviceLink(deviceType, deviceName ,deviceStatus, deviceURL);
 }
 
 
@@ -459,19 +463,43 @@ async function parseFirmwareFile(file, fileType = 1){
   reader.readAsArrayBuffer(file); 
 }
 
-async function updateFirmwareRMS(){
+async function updateFirmwareRMS(fwSpec){
+  
+  let fwType = "fw-main";
+  if (fwSpec) fwType = fwSpec;
+  let fw = null;
   let startTime = Date.now();
   mt_RMS_API.setURL(mt_Utils.getEncodedValue('RMSBaseURL',defaultRMSURL));
   mt_RMS_API.setAPIKey(mt_Utils.getEncodedValue('RMSAPIKey',defaultRMSAPIKey));
   mt_RMS_API.setProfileName(mt_Utils.getEncodedValue('RMSProfileName',defaultRMSProfileName));
   
   ShowDeviceResponses = false;
-  let fw = await mt_MMSMQTT_API.GetDeviceFWID();
+  
+    switch (fwType.toLowerCase()) {
+    case "fw-boot":
+      fw = await mt_MMSMQTT_API.GetDeviceBootFWID();
+      break;
+    case "fw-wifi":
+      fw = await mt_MMSMQTT_API.GetDeviceWifiFWID();
+      break;
+    case "fw-ble":
+      fw = await mt_MMSMQTT_API.GetDeviceBLEFWID();
+      break;
+    default:
+      fw = await mt_MMSMQTT_API.GetDeviceFWID();
+      break;
+  }
+
+
   let sn = await mt_MMSMQTT_API.GetDeviceSN();
   ShowDeviceResponses = true;
 
   if(mt_RMS_API.BaseURL.length > 0 && mt_RMS_API.APIKey.length > 0 && mt_RMS_API.ProfileName.length > 0){        
-    await updateFirmwareRMSWebAPI(fw,sn);
+    
+    if (fw.length > 0)
+    {
+      await updateFirmwareRMSWebAPI(fw,sn);    
+    }
     let endTime = Date.now();
     let executionTimeMs = endTime - startTime;
     let executionTimeSec = executionTimeMs / 1000;
@@ -516,16 +544,11 @@ async function updateTagsRMS(){
 async function updateFirmwareRMSWebAPI(fwID, deviceSN, interfaceType = 'USB', downloadPayload = true) {
   try {
     
-    mt_UI.LogData(`Checking Firmware...`);
+    mt_UI.LogData(`Checking Firmware ${fwID}...`);
 
     
     let strVersion = mt_Utils.getEncodedValue("RMSVersion","");    
 
-    if(strVersion == '0'  &&  fwID.substring(0,10) == '1000009712'){
-      fwID = '1000009712-AB1-PRD';
-      mt_UI.LogData(`Forcing Firmware Update`);
-    } 
-    
     ShowDeviceResponses = false;
         //Sending Please Wait
         let cmds = await mt_Utils.FetchCommandsfromURL("cmds/DisplayLoadingFirmware.txt");

@@ -1,4 +1,4 @@
-// API_mmsBLE.js
+// API_device_mmsBLE.js
 /* DO NOT REMOVE THIS COPYRIGHT
  Copyright 2020-2025 MagTek, Inc, Paul Deignan.
  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), 
@@ -183,8 +183,12 @@ class MMSBLEDevice extends AbstractDevice {
         this._emitObject({ Name: "OnError", Source: "SendCommand", Data: "Device is not open" });
         return 0;
       }
-
-      cmdResp = await this._sendMMSBLECommand(mt_Utils.sanitizeHexData(cmdToSend));
+      let sanitizedData = mt_Utils.sanitizeHexData(cmdToSend);
+      if(!mt_Utils.isBase16(sanitizedData)){
+        this._emitObject({ Name: "OnError", Source: "SendCommand", Data: "Invalid command (data is not hex)" });
+        return 0;
+      }
+      cmdResp = await this._sendMMSBLECommand(sanitizedData);
       return cmdResp;
     } catch (error) {
       this._emitObject({ Name: "OnError", Source: "SendCommand", Data: error });
@@ -441,6 +445,51 @@ class MMSBLEDevice extends AbstractDevice {
    */
   async GetDeviceFWID() {
     let resp = await this.sendCommand("AA0081040102D101841AD10181072B06010401F609850102890AE108E206E204E202C200");
+    let str = resp.TLVData.substring(24);
+    let tag89 = mt_Utils.getTagValue("89", "", str, false);
+    let data = mt_Utils.getTagValue("C2", "", tag89, true);
+    return data;
+  }
+
+  /**
+   * @method GetDeviceWifiFWID
+   * @description
+   * Sends a specific command to get the device's Wifi firmware ID and parses the response.
+   * Overrides the abstract method.
+   * @returns {Promise<string>} A promise that resolves with the device firmware ID.
+   */
+  async GetDeviceWifiFWID() {
+    let resp = await this.sendCommand("AA0081040108D101841AD10181072B06010401F609850102890AE108E206E504E302C100");
+    let str = resp.TLVData.substring(24);
+    let tag89 = mt_Utils.getTagValue("89", "", str, false);
+    let data = mt_Utils.getTagValue("C1", "", tag89, true);
+    return data;
+  }
+
+    /**
+   * @method GetDeviceBLEFWID
+   * @description
+   * Sends a specific command to get the device's Wifi firmware ID and parses the response.
+   * Overrides the abstract method.
+   * @returns {Promise<string>} A promise that resolves with the device firmware ID.
+   */
+  async GetDeviceBLEFWID() {
+    let resp = await this.sendCommand("AA0081040109D101841AD10181072B06010401F609850102890AE108E206E704E102C100");
+    let str = resp.TLVData.substring(24);
+    let tag89 = mt_Utils.getTagValue("89", "", str, false);
+    let data = mt_Utils.getTagValue("C1", "", tag89, true);
+    return data;
+  }
+
+  /**
+   * @method GetDeviceBootFWID
+   * @description
+   * Sends a specific command to get the device's Wifi firmware ID and parses the response.
+   * Overrides the abstract method.
+   * @returns {Promise<string>} A promise that resolves with the device firmware ID.
+   */
+  async GetDeviceBootFWID() {
+    let resp = await this.sendCommand("AA008104010BD101841AD10181072B06010401F609850102890AE108E206E104E102C200");
     let str = resp.TLVData.substring(24);
     let tag89 = mt_Utils.getTagValue("89", "", str, false);
     let data = mt_Utils.getTagValue("C2", "", tag89, true);

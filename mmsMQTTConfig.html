@@ -62,10 +62,10 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
       <label>Wifi:</label>
       <div class="form-group row">
         <div class="col-lg">
-          <label for="ssidName">SSID Name:</label> <input type="text" class="form-control" name="ssidName" id="ssidName" aria-describedby="helpId" value="" placeholder="SSID Name">
+          <label for="ssidName">SSID Name:</label> <input type="text" class="form-control" name="ssidName" id="ssidName" aria-describedby="helpId" value="" placeholder="SSID Name" maxlength="32">
         </div>
         <div class="col-lg">
-        <label for="ssidPwd">SSID Password:</label> <input type="password" class="form-control" name="ssidPwd" id="ssidPwd" aria-describedby="helpId" value="" placeholder="SSID Password">          
+        <label for="ssidPwd">SSID Password:</label> <input type="password" class="form-control" name="ssidPwd" id="ssidPwd" aria-describedby="helpId" value="" placeholder="SSID Password" maxlength="63">          
         </div>
       </div>
     </div>
@@ -75,51 +75,22 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
         <label>MQTT:</label>
         <div class="form-group row">
           <div class="col-lg">  
-            <label for="mqttUser">User:</label> <input type="text" class="form-control" name="mqttUser" id="mqttUser" aria-describedby="helpId" value="" placeholder="MQTT User">
+            <label for="mqttUser">User:</label> <input type="text" class="form-control" name="mqttUser" id="mqttUser" aria-describedby="helpId" value="" placeholder="MQTT User" maxlength="32">
           </div>
           <div class="col-lg">  
-            <label for="mqttPassword">Password:</label> <input type="password" class="form-control" name="mqttPassword" id="mqttPassword" aria-describedby="helpId" value="" placeholder="MQTT Password">
+            <label for="mqttPassword">Password:</label> <input type="password" class="form-control" name="mqttPassword" id="mqttPassword" aria-describedby="helpId" value="" placeholder="MQTT Password" maxlength="32">
           </div>
         </div>
         <hr> 
         <div class="form-group row">
             <div class="col-lg">  
-              <label for="mqttService">Service:</label> <input type="text" class="form-control" name="mqttService" id="mqttService" aria-describedby="helpId" value="" placeholder="Service">
-            </div>
-            <div class="col-lg">  
-              <label for="mqttCompany">Reseller Code:</label> <input type="text" class="form-control" name="mqttCompany" id="mqttCompany" aria-describedby="helpId" value="" placeholder="Company">
-            </div>
-            <div class="col-lg">  
-              <label for="mqttDivision">Customer Code:</label> <input type="text" class="form-control" name="mqttDivision" id="mqttDivision" aria-describedby="helpId" value="" placeholder="Division">
+              <label for="mqttOrg">Org Node:</label> <input type="text" class="form-control" name="mqttOrg" id="mqttOrg" aria-describedby="helpId" value="" placeholder="Org Node" maxlength="191">
             </div>
           </div>
-        <div class="form-group row">
-            <div class="col-lg">  
-              <label for="mqttOrg1">Org Node 1:</label> <input type="text" class="form-control" name="mqttOrg1" id="mqttOrg1" aria-describedby="helpId" value="" placeholder="Org Node 1">
-            </div>
-            <div class="col-lg">  
-              <label for="mqttOrg2">Org Node 2:</label> <input type="text" class="form-control" name="mqttOrg2" id="mqttOrg2" aria-describedby="helpId" value="" placeholder="Org Node 2">
-            </div>
-            <div class="col-lg">  
-              <label for="mqttOrg3">Org Node 3:</label> <input type="text" class="form-control" name="mqttOrg3" id="mqttOrg3" aria-describedby="helpId" value="" placeholder="Org Node 3">
-            </div>
-          </div>
-        
-          <div class="form-group row">
-            <div class="col-lg">  
-              <label for="mqttSubTopic">Subscribe:</label> <input " type="text" class="form-control" name="mqttSubTopic" id="mqttSubTopic" aria-describedby="helpId" value="" placeholder="MQTT Subscribe Topic">
-            </div>
-            <div class="col-lg">  
-              <label for="mqttPubTopic">Publish:</label> <input type="text" class="form-control" name="mqttPubTopic" id="mqttPubTopic" aria-describedby="helpId" value="" placeholder="MQTT Publish Topic">
-            </div>
-          </div>
-        
-
-        
-      
-      <hr>
-
     <br>
 
+    <audio id="audioUpdateComplete">
+    <source src="./sounds/MQTTConfigupdateComplete.mp3" type="audio/mpeg">
+    </audio>
   </body>
 </html>

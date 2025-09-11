@@ -1,7 +1,8 @@
 export const MQTT  = {
     MMS_Base_Pub : "MagTek/Server/",
     MMS_Base_Sub : "MagTek/Device/",
-    MMS_DeviceList : "MagTek/Server/+/+/Status",
+    //MMS_DeviceList : "MagTek/Server/+/+/Status",    
+    MMS_DeviceList : "MagTek/+/+/Status",    
     MMS_PageURL: "https://rms.magensa.net/Test/Demo/MMSMQTTDemo.html?devpath=",
 
     V5_Base_Pub : "MagTek/Server/V5/",

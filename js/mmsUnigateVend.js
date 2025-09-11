@@ -204,9 +204,10 @@ async function handleOpenButton() {
   mt_MQTT.setUserName(userName);
   mt_MQTT.setPassword(password);
   mt_MQTT.setPath(devPath);  
+  mt_MQTT.setDeviceList(mt_Utils.getEncodedValue("MQTTDeviceList", "TWFnVGVrL1VTLysvKy8rLysvKy9TdGF0dXM="));
   mt_MQTT.openDevice();  
   SetTechnologies(true, true, true);  
-  await GetScreens(altScreen);  
+  
 }
 
 async function GetScreens(altscreen){
@@ -308,6 +309,7 @@ const deviceCloseLogger = (e) => {
 };
 const deviceOpenLogger = async (e) => {
   mt_UI.setUSBConnected("Opened");  
+  await GetScreens(altScreen);  
 };
 const dataLogger = (e) => {
   mt_UI.LogData(`Received Data: ${e.Name}: ${e.Data}`);
@@ -492,8 +494,11 @@ const userEventLogger = (e) => {
 
 const mqttStatus = e => {
   let topicArray = e.Data.Topic.split('/');
-  let data = e.Data.Message;
-  mt_UI.AddDeviceLink(topicArray[topicArray.length-3], `${topicArray[topicArray.length-2]}`,data, `${window.location.pathname}?devpath=${topicArray[topicArray.length-3]}/${topicArray[topicArray.length-2]}`);
+  let deviceStatus = e.Data.Message;
+  let deviceType = topicArray[topicArray.length-3];
+  let deviceName = topicArray[topicArray.length-2];
+  let deviceURL = `${window.location.pathname}?devpath=${mt_Utils.removeLastPathSegment(e.Data.Topic)}`;
+  mt_UI.AddDeviceLink(deviceType, deviceName ,deviceStatus, deviceURL);
 }
 
 

@@ -21,6 +21,7 @@ let _devPath = "";
 let _userName = "";
 let _password = "";
 let _client = null;
+let _deviceList = mt_Utils.getEncodedValue("MQTTDeviceList", "TWFnVGVrL1VTLysvKy8rLysvKy9TdGF0dXM=");
 
 
 export let _activeCommandMode = true;
@@ -30,6 +31,13 @@ export function setActiveCommandMode(mode){
   _activeCommandMode =  (mode === "true");
 }
 
+
+/**
+ * @param {string} List
+ */
+export function setDeviceList(List) {
+  _deviceList = List;
+};
 
 
 /**
@@ -88,7 +96,7 @@ export async function SendCommand(cmdHexString) {
     return;
   }
   window.mt_device_response = null;     
-    _client.publish(`${mt_AppSettings.MQTT.MMS_Base_Sub}${_devPath}/MMSMessage`, cmdHexString);
+    _client.publish(`${_devPath}/SendCommand`, cmdHexString);
     let Resp = await waitForDeviceResponse();
     return Resp;
 };
@@ -159,12 +167,12 @@ async function onMQTTConnect(_connack) {
   // Subscribe to a topic
   if(_devPath.length > 0)
   {
-    await _client.unsubscribe(`${mt_AppSettings.MQTT.MMS_Base_Pub}${_devPath}/MMSMessage`, CheckMQTTError);  
-    await _client.subscribe(`${mt_AppSettings.MQTT.MMS_Base_Pub}${_devPath}/MMSMessage`, CheckMQTTError);    
+    await _client.unsubscribe(`${_devPath}/MMSMessage`, CheckMQTTError);  
+    await _client.subscribe(`${_devPath}/MMSMessage`, CheckMQTTError);    
 
   }
-  await _client.unsubscribe(`${mt_AppSettings.MQTT.MMS_DeviceList}`, CheckMQTTError);
-  await _client.subscribe(`${mt_AppSettings.MQTT.MMS_DeviceList}`, CheckMQTTError);  
+  await _client.unsubscribe(`${_deviceList}`, CheckMQTTError);
+  await _client.subscribe(`${_deviceList}`, CheckMQTTError);  
 
 }
 };
@@ -185,13 +193,13 @@ function onMQTTMessage(topic, message) {
   let data = "";
         
     let topicArray = topic.split('/');
-    if(topicArray.length >= 5){
+    if(topicArray.length >= 3){
       switch (topicArray[topicArray.length-1]) {
         case "Status":
           data = message.toString();    
           //console.log(`status --- ${topic} ${message}`);
-          EmitObject({Name:"OnMQTTStatus", Data: { Topic:topic, Message:data} }); 
-          if( `${topicArray[topicArray.length-3]}/${topicArray[topicArray.length-2]}` == _devPath){
+          EmitObject({Name:"OnMQTTStatus", Data: { Topic:topic, Message:data} });           
+          if( `${mt_Utils.removeLastPathSegment(topic)}` == _devPath){
           if( data.toLowerCase() == "connected")
           {
             if(_client)

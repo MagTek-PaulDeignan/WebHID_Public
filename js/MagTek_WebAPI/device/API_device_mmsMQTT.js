@@ -11,7 +11,7 @@
 */
 
 import * as mt_MMS from "../API_mmsParse.js";
-import * as mt_AppSettings from "../config/appsettings.js"; // Assuming this file exists and contains MQTT settings
+//import * as mt_AppSettings from "../config/appsettings.js"; // Assuming this file exists and contains MQTT settings
 import mqtt from "../mqtt.esm.js"; // Assuming mqtt.esm.js is the MQTT client library
 import AbstractDevice from "./API_device_abstract.js";
 import * as mt_Utils from "../mt_utils.js";
@@ -36,7 +36,19 @@ class MMSMQTTDevice extends AbstractDevice {
     this._userName = ""; // MQTT username for authentication
     this._password = ""; // MQTT password for authentication
     this._client = null; // Holds the MQTT client instance
+    this._deviceList = "MagTek/+/+/Status";
   }
+
+/**
+   * @method setDeviceList
+   * @param {string} List - The MQTT subscription for observing devices (e.g., ""MagTek/+/+/Status"").
+   * @description
+   * The MQTT subscription for observing devices (e.g., ""MagTek/+/+/Status"").
+   */
+  setDeviceList(List) {
+    this._deviceList = List;
+  }
+
 
   /**
    * @method setURL
@@ -100,13 +112,17 @@ class MMSMQTTDevice extends AbstractDevice {
         Source: "SendCommand",
         Data: "Session not active",
       });
-      return Promise.reject("Session not active");
+      
+    }
+
+    let sanitizedData = mt_Utils.sanitizeHexData(cmdHexString);
+    if(!mt_Utils.isBase16(sanitizedData)){
+        this._emitObject({ Name: "OnError", Source: "SendCommand", Data: "Invalid command (data is not hex)" });
+        return Promise.reject("Invalid command (data is not hex)");
     }
     window.mt_device_response = null; // Global response, as per original structure
     if (this._client && this._client.connected) {
-      // Assuming mt_AppSettings.MQTT.MMS_Base_Sub provides the base for subscription topics
-      // and commands are sent to a sub-topic of the device path.
-      this._client.publish(`${mt_AppSettings.MQTT.MMS_Base_Sub}${this._devPath}/MMSMessage`, cmdHexString);
+      this._client.publish(`${this._devPath}/SendCommand`, sanitizedData);      
       let Resp = await this._waitForDeviceResponse();
       return Resp;
     } else {
@@ -153,9 +169,9 @@ class MMSMQTTDevice extends AbstractDevice {
     if (this._client && this._client.connected) {
       // Unsubscribe from topics before ending
       if (this._devPath.length > 0) {
-        await this._client.unsubscribe(`${mt_AppSettings.MQTT.MMS_Base_Pub}${this._devPath}/MMSMessage`);
+        await this._client.unsubscribe(`${this._devPath}/MMSMessage`);
       }
-      await this._client.unsubscribe(`${mt_AppSettings.MQTT.MMS_DeviceList}`);
+      await this._client.unsubscribe(this._deviceList);
 
       // Clear event listeners
       this._client.removeAllListeners('connect');
@@ -180,10 +196,11 @@ class MMSMQTTDevice extends AbstractDevice {
       // Subscribe to device-specific message topic if a path is set
       if (this._devPath.length > 0) {
         // Ensure to handle subscription errors
-        this._client.subscribe(`${mt_AppSettings.MQTT.MMS_Base_Pub}${this._devPath}/MMSMessage`, this._checkMQTTError.bind(this));
+        
+        this._client.subscribe(`${this._devPath}/MMSMessage`, this._checkMQTTError.bind(this));
       }
       // Subscribe to general device list topic
-      this._client.subscribe(`${mt_AppSettings.MQTT.MMS_DeviceList}`, this._checkMQTTError.bind(this));
+      this._client.subscribe(this._deviceList, this._checkMQTTError.bind(this));
       
       if(this._devPath.length > 0){
           //this._emitObject({ Name: "OnDeviceOpen", Device: this._client }); // Signal device is "open" (connected)
@@ -220,18 +237,17 @@ class MMSMQTTDevice extends AbstractDevice {
    */
   _onMQTTMessage(topic, message) {
     let data = "";
-    let topicArray = topic.split('/');
-    if (topicArray.length >= 5) {
+    let topicArray = topic.split('/');    
+    if (topicArray.length >= 3) {
       switch (topicArray[topicArray.length - 1]) {
         case "Status":
           data = message.toString();
           this._emitObject({ Name: "OnMQTTStatus", Data: { Topic: topic, Message: data } });
           // Check if the status is for the current device path
-          if (`${topicArray[topicArray.length - 3]}/${topicArray[topicArray.length - 2]}` === this._devPath) {
+          if (`${mt_Utils.removeLastPathSegment(topic)}` === this._devPath) {
             if (data.toLowerCase() === "connected") {
               if (this._client) {
                 // If a specific device connected status is received for our path
-                //this._emitObject({ Name: "OnDeviceConnect", Device: this._client });
                 this._emitObject({ Name: "OnDeviceOpen", Device: this._client });
               } else {
                 // Handle case where client might be null unexpectedly
@@ -306,6 +322,53 @@ class MMSMQTTDevice extends AbstractDevice {
     let data = mt_Utils.getTagValue("C2", "", tag89, true);
     return data;
   }
+
+  
+    /**
+     * @method GetDeviceWifiFWID
+     * @description
+     * Sends a specific command to get the device's Wifi firmware ID and parses the response.
+     * Overrides the abstract method.
+     * @returns {Promise<string>} A promise that resolves with the device firmware ID.
+     */
+    async GetDeviceWifiFWID() {
+      let resp = await this.sendCommand("AA0081040108D101841AD10181072B06010401F609850102890AE108E206E504E302C100");
+      let str = resp.TLVData.substring(24);
+      let tag89 = mt_Utils.getTagValue("89", "", str, false);
+      let data = mt_Utils.getTagValue("C1", "", tag89, true);
+      return data;
+    }
+  
+      /**
+     * @method GetDeviceBLEFWID
+     * @description
+     * Sends a specific command to get the device's Wifi firmware ID and parses the response.
+     * Overrides the abstract method.
+     * @returns {Promise<string>} A promise that resolves with the device firmware ID.
+     */
+    async GetDeviceBLEFWID() {
+      let resp = await this.sendCommand("AA0081040109D101841AD10181072B06010401F609850102890AE108E206E704E102C100");
+      let str = resp.TLVData.substring(24);
+      let tag89 = mt_Utils.getTagValue("89", "", str, false);
+      let data = mt_Utils.getTagValue("C1", "", tag89, true);
+      return data;
+    }
+  
+    /**
+     * @method GetDeviceBootFWID
+     * @description
+     * Sends a specific command to get the device's Wifi firmware ID and parses the response.
+     * Overrides the abstract method.
+     * @returns {Promise<string>} A promise that resolves with the device firmware ID.
+     */
+    async GetDeviceBootFWID() {
+      let resp = await this.sendCommand("AA008104010BD101841AD10181072B06010401F609850102890AE108E206E104E102C200");
+      let str = resp.TLVData.substring(24);
+      let tag89 = mt_Utils.getTagValue("89", "", str, false);
+      let data = mt_Utils.getTagValue("C2", "", tag89, true);
+      return data;
+    }
+  
 
 }
 

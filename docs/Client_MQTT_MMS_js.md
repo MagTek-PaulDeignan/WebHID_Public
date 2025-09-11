@@ -32,7 +32,7 @@ This documentation outlines the key components, functionalities, and usage guide
    - `mt_Utils.js`: Utility functions for encoding, delays, and tag value parsing.
    - `mt_UI.js`: Handles UI updates such as logs and display messages.
    - `mt_MMS.js`: For device management tasks such as opening and closing devices.
-   - `API_mmsHID.js`: HID API for device communication.
+   
    - `appsettings.js`: Configuration settings for MQTT and other components.
 
 2. External Libraries:
@@ -76,23 +76,6 @@ document.addEventListener("DOMContentLoaded", async function handleDOMLoaded() {
     mt_UI.setUSBConnected("Connected");
   });
 
-  navigator.hid.addEventListener("connect", async ({ device }) => {
-    EmitObject({Name:"OnDeviceConnect", Device:device});
-    if (window.mt_device_WasOpened) {
-      await mt_Utils.wait(_openTimeDelay);
-      await handleOpenButton();
-    }
-  });
-
-  navigator.hid.addEventListener("disconnect", ({ device }) => {
-    let options = { retain: true };
-    client.publish(`${mt_AppSettings.MQTT.MMS_Base_Pub}${devPath}/Status`, 'disconnected', options);
-    EmitObject({Name:"OnDeviceDisconnect", Device:device});
-  });
-
-  await mt_Utils.wait(_openTimeDelay);
-  await handleOpenButton();
-});
 ```
 
 ---
