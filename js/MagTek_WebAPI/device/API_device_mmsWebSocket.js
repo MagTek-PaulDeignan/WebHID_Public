@@ -93,7 +93,12 @@ class MMSWebSocketDevice extends AbstractDevice {
   async sendCommand(cmdHexString) {
     window.mt_device_response = null; // Clear previous response
     if (this._MTWebSocket && this._MTWebSocket.readyState === WebSocket.OPEN) {
-      this._MTWebSocket.send(cmdHexString);
+      let sanitizedData = mt_Utils.sanitizeHexData(cmdHexString);
+      if(!mt_Utils.isBase16(sanitizedData)){
+        this._emitObject({ Name: "OnError", Source: "SendCommand", Data: "Invalid command (data is not hex)" });
+        return Promise.reject("Invalid command (data is not hex)");
+      }
+      this._MTWebSocket.send(sanitizedData);
       // Wait for the device response using the common helper from AbstractDevice
       let Resp = await this._waitForDeviceResponse();
       return Resp;

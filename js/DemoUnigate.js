@@ -104,14 +104,14 @@ async function handleProcessSale() {
             let saleResp = await mt_Unigate.ProcessARQCTransaction(Amount, arqc, undefined, transactionType, "Credit", true);  
 
             if(!saleResp.status.ok){
-              mt_UI.LogData(`Authorization: ${BasicAuth}`);
+              //mt_UI.LogData(`Authorization: ${BasicAuth}`);
               mt_UI.LogData(``);
               mt_UI.LogData(`====================== ${transactionType} Response Failure Details ======================`);
               mt_UI.LogData(JSON.stringify(saleResp, null, 2));
               mt_UI.LogData(`====================== ${transactionType} Response Failure  Details ======================`);                
               return;
             }
-            mt_UI.LogData(`Authorization: ${BasicAuth}`);
+            //mt_UI.LogData(`Authorization: ${BasicAuth}`);
             mt_UI.LogData(``);
             mt_UI.LogData(`====================== ${transactionType} Response Details ======================`);
             mt_UI.LogData(JSON.stringify(saleResp.data, null, 2));
@@ -124,14 +124,11 @@ async function handleProcessSale() {
                     for (var key in saleResp.Details) {
                       if (saleResp.Details.hasOwnProperty(key))
                         {
-                         
-                         
                           mt_UI.LogData(`${key}: ${saleResp.Details[key]}` );
                         }
                     }
                     mt_UI.LogData(`====================== Processor Response KVPs ======================`);
                   }
-
 
                   //mt_UI.LogData(``);
                   //let Outdata = saleResp.Details.customerReceipt.replace(/\\n/g, '\n');

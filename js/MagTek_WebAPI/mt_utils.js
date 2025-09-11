@@ -10,6 +10,39 @@ DO NOT REMOVE THIS COPYRIGHT
  WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
+export function isBase16(str) {
+  // Check if the string is null, undefined, or not a string
+  if (typeof str !== 'string') {
+    return false;
+  }
+  
+  // Check if the string has an even length
+  if (str.length % 2 !== 0) {
+    return false;
+  }
+
+  // Use a regular expression to check for valid hex characters
+  // The 'i' flag makes the check case-insensitive
+  const hexRegex = /^[0-9a-f]+$/i;
+  
+  return hexRegex.test(str);
+}
+
+export function isBase64(str) {
+  // Check if the input is a string
+  if (typeof str !== 'string') {
+    return false;
+  }
+
+  // The main check is done using a single regular expression.
+  // This regex is optimized to check for all Base64 validity rules.
+  // The 'i' flag ensures case-insensitive matching for the alphabet.
+  const base64Regex = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/;
+
+  // Test the string against the regular expression
+  return base64Regex.test(str);
+}
+
 export function byteArrayToBase64(byteArray) {
   const binaryString = Array.from(byteArray)
       .map(byte => String.fromCharCode(byte))
@@ -256,6 +289,7 @@ export function sanitizeHexData(hexdata) {
   // Regular expression to match only hexadecimal characters
   const hexOnlyRegex = /[^0-9a-fA-F]/g;
   // Remove all non-hexadecimal characters
+
   return hexdata.replace(hexOnlyRegex, "");
 }
 
@@ -620,6 +654,7 @@ export function replaceSubstring(originalString, stringToReplace, replacementStr
   // return originalString.replace(new RegExp(stringToReplace, 'g'), replacementString);
   return originalString.replace(stringToReplace, replacementString);
 }
+
 
 
 export function parseHardwareID(input){

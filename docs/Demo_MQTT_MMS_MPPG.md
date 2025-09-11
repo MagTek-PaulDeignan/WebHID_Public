@@ -27,7 +27,7 @@ The MagTek MQTT MMS Demo provides a web-based interface to interact with Magensa
    - Includes custom CSS for additional styles (`site.css`).
 
 2. JavaScript Modules:
-   - `mmsMPPG.js`: Handles interactions with Magensa APIs for payment processing.
+   
 
 3. External Resources:
    - [Bootstrap 5.3.3](https://getbootstrap.com): For responsive design and UI components.

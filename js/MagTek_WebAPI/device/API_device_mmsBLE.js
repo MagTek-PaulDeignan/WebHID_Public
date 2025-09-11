@@ -183,8 +183,12 @@ class MMSBLEDevice extends AbstractDevice {
         this._emitObject({ Name: "OnError", Source: "SendCommand", Data: "Device is not open" });
         return 0;
       }
-
-      cmdResp = await this._sendMMSBLECommand(mt_Utils.sanitizeHexData(cmdToSend));
+      let sanitizedData = mt_Utils.sanitizeHexData(cmdToSend);
+      if(!mt_Utils.isBase16(sanitizedData)){
+        this._emitObject({ Name: "OnError", Source: "SendCommand", Data: "Invalid command (data is not hex)" });
+        return 0;
+      }
+      cmdResp = await this._sendMMSBLECommand(sanitizedData);
       return cmdResp;
     } catch (error) {
       this._emitObject({ Name: "OnError", Source: "SendCommand", Data: error });

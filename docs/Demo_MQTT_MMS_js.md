@@ -33,7 +33,7 @@ This documentation outlines the key components, functionalities, and usage guide
    - `mt_UI.js`: Handles UI updates such as logs and display messages.
    
    - `API_rms.js`: Manages RMS API interactions.
-   - `API_mmsMQTT.js`: MQTT API for device communication.
+   
 
 2. **External Libraries**:
    - [EventEmitter](https://nodejs.org/api/events.html): For managing custom events.

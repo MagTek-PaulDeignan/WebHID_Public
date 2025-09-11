@@ -91,6 +91,9 @@ async function handleOpenButton() {
 async function handleSendCommandButton() {
   const data = document.getElementById("sendData");
   await parseCommand(data.value);
+  //let cmdsArray = data.value.split(/\r\n|\r/);
+  //await parseCommands("Sending Commands",cmdsArray);
+  
 }
 
 async function parseCommands(description, messageArray) {
@@ -327,6 +330,9 @@ const hostActionCompleteLogger = async (e) => {
       break;
     case "05040100": //Playing Sound
       mt_UI.LogData(`Done Playing Sound`);
+      break;
+    case "06050100":
+      mt_UI.LogData(`NFC Card Emulation`);
       break;
     default:
       mt_UI.LogData(`Host Action: ${e.Name}: ${e.Data}`);

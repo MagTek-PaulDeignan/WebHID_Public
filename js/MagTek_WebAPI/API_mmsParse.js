@@ -597,7 +597,7 @@ function parseRequestFromDevice(Msg) {
 function parseResponseFromDevice(Msg) {
 
   const MMSResponse = ParseMMSResponseMessage(Msg);
-  if (MMSResponse.RespID == "1805")
+  if (MMSResponse.RespID == "1805" ||  MMSResponse.RespID == "1840")
   {
     window.mt_device_delayedresponse = MMSResponse;
     EmitObject({ Name: "OnDeviceDelayedResponse", Data: MMSResponse });

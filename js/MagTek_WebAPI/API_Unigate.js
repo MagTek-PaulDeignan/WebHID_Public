@@ -13,12 +13,14 @@ DO NOT REMOVE THIS COPYRIGHT
 "use strict";
 import * as mt_Utils from "./mt_utils.js";
 import * as mt_XML2JSON from "./mt_xml2json.js";
+import * as mt_UI from "../mt_ui.js";
 export let BaseURL = "https://svc1.magensa.net/Unigate/";
 export let ProcessorName = "TSYS - Pilot";
 
 export let CustCode = "";
 export let Username = "";
 let Password = "";
+
 
 /**
  * @param {string} url
@@ -147,6 +149,9 @@ export function getBasicAuth() {
   }
   
   async function postRequest(url, data) {
+        let startTime = Date.now(); 
+        let endTime = Date.now();
+        let executionTimeMs = endTime - startTime;
     try 
     {
       const response = await fetch(url, {
@@ -160,10 +165,12 @@ export function getBasicAuth() {
       });
       
       let json = await response.json();
-
-      //console.log(`req : ${data}`);
-      //console.log(`resp: ${JSON.stringify(json,null,2)}`);
-      
+       endTime = Date.now();
+        executionTimeMs = endTime - startTime;
+        mt_UI.LogData(`=======================================================`);
+        mt_UI.LogData(`Unigate Execution time: ${executionTimeMs} milliseconds`);
+        mt_UI.LogData(`=======================================================`);
+     
       let resp = 
       {
         status: {

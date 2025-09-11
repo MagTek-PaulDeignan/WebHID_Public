@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script type="module" src="./js/geoDash.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Device Location Map</title>
+    
+    <!-- Leaflet.js CSS for the interactive map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+     crossorigin=""/>
+     
+    <!-- Leaflet.markercluster plugin CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
+
+    <!-- Tailwind CSS for styling -->
+    <!-- <script src="https://cdn.tailwindcss.com"></script> -->
+    
+    <style>
+        /* Set the map container height */
+        #map { 
+            height: 80vh; 
+            width: 100%;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Style for the marker cluster icons */
+        .marker-cluster-small {
+            background-color: rgba(180, 200, 255, 0.6);
+        }
+        .marker-cluster-small div {
+            background-color: rgba(80, 120, 255, 0.6);
+        }
+    </style>
+</head>
+    <div class="container">
+      <a href="index.html">
+        <img src="./images/magtek_logo.png" alt="Logo" width="150">
+      </a>
+    </div>
+    <div class="container">
+      <h1>MQTT Geographic Map</h1>
+    </div>
+<body class="bg-gray-100 text-gray-800">
+
+    <div class="container mx-auto p-4 md:p-8">
+        <header class="text-center mb-8">
+            <p class="text-md text-gray-600 mt-2">Device locations are pinned on the map. Clusters indicate multiple devices in one area. Click a pin or cluster to learn more.</p>
+        </header>
+
+        <!-- The div where the map will be rendered -->
+        <div id="map" class="rounded-lg shadow-xl border border-gray-200"></div>
+
+        <!-- A section to log processing results -->
+        <div id="log-container" class="mt-8 bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-xl font-semibold mb-4">Processing Log</h2>
+            <ul id="log-list" class="list-disc list-inside h-48 overflow-y-auto text-sm space-y-1">
+                <!-- Log messages will be inserted here by JavaScript -->
+            </ul>
+        </div>
+    </div>
+
+    <!-- Leaflet.js JavaScript -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+     crossorigin=""></script>
+     
+    <!-- Leaflet.markercluster plugin JavaScript -->
+    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+
+    
+
+</body>
+</html>

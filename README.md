@@ -33,7 +33,7 @@ This project provides a browser-based interactive demo for connecting to and com
 
 ## Code Structure
 
-- `js/mmsMPPG.js` – Core logic for device communication, event handling, and UI integration.
+
 - `js/mt_ui.js` – UI utilities for progress bars, logging, and connection status updates.
 - `js/PINPad.js` – Implements the browser-based PIN pad for secure input.
 - `css/site.css` – Custom styles for the demo interface.

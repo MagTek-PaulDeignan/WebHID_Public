@@ -112,11 +112,17 @@ class MMSMQTTDevice extends AbstractDevice {
         Source: "SendCommand",
         Data: "Session not active",
       });
-      return Promise.reject("Session not active");
+      
+    }
+
+    let sanitizedData = mt_Utils.sanitizeHexData(cmdHexString);
+    if(!mt_Utils.isBase16(sanitizedData)){
+        this._emitObject({ Name: "OnError", Source: "SendCommand", Data: "Invalid command (data is not hex)" });
+        return Promise.reject("Invalid command (data is not hex)");
     }
     window.mt_device_response = null; // Global response, as per original structure
     if (this._client && this._client.connected) {
-      this._client.publish(`${this._devPath}/SendCommand`, cmdHexString);      
+      this._client.publish(`${this._devPath}/SendCommand`, sanitizedData);      
       let Resp = await this._waitForDeviceResponse();
       return Resp;
     } else {

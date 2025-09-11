@@ -192,8 +192,12 @@ class MMSSerialDevice extends AbstractDevice {
         });
         return 0;
       }
-
-      cmdResp = await this._sendMMSCommand(mt_Utils.sanitizeHexData(cmdHexString));
+      let sanitizedData = mt_Utils.sanitizeHexData(cmdHexString);
+      if(!mt_Utils.isBase16(sanitizedData)){
+        this._emitObject({ Name: "OnError", Source: "SendCommand", Data: "Invalid command (data is not hex)" });
+        return 0;
+      }
+      cmdResp = await this._sendMMSCommand(sanitizedData);
       return cmdResp;
     } catch (error) {
       this._emitObject({ Name: "OnError", Source: "SendCommand", Data: error });
