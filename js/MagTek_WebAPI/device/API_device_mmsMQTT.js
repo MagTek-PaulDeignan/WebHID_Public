@@ -281,7 +281,6 @@ class MMSMQTTDevice extends AbstractDevice {
    * @param {string} JSONData - The JSON data to print.
    * @description
    * A specific utility function to publish data for printing.
-   * (Marked as "Temporary - in Dev" in original, kept as-is)
    * @returns {Promise<boolean>} A promise that resolves to true on successful publish.
    */
   async PrintData(Path, JSONData) {
@@ -289,6 +288,48 @@ class MMSMQTTDevice extends AbstractDevice {
       this._client.publish(`${Path}/Print`, JSONData);
       return true;
     } else {
+      console.warn("Cannot print data: MQTT client not connected.");
+      return false;
+    }
+  }
+
+    /**
+   * @method StarPrintData
+   * @param {string} Data - The Data to print.
+   * @param {string} CashDrawer - The CashDrawer Action .  none, start, end
+   * @description
+   * A specific utility function to publish data for printing.
+   
+   * @returns {Promise<boolean>} A promise that resolves to true on successful publish.
+   */
+  async StarPrintData(Path, Data, CashDrawer) {
+    if (this._client && this._client.connected) 
+    {
+    let  newGuid = crypto.randomUUID();
+
+    let JSONData = {
+      title: "print-job",
+      jobToken: `${newGuid}`,
+      jobType: "raw",
+      mediaTypes: ["text/plain"],
+      printData: `${Data}`,
+      printerControl: {
+        cutter: {
+          type: "partial",
+          feed: true,
+        },
+        cashDrawer: `${CashDrawer}`,
+      },
+    };
+
+    let options = {
+        qos : 1
+    }
+    this._client.publish(`${Path}/print-job`, JSON.stringify(JSONData),options);
+    return true;
+    } 
+    else 
+      {
       console.warn("Cannot print data: MQTT client not connected.");
       return false;
     }

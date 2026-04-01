@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script type="module" src="./js/addtoken.js"></script>
+<style>
+        /* Custom styles to enhance the look */
+        body {
+            background-color: #FFFFFF; /* Light gray background */
+            font-family: 'Inter', sans-serif;
+            margin: 0; /* Remove default browser margins to prevent perceived horizontal offset */
+        }
+        .app-container {
+            max-width: 1000px;
+            margin-top: 20px;
+        }
+        .claims-card {
+            background-color: #ffffff; /* White outer card on desktop */
+            border: 1px solid #FFFFFF;
+            border-radius: 12px; /* rounded only for desktop; disabled on mobile below */
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            max-width: 300px; /* centered max width for large screens */
+            margin: 16px auto; /* center card on desktop */
+            padding-bottom: 0px; /* preserve spacing below inner card without affecting height */
+        }
+        
+        .col-md-5 {
+            /* Override Bootstrap's pe-4 */
+            padding-right: 0 !important; 
+            /* Remove Bootstrap's border-end */
+            border-right: none !important; 
+            
+            /* The inner div, unified-owner-card, will manage flex display */
+            display: block; 
+        }
+
+        .unified-owner-card {
+            background-color: #FFFFFF; /* Slightly darker background for the unified card */
+            border: 1px solid #d9d6d6; /* black border for the unified card */
+            border-radius: 15px; /* Rounded corners for the unified card */
+            padding: 20px; /* Internal padding for the entire card */
+            margin-bottom: 0; /* Avoid external margin so parent height matches child height */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05); /* Slight shadow for depth */
+            display: flex;
+            flex-direction: column;
+            align-items: left; /* Center contents horizontally */
+            min-height: 450px; /* Give it a minimum height to properly position branding */
+            /* Let content/min-height determine height; parent will naturally match */
+        }
+
+        #bannerDisplayContainer {
+            /* Remove individual card-element styling if they are now part of a larger card */
+            background-color: #FFFFFF; /* Black background area behind banner on all screens */
+            border: none; /* Remove individual borders */
+            box-shadow: none; /* Remove individual shadows */
+            padding: 20px 0; /* Some vertical padding inside the black banner area */
+            margin-bottom: 5px; /* Keep spacing between elements */
+            width: 100%; /* Ensure these containers take full width */
+            display: flex; /* Keep flex for inner image centering */
+            justify-content: center; /* Center content within */
+            align-items: center; /* Center content within */
+        }
+
+        /* On small screens, let the whole canvas go black so it fills the iPhone with black */
+        @@media (max-width: 576px) {
+            body { background-color: #000000; }
+            .claims-card { background-color: #FFFFFF; border-color: #000000; box-shadow: none; border-radius: 25; max-width: none; margin: 0; }
+        }
+
+        .log-textarea {
+            resize: none;
+            font-size: 0.8rem;
+            min-height: 200px;
+        }
+        .card-header.bg-success {
+            border-bottom: none;
+        }
+        .list-group-item {
+            font-size: 0.95rem;
+        }
+        
+        /* Highlighted section headers for Owner and Token Claims */
+        .claims-section-header {
+            background-color: #000000; /* Light blue background */
+            padding: 8px 12px;
+            border-radius: 25px;
+            margin-top: 0.5rem;
+            margin-bottom: 0rem;
+            border-left: 4px solid #2196f3; /* Blue accent border */
+        }
+        
+        /* Tighten spacing for claims list items */
+        #claims-list-container .list-group-item {
+            padding: 0.25rem 1rem;
+        }
+        
+        /* --- Styles for the Collapsible Log --- */
+        .btn-secondary {
+            /* Make the button look like a unified header */
+            border-radius: 25;
+        }
+        .collapse-icon {
+            /* Style and transition for the expand/collapse indicator */
+            display: inline-block;
+            transition: transform 0.3s ease-in-out;
+        }
+        .btn[aria-expanded="true"] .collapse-icon {
+            /* Rotate when expanded to show a clear change, like a plus turning to an X */
+            transform: rotate(45deg); 
+        }
+        .log-textarea {
+            /* Ensure the textarea fills the container but is flush inside the card-body */
+            border-top: none; 
+        }
+        /* End of Collapsible Log Styles */
+
+        /* Branding text at the very bottom */
+        .branding-text {
+            font-size: 0.75rem;
+            color: #FFFFFF;
+            text-align: left;
+            margin-top: auto; /* Push to the bottom of the flex container */
+            padding-top: 5px; /* Space above the branding */
+        }
+
+        /* Mobile spacing to help fill iPhone screen height */
+        @media (max-width: 576px) {
+            #banner-image-display {
+                margin-bottom: 5px; /* space below banner image */
+            }
+            #barcode-image-display {
+                margin-bottom: 5px; /* space below QR Code image */
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="claims-card">
+    <div class="unified-owner-card w-100">
+
+        <div class="branding-text">
+            <img src="./images/QMFA_White.png" alt="Logo" width="120" class="img-fluid">
+        </div>
+
+        <div id="bannerDisplayContainer" class="w-100 d-flex justify-content-center">
+            <div style="display:flex; flex-direction:column; align-items:flex-start;">
+                <img id="banner-image-display" src="./images/magtek.png" alt="banner" class="img-fluid"
+                    style="max-height: 150px; max-width: 100%; display:block;">
+                <label
+                    style="color: blue; text-align: left; display: block; margin-top: 5px; margin-bottom: 0px; font-weight: bold;">Token
+                    Use</label>
+                <label id="tokenUse" style="color: rgb(0, 0, 0); text-align: left; display: block; margin-bottom: 0px;">Access Control</label>
+            </div>
+        </div>
+
+        <img id="barcode-image-display" src="" alt="barcode Image" class="image-fluid">
+        <button class="btn btn-primary" id="addToken">Add Token</button>
+    </div>
+</div>
+</body>
+</html>
