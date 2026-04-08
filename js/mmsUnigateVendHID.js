@@ -11,13 +11,14 @@ DO NOT REMOVE THIS COPYRIGHT
 */
 
 import * as mt_Utils from "./MagTek_WebAPI/mt_utils.js";
+
 import * as mt_UI from "./mt_ui.js";
 import * as mt_Unigate from "./MagTek_WebAPI/API_Unigate.js";
 import * as mt_QMFA from "./MagTek_WebAPI/qMFAAPI.js";
 import "./MagTek_WebAPI/mt_events.js";
-import DeviceFactory from "./MagTek_WebAPI/device/API_device_factory.js";
-let mt_MQTT = DeviceFactory.getDevice("MMS_MQTT");
 
+import DeviceFactory from "./MagTek_WebAPI/device/API_device_factory.js";
+let mt_MQTT = DeviceFactory.getDevice("MMS_HID");
 
 
 let retval = "";
@@ -26,6 +27,8 @@ let devPath = mt_Utils.getEncodedValue('MQTTDevice','');
 let userName = mt_Utils.getEncodedValue('MQTTUser','RGVtb0NsaWVudA==');
 let password = mt_Utils.getEncodedValue('MQTTPassword','ZDNtMENMdjFjMQ==');
 let client = null;
+
+let altScreen = "";
 
 
 const params = new Proxy(new URLSearchParams(window.location.search), {
@@ -37,8 +40,10 @@ if (value != null) {
   devPath = value;
 }
 
-
-
+value = params.altscreen;
+if (value != null) {
+  altScreen = value;
+}
 
 if (userName.length == 0 ) userName = null;
 if (password.length == 0 ) password = null;
@@ -99,7 +104,8 @@ async function handleClearButton() {
     let amt = document.getElementById("saleAmount").value;
     if (amt.length > 0)
     {
-      if(confirm("Ready To Process Sale?"))
+      //if(confirm("Ready To Process Sale?"))
+      if(true)
         {
           let Amount = {
             SubTotal: 0,
@@ -153,55 +159,30 @@ async function handleClearButton() {
                     for (var key in saleResp.data.Details) {
                       if (saleResp.data.Details.hasOwnProperty(key))
                         {
-                          if (!key.endsWith("Receipt"))
-                          {
-                            mt_UI.LogData(`${key}: ${saleResp.data.Details[key]}` );
-                          }
-                          else
-                          {
-                            let Outdata = saleResp.data.Details[key].replace(/\\n/g, '\n');
-                            let JSONData = 
-                                  {
-                                    Header:"",
-                                    Body: `${Outdata}`,
-                                    Footer:""
-                                  };
-                            
-                            let PrinterPath = mt_Utils.getEncodedValue("MPPG_Printer", "");
-                            if(PrinterPath.length > 0 )
-                            {
-                                //mt_MQTT.PrintData(PrinterPath, JSON.stringify(JSONData));
-                                mt_UI.LogData(`Printing ${key} to ${PrinterPath}`);
-                                await mt_MQTT.StarPrintData(PrinterPath, Outdata, "none");
-                            }
-                            else
-                            {
-                              mt_UI.LogData(`============================${key}============================`);
-                              mt_UI.LogData(`${Outdata}`);
-                              mt_UI.LogData(`============================${key}============================`);          
-                            }
-                            
-                          }
+                          mt_UI.LogData(`${key}: ${saleResp.data.Details[key]}` );
                         }
                     }
                     mt_UI.LogData(`======================Processor Response KVPs======================`);
                   }
 
-                  //mt_UI.LogData(``);
-                  //mt_UI.LogData(`======================Transaction Response Details======================`);
-                  //mt_UI.LogData(JSON.stringify(saleResp.data, null, 2));
-                  //mt_UI.LogData(`======================Transaction Response Details======================`);                
-
-                  //mt_UI.LogData(``);
-                  //let Outdata = saleResp.data.Details.customerReceipt.replace(/\\n/g, '\n');
-                  //mt_UI.LogData(`============================Receipt=============================`);
-                  //mt_UI.LogData(`${Outdata}`);
-                  //mt_UI.LogData(`============================Receipt============================`);
-
+                  mt_UI.LogData(``);
+                  mt_UI.LogData(`======================Transaction Response Details======================`);
+                  mt_UI.LogData(JSON.stringify(saleResp.data, null, 2));
+                  mt_UI.LogData(`======================Transaction Response Details======================`);                
               }
-              await mt_Utils.wait(1000);
-              //mt_UI.LogData(`Clearing ARQC`);          
-              window.mt_device_ARQCData = null;              
+              
+              if( saleResp.data.transactionOutput.isTransactionApproved)
+              {
+                await mt_MQTT.sendCommand(`AA0081040155180384081803810100820103`);
+              }else
+              {
+                await mt_MQTT.sendCommand(`AA0081040155180384081803810100820107`);
+              }
+              await mt_Utils.wait(2000);
+              await GetScreens(altScreen);
+              mt_UI.LogData(`Clearing ARQC`);          
+              window.mt_device_ARQCData = null;
+              
 
         }
     }
@@ -213,21 +194,38 @@ async function handleClearButton() {
    else 
    {
      mt_UI.LogData(`Starting Transaction`);
-     mt_MQTT.sendCommand("AA008104010010018430100182010AA30981010182010183010184020003861A9C01009F02060000000001009F03060000000000005F2A020840");
+     mt_MQTT.sendCommand("AA008104010010018430100182011EA30981010182010183010184020003861A9C01009F02060000000001009F03060000000000005F2A020840");
    }
  }
 
 async function handleOpenButton() {
   
-  mt_MQTT.setURL(url);
-  mt_MQTT.setUserName(userName);
-  mt_MQTT.setPassword(password);
-  mt_MQTT.setPath(devPath);  
-  mt_MQTT.setDeviceList(mt_Utils.getEncodedValue("MQTTDeviceList", "TWFnVGVrL1VTLysvKy8rLysvKy9TdGF0dXM="));
-  mt_MQTT.openDevice();
-  //SetAutoCheck();
-  SetTechnologies(true, true, true);
+  //mt_MQTT.setURL(url);
+  //mt_MQTT.setUserName(userName);
+  //mt_MQTT.setPassword(password);
+  //mt_MQTT.setPath(devPath);  
+  //mt_MQTT.setDeviceList(mt_Utils.getEncodedValue("MQTTDeviceList", "TWFnVGVrL1VTLysvKy8rLysvKy9TdGF0dXM="));
+  mt_MQTT.openDevice();  
+  SetTechnologies(true, true, true);  
+  
 }
+
+async function GetScreens(altscreen){
+  let cmds = await mt_Utils.FetchCommandsfromURL(`cmds/vendingCmds${altscreen}.txt`);
+  if (cmds.status.ok){
+    await parseCommands('Update', cmds.data);
+  }
+}
+async function parseCommands(description, messageArray) {
+  for (let index = 0; index < messageArray.length; index++) 
+  {
+    let progress = parseInt((index / messageArray.length) * 100);
+    mt_UI.updateProgressBar(`Loading ${description}`, progress);
+    await parseCommand(messageArray[index]);
+  }
+  mt_UI.updateProgressBar(`Done Loading ${description}...`, 100);
+};
+
 
 async function handleSendCommandButton() {
   const data = document.getElementById("sendData");
@@ -244,7 +242,10 @@ async function parseCommand(message) {
       //mt_Utils.debugLog("GETDEVINFO " + getDeviceInfo());      
       break;
     case "SENDCOMMAND":
-      mt_MQTT.sendCommand(cmd[1]);
+      await mt_MQTT.sendCommand(cmd[1]);
+      break;
+    case "SENDBASE64COMMAND":
+      await mt_MQTT.sendBase64Command(cmd[1]);
       break;
     case "GETDEVICELIST":
       devices = getDeviceList();      
@@ -307,9 +308,8 @@ const deviceCloseLogger = (e) => {
   mt_UI.setUSBConnected("Closed");  
 };
 const deviceOpenLogger = async (e) => {
-  let resp;   
-  mt_UI.setUSBConnected("Opened");
-  
+  mt_UI.setUSBConnected("Opened");  
+  await GetScreens(altScreen);  
 };
 const dataLogger = (e) => {
   mt_UI.LogData(`Received Data: ${e.Name}: ${e.Data}`);
@@ -363,6 +363,7 @@ const barcodeLogger = async (e) => {
     mt_UI.LogData(`Barcode  Data: ${stringbc}`);
   }
 };
+
 const arqcLogger = (e) => {
   window.mt_device_ARQCData = e.Data;
   window.mt_device_ARQCType = e.Source;  
@@ -381,12 +382,46 @@ const debugLogger = (e) => {
   mt_UI.LogData(`Error: ${e.Source} ${e.Data}`);
 };
 const touchUpLogger = (e) => {
-   let chk = document.getElementById("chk-AutoTouch");
-   if (chk.checked) {
-     mt_UI.LogData(`Touch Up: X: ${e.Data.Xpos} Y: ${e.Data.Ypos}`);
-   }
+  // let chk = document.getElementById("chk-AutoTouch");
+  // if (chk.checked) {
+  //   mt_UI.LogData(`Touch Up: X: ${e.Data.Xpos} Y: ${e.Data.Ypos}`);
+  // }
+prcocessTouch(e.Data.Xpos, e.Data.Ypos);
 };
 
+function prcocessTouch(x, y){
+  let buttonpressed = 0;
+  if(x > 0 && x < 159 && y > 20 && y < 120)  buttonpressed = 1;
+  if(x > 159 && x < 321 && y > 20 && y < 120)  buttonpressed = 2;
+  if(x > 0 && x < 159 && y > 119 && y < 241)  buttonpressed = 3;
+  if(x > 159 && x < 321 && y > 119 && y < 241)  buttonpressed = 4;
+  
+  switch (buttonpressed) {
+    case 1:
+      mt_UI.LogData(`Charging card for $5.50`);
+      document.getElementById("saleAmount").value = '5.50';
+      handleProcessSale();
+      break;
+    case 2:
+      mt_UI.LogData(`Charging card for $7.50`);
+      document.getElementById("saleAmount").value = '7.50';
+      handleProcessSale();
+      break;
+    case 3:
+      mt_UI.LogData(`Charging card for $10.50`);
+      document.getElementById("saleAmount").value = '10.50';
+      handleProcessSale();
+      break;
+    case 4:
+      mt_UI.LogData(`Charging card for $15.50`);
+      document.getElementById("saleAmount").value = '15.50';
+      handleProcessSale();
+      break
+    default:
+      mt_UI.LogData(`nothing happens when this areae is pressed`);
+      break;
+  }
+  }
   
 const touchDownLogger = (e) => {
   let chk = document.getElementById("chk-AutoTouch");
@@ -532,3 +567,6 @@ EventEmitter.on("OnPINComplete", PINLogger);
 EventEmitter.on("OnUIDisplayMessage", displayMessageLogger);
 EventEmitter.on("OnDebug", debugLogger);
 EventEmitter.on("OnMQTTStatus", mqttStatus);
+
+
+

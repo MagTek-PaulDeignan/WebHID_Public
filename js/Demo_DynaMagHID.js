@@ -185,3 +185,4 @@ EventEmitter.on("OnError", errorLogger);
 EventEmitter.on("OnV5DeviceResponse", fromV5DeviceLogger);
 EventEmitter.on("OnV5MSRSwipe", V5MSRSwipeLogger);
 //EventEmitter.on("OnInputReport", inputReportLogger);
+//EventEmitter.on("OnV5Message", inputReportLogger);

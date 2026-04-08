@@ -102,13 +102,11 @@ export function hexToASCII(hexString) {
 
 export function AsciiToHex(str)
 {
-    let arr1 = [];
-    for (let n = 0, l = str.length; n < l; n++)
-    {
-        let hex = Number(str.charCodeAt(n)).toString(16).toUpperCase();
-        arr1.push(hex);
+    let hex = '';
+    for(let i=0; i<str.length; i++) {
+        hex += str.charCodeAt(i).toString(16).padStart(2, '0').toUpperCase();
     }
-    return arr1.join('');
+    return hex;
 };
 
 export function hexToDecIPv4(hexString) {
@@ -278,6 +276,33 @@ export function getTagValue(tagName, defaultTagValue, tlvData, asASCII) {
         return currtlv.tagValue;
       }
     }
+  } 
+  catch (error) {
+    return defaultTagValue;
+  }
+  
+}
+
+export function getNestedTagValue(tagName, defaultTagValue, tlvData, asASCII) {
+  let currtlv = null;
+  try 
+  {
+    let tagParts = tagName.split('/');
+    let tlvDataCurrent = tlvData;
+    for (let i = 0; i < tagParts.length; i++) {
+      let TLVS = tlvParser(tlvDataCurrent);
+      currtlv = TLVS.find((tlv) => tlv.tag === tagParts[i]);
+      tlvDataCurrent = currtlv.tagValue;
+    }
+    if (currtlv == null) return defaultTagValue;
+
+    if (asASCII == true) {
+        return hexToASCIIRemoveNull(currtlv.tagValue);
+    } 
+    else 
+      {
+        return currtlv.tagValue;
+      }
   } 
   catch (error) {
     return defaultTagValue;
@@ -576,7 +601,17 @@ Array.prototype.zeroFill = function (len) {
         return resp;
       } 
       catch (error) {
-        return error;
+
+        let resp = {
+          status: {
+            ok: false,
+            text: error,
+            code: -99,
+          },
+          data: null
+        }
+        return resp;
+        //return error;
       }
       
     }

@@ -328,6 +328,12 @@ const hostActionCompleteLogger = async (e) => {
       await mt_MMS.sendCommand(`AA0081040109D821840BD8218104${tag83}870101`);
       ShowDeviceResponses = true;
       break;
+    case "01060101":
+      
+      let tag84 = mt_Utils.getTagValue("84", "", e.Data, false);
+      mt_UI.LogData(`Done getting personal info: ${tag84}`);
+      
+      break;
     case "05040100": //Playing Sound
       mt_UI.LogData(`Done Playing Sound`);
       break;
@@ -349,30 +355,28 @@ const NFCUIDLogger = async (e) => {
 
 ShowDeviceResponses = false;
 mt_UI.LogData(`Received NFC UID : ${e.Name}: ${e.Data}`);
-//  if (tagData.length == 0){
-//    mt_UI.LogData(`Reading Fast`);
-//        resp = await mt_MMS.sendCommand(`AA0081 04 0126110084 0D 1100 8103 30 002C   8201008301FF`);  
-//        let tag84 = mt_Utils.getTagValue("84", "", resp.TLVData, false); 
-//        let tag82 = mt_Utils.getTagValue("82", "", tag84.substring(4), false); 
-//        let tagFC = mt_Utils.getTagValue("FC", "", tag82, false); 
-//        tag =  mt_Utils.getTagValue("DF7A", "", tagFC, false);
-//        tagData =  tagData + tag;
-//    }
-   mt_UI.LogData(`Reading sequentially`);
-   for (index = 0; index <= 0x40; index ++ )
-     {
-       resp = await mt_MMS.sendCommand(`AA00810401261100840C1100810230${mt_Utils.makeHex(index*4, 2)}820100830100`);  
-       let tag84 = mt_Utils.getTagValue("84", "", resp.TLVData, false); 
-       let tag82 = mt_Utils.getTagValue("82", "", tag84.substring(4), false); 
-       let tagFC = mt_Utils.getTagValue("FC", "", tag82, false); 
-       tag =  mt_Utils.getTagValue("DF7A", "", tagFC, false);
-       if (tag == `00000000000000000000000000000000`) break;
-       mt_UI.LogData(`Reading page: ${index} : ${tag}`);
-       tagData =  tagData + tag;
-     } 
-     resp = await mt_MMS.sendCommand(`AA00810401261100840C1100810230${mt_Utils.makeHex(index*4, 2)}8201008301FF`);  
-
-
+    //if (tagData.length == 0){
+    // mt_UI.LogData(`Reading Fast`);
+    //     resp = await mt_MMS.sendCommand(`AA0081 04 0126110084 0D 1100 8103 30 002C   8201008301FF`);  
+    //     let tag84 = mt_Utils.getTagValue("84", "", resp.TLVData, false); 
+    //     let tag82 = mt_Utils.getTagValue("82", "", tag84.substring(4), false); 
+    //     let tagFC = mt_Utils.getTagValue("FC", "", tag82, false); 
+    //     tag =  mt_Utils.getTagValue("DF7A", "", tagFC, false);
+    //     tagData =  tagData + tag;
+    // }
+    mt_UI.LogData(`Reading sequentially`);
+    for (index = 0; index <= 0x40; index ++ )
+      {
+        resp = await mt_MMS.sendCommand(`AA00810401261100840C1100810230${mt_Utils.makeHex(index*4, 2)}820100830100`);  
+        let tag84 = mt_Utils.getTagValue("84", "", resp.TLVData, false); 
+        let tag82 = mt_Utils.getTagValue("82", "", tag84.substring(4), false); 
+        let tagFC = mt_Utils.getTagValue("FC", "", tag82, false); 
+        tag =  mt_Utils.getTagValue("DF7A", "", tagFC, false);
+        if (tag == `00000000000000000000000000000000`) break;
+        mt_UI.LogData(`Reading page: ${index} : ${tag}`);
+        tagData =  tagData + tag;
+      } 
+      resp = await mt_MMS.sendCommand(`AA00810401261100840C1100810230${mt_Utils.makeHex(index*4, 2)}8201008301FF`);  
     //this is to demo opening web pages from a URI that was read via NFC 
     //let retData = mt_Utils.getTagValue("DF7A", "", resp, false)
     if(tagData.length > 0 )
@@ -406,7 +410,7 @@ const displayMessageLogger = (e) => {
   mt_UI.LogData(`Display: ${e.Data}`);
   mt_UI.DeviceDisplay(e.Data);
 };
-const barcodeLogger = (e) => {
+const barcodeLogger = async (e) => {
   let bcData = "";
   bcData = mt_Utils.getTagValue("DF74", "", e.Data, true);
   mt_UI.LogData(`Barcode  Data: ${bcData}`);
@@ -415,11 +419,20 @@ const barcodeLogger = (e) => {
     mt_UI.LogData(`Opening: ${bcData}` );
     window.open(bcData, '_blank');
   }
+   
+  
+    let interval = parseInt(mt_UI.GetValue("interval"),10);
+    await mt_UI.simulateTyping(`BARCODE-${bcData}-BARCODE`, interval);
 };
-const arqcLogger = (e) => {
+
+const arqcLogger = async (e) => {
   mt_UI.LogData(`${e.Source} ARQC Data:  ${e.Data}`);
-   let TLVs = mt_Utils.tlvParser(e.Data.substring(4));
+  
+  let TLVs = mt_Utils.tlvParser(e.Data.substring(4));
    mt_UI.PrintTLVs(TLVs);
+   
+   let interval = parseInt(mt_UI.GetValue("interval"),10);
+   await mt_UI.simulateTyping(`ARQC-${e.Data}-ARQC`, interval); 
    
 };
 const batchLogger = (e) => {
@@ -695,7 +708,7 @@ async function updateFirmwareRMS(fwSpec){
 
 async function updateTagsRMS(){
   let startTime = Date.now();
-  mt_RMS_API.setURL(mt_Utils.getEncodedValue('RMSBaseURL',defaultRMSURL));
+  mt_RMS_API.setURL(mt_Utils.getEncodedValue('RMSBaseURL',defaultRMSURL,false));
   mt_RMS_API.setAPIKey(mt_Utils.getEncodedValue('RMSAPIKey',defaultRMSAPIKey));
   mt_RMS_API.setProfileName(mt_Utils.getEncodedValue('RMSProfileName',defaultRMSProfileName));
   

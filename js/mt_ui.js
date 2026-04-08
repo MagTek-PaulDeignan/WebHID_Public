@@ -271,3 +271,55 @@ export function StringNoNulls(data){
 },2);
 return resp;
 }
+
+
+/**
+ * Types text into an element and logs performance metrics.
+ * @param {string} text - The string to type.
+ * @param {number} speed - Delay in ms between characters.
+ */
+export async function simulateTyping(text, speed = 100) {
+  const target = document.activeElement;
+  
+  if (!target || !('value' in target)) {
+    console.error("No editable input focused!");
+    return;
+  }
+
+  const startTime = performance.now(); // Start high-res timer
+  const delay = (ms) => new Promise(res => setTimeout(res, ms));
+
+  for (const char of text) {
+    // 1. Dispatch KeyDown
+    target.dispatchEvent(new KeyboardEvent('keydown', { key: char, bubbles: true }));
+
+    // 2. Update Value & Cursor
+    const start = target.selectionStart;
+    const end = target.selectionEnd;
+    target.value = target.value.slice(0, start) + char + target.value.slice(end);
+    target.selectionStart = target.selectionEnd = start + 1;
+
+    // 3. Dispatch Input
+    target.dispatchEvent(new Event('input', { bubbles: true }));
+
+    // 4. Dispatch KeyUp
+    target.dispatchEvent(new KeyboardEvent('keyup', { key: char, bubbles: true }));
+
+    await delay(speed);
+  }
+
+  const endTime = performance.now(); // End high-res timer
+  
+  // --- Metrics Calculation ---
+  const totalTimeMs = endTime - startTime;
+  const totalTimeSeconds = totalTimeMs / 1000;
+  const charsPerSecond = text.length / totalTimeSeconds;
+
+  console.log(`--- Typing Simulation Metrics ---`);
+  console.log(`Total Characters: ${text.length}`);
+  console.log(`Total Time:       ${totalTimeMs.toFixed(2)} ms`);
+  console.log(`Effective CPS:    ${charsPerSecond.toFixed(2)} chars/sec`);
+  console.log(`---------------------------------`);
+
+  target.dispatchEvent(new Event('change', { bubbles: true }));
+}
