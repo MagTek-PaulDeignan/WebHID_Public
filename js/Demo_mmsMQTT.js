@@ -385,7 +385,7 @@ const mqttStatus = e => {
   let deviceType = topicArray[topicArray.length-3];
   let deviceName = topicArray[topicArray.length-2];  
   let deviceURL = `${window.location.pathname}?devpath=${mt_Utils.removeLastPathSegment(e.Data.Topic)}`;
-  mt_UI.AddDeviceLink(deviceType, deviceName ,deviceStatus, deviceURL);
+  mt_UI.AddDeviceLink(deviceType, deviceName, deviceStatus, deviceURL);
 }
 
 
