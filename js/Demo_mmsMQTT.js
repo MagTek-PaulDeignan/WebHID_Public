@@ -385,7 +385,7 @@ const mqttStatus = e => {
   let deviceType = topicArray[topicArray.length-3];
   let deviceName = topicArray[topicArray.length-2];  
   let deviceURL = `${window.location.pathname}?devpath=${mt_Utils.removeLastPathSegment(e.Data.Topic)}`;
-  mt_UI.AddDeviceLink(deviceType, deviceName ,deviceStatus, deviceURL);
+  mt_UI.AddDeviceLink(deviceType, deviceName, deviceStatus, deviceURL);
 }
 
 
@@ -430,6 +430,15 @@ async function handleFileUpload(event) {
       case "fw-main":
         await parseFirmwareFile(file, 1)
         break;
+      case "fw-wifi":
+        await parseFirmwareFile(file, 2);
+        break;
+      case "fw-ble":
+        await parseFirmwareFile(file, 3);
+        break;
+      case "bin":
+        await parseFirmwareFile(file, null);  
+        break;
       default:
         mt_UI.LogData("Unknown File Type")
         break;
@@ -454,15 +463,36 @@ async function parseFirmwareFile(file, fileType = 1){
   const reader = new FileReader();
     reader.onload = async function(e) {
       const firmwareBuffer = new Uint8Array(reader.result);
+      if(fileType == null  && firmwareBuffer.length > 0x1C)  //We will determine the type from the byte array
+      {
+        let TagE5 = mt_Utils.getTagValue("E5","",mt_Utils.toHexString(firmwareBuffer.subarray(8)),false);
+        let Tag81 =  mt_Utils.getTagValue("81","",TagE5,false);
+        let firmwareType = Tag81.substring(4,8);
+        fileType = 1;
+        switch (firmwareType) {
+          case "0100":  //Boot
+            fileType = 0;
+             break;
+          case "0200":  //Main
+            fileType = 1;
+            break;
+          case "2100":  //WiFi
+            fileType = 2;
+            break;
+          case "3100":  //BLE
+            fileType = 3;
+            break;  
+          default:
+            fileType = 1;
+            break;
+         }
+      }      
       let response =  await mt_MMS_Commands.GetLoadFimrwarefromByteArray(fileType, firmwareBuffer);
-        //mt_UI.LogData(`commit ${response.commitCmd}`);
-        //mt_UI.LogData(`fw ${response.firmwareCmd}`);
       window.mt_device_CommitCmd = response.commitCmd;
-      mt_MMSMQTT_API.sendCommand(response.firmwareCmd);
+      mt_MMS.sendCommand(response.firmwareCmd);
     };
   reader.readAsArrayBuffer(file); 
 }
-
 async function updateFirmwareRMS(fwSpec){
   
   let fwType = "fw-main";

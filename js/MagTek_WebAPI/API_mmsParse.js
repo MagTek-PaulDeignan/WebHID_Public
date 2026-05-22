@@ -28,10 +28,6 @@ export function parseMMSPacket(data) {
   switch (data[0]) {
     case 0x00:
       subdata = parseSinglePacket(data);
-      EmitObject({
-        Name: "OnMMSMessage",
-        Data: mt_Utils.toHexString(subdata)
-      });
       ParseMMSMessage(subdata);
       break;
     case 0x01:
@@ -42,10 +38,6 @@ export function parseMMSPacket(data) {
       break;
     case 0x03:
       subdata = parseTailPacket(data);
-      EmitObject({
-        Name: "OnMMSMessage",
-        Data: mt_Utils.toHexString(subdata)
-      });
       ParseMMSMessage(subdata);
       
       break;
@@ -90,6 +82,11 @@ export function ParseMMSMessage(Msg) {
     TLVData: mt_Utils.toHexString(Msg.slice(8, Msg.length)),
     HexString: mt_Utils.toHexString(Msg),
   };
+
+       EmitObject({
+         Name: "OnMMSMessage",
+         Data: mt_Utils.toHexString(Msg)
+       });
 
 
   if (LogMMStoConsole) {
@@ -486,6 +483,7 @@ function parseNotificationFromDevice(Msg) {
       case "1803":
         NotifyDetail = Msg.TLVData;
         let Message = mt_Utils.hexToASCII(NotifyDetail.substring(44));
+
         EmitObject({ Name: "OnUIDisplayMessage", Data: Message });
         break;
       case "1805":        

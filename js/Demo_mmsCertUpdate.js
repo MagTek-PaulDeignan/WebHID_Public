@@ -275,10 +275,10 @@ async function getCertificate(){
   let Resp = null;
   mt_UI.updateProgressBar("",-1);  
   fwID = await mt_MMS.GetDeviceFWID();
-  mt_UI.LogData("Getting MagTek Root...");
-  Resp = await mt_MMS.sendCommand("AA0081040107D821840BD8218104 03000000 870101");
-  Resp = await mt_MMS.sendCommand("AA0081040107D821840BD8218104 03000100 870101");
-  Resp = await mt_MMS.sendCommand("AA0081040107D821840BD8218104 03000200 870101");
+  //mt_UI.LogData("Getting MagTek Root...");
+  //Resp = await mt_MMS.sendCommand("AA0081040107D821840BD8218104 03000000 870101");
+  //Resp = await mt_MMS.sendCommand("AA0081040107D821840BD8218104 03000100 870101");
+  //Resp = await mt_MMS.sendCommand("AA0081040107D821840BD8218104 03000200 870101");
   mt_UI.LogData("Getting Customer Certificate...");
   Resp = await mt_MMS.sendCommand("AA0081040107D821840BD8218104 03000300 870101");
   Resp = await mt_MMS.sendCommand("AA0081040107D821840BD8218104 03000400 870101");

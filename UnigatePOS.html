@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Qwantum POS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/UnigatePOS.css">
+    <script type="module" src="js/UnigatePOS.js"></script>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <img src="images/magtek_logo.png" alt="QwickPay" height="30" class="me-2">
+
+            </a>
+            <div class="d-flex align-items-center">
+                <span id="lblUSBStatus" class="badge bg-secondary me-3">Disconnected</span>
+                <button class="btn btn-outline-light btn-sm me-2" id="deviceOpen">Connect Reader</button>
+                <button class="btn btn-outline-light btn-sm me-2" id="themeToggle" title="Toggle Theme">
+                    <i class="fa-solid fa-moon"></i>
+                </button>
+                <button class="btn btn-outline-light btn-sm" data-bs-toggle="modal" data-bs-target="#settingsModal">
+                    <i class="fa-solid fa-gear"></i>
+                </button>
+                <button class="btn btn-outline-light btn-sm ms-2 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#cartOffcanvas" aria-controls="cartOffcanvas">
+                    <i class="fa-solid fa-basket-shopping"></i> <span class="badge bg-danger" id="mobile-cart-count">0</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+    <div class="container-fluid flex-grow-1 overflow-hidden">
+        
+        <div class="row h-100">
+
+            <!-- LEFT PANEL: REGISTER (Tabs & Keypad) -->
+            <div class="col-md-8 col-lg-8 p-0 d-flex flex-column border-end h-100">
+
+                <!-- Tabs -->
+                <ul class="nav nav-tabs nav-fill flex-shrink-0" id="registerTabs" role="tablist">
+                    
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="tabs-tab1" data-bs-toggle="tab"
+                            data-bs-target="#tabs-pane1" type="button" role="tab">
+                            <i class="fa-solid fa-grid-2 me-2"></i>Appetizers
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="tabs-tab2" data-bs-toggle="tab" data-bs-target="#tabs-pane2"
+                            type="button" role="tab">
+                            <i class="fa-solid fa-grid-2 me-2"></i>Entrees
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="tabs-tab3" data-bs-toggle="tab" data-bs-target="#tabs-pane3"
+                            type="button" role="tab">
+                            <i class="fa-solid fa-grid-2 me-2"></i>Beverages
+                        </button>
+                    </li>
+                    
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="keypad-tab" data-bs-toggle="tab" data-bs-target="#keypad-pane"
+                            type="button" role="tab">
+                            <i class="fa-solid fa-calculator me-2"></i>Keypad
+                        </button>
+                    </li>
+
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="tabs-tab4" data-bs-toggle="tab" data-bs-target="#tabs-pane4"
+                            type="button" role="tab">
+                            <i class="fa-solid fa-grid-2 me-2"></i>Devices
+                        </button>
+                    </li>
+
+                </ul>
+                <!-- Tab Content -->
+                <div class="tab-content flex-grow-1 overflow-y-auto bg-body-tertiary p-3" id="registerTabContent">
+
+                    <!-- tab 1 Pane -->
+                    <div class="tab-pane fade show active h-100" id="tabs-pane1" role="tabpane">
+                        <div class="row g-3" id="tabs-grid1">
+                            <!-- Items injected by JS -->
+                        </div>
+                    </div>
+                    <div class="tab-pane fade show h-100" id="tabs-pane2" role="tabpane">
+                        <div class="row g-3" id="tabs-grid2">
+                            <!-- Items injected by JS -->
+                        </div>
+                    </div>
+                    <div class="tab-pane fade show h-100" id="tabs-pane3" role="tabpane">
+                        <div class="row g-3" id="tabs-grid3">
+                            <!-- Items injected by JS -->
+                        </div>
+                    </div>
+
+
+                    <!-- Keypad Pane -->
+                    <div class="tab-pane fade h-100" id="keypad-pane" role="tabpanel">
+                        <div class="d-flex flex-column h-100 justify-content-center align-items-center">
+                            <div class="display-screen mb-4 w-50 text-end p-3 bg-body border rounded fs-1"
+                                id="keypad-display">$0.00</div>
+                            <div class="keypad-grid w-50">
+                                <button class="btn btn-outline-secondary btn-lg border"
+                                    onclick="keypadPress('1')">1</button>
+                                <button class="btn btn-outline-secondary btn-lg border"
+                                    onclick="keypadPress('2')">2</button>
+                                <button class="btn btn-outline-secondary btn-lg border"
+                                    onclick="keypadPress('3')">3</button>
+                                <button class="btn btn-outline-secondary btn-lg border"
+                                    onclick="keypadPress('4')">4</button>
+                                <button class="btn btn-outline-secondary btn-lg border"
+                                    onclick="keypadPress('5')">5</button>
+                                <button class="btn btn-outline-secondary btn-lg border"
+                                    onclick="keypadPress('6')">6</button>
+                                <button class="btn btn-outline-secondary btn-lg border"
+                                    onclick="keypadPress('7')">7</button>
+                                <button class="btn btn-outline-secondary btn-lg border"
+                                    onclick="keypadPress('8')">8</button>
+                                <button class="btn btn-outline-secondary btn-lg border"
+                                    onclick="keypadPress('9')">9</button>
+                                <button class="btn btn-outline-secondary btn-lg border"
+                                    onclick="keypadPress('C')">C</button>
+                                <button class="btn btn-outline-secondary btn-lg border"
+                                    onclick="keypadPress('0')">0</button>
+                                <button class="btn btn-outline-secondary btn-lg border"
+                                    onclick="keypadPress('.')">.</button>
+                            </div>
+                            <button class="btn btn-primary btn-lg w-50 mt-3" onclick="addCustomAmount()">Add
+                                Item</button>
+                        </div>                                            
+                    </div>
+
+                    <div class="tab-pane fade show h-100" id="tabs-pane4" role="tabpane">
+                        <div class="row g-3" id="tabs-grid4">
+                            <br><br><hr>
+                            <div id="device-links" class="container"></div>
+                            <hr><br><br>
+                        </div>
+
+                        <div class="container-fluid mt-3">
+                            <h6 class="border-bottom pb-2 mb-3 d-flex justify-content-between align-items-center" data-bs-toggle="collapse"
+                            data-bs-target="#collapseLogs" aria-expanded="false" aria-controls="collapseLogs" style="cursor: pointer;">
+                            Log
+                            <i class="fa-solid fa-chevron-down"></i>
+                            </h6>
+                            <div class="collapse mt-3" id="collapseLogs">
+                                <textarea class="form-control font-monospace" id="LogData" rows="10"></textarea>
+                            </div>
+                        </div>
+                    
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- RIGHT PANEL: CURRENT SALE -->
+            <div class="col-md-4 col-lg-4 d-flex flex-column bg-body h-100 shadow-sm offcanvas-md offcanvas-end" tabindex="-1" id="cartOffcanvas" aria-labelledby="cartOffcanvasLabel" style="z-index: 1045;">
+                
+                <div class="offcanvas-header d-md-none border-bottom bg-body-tertiary">
+                    <h5 class="offcanvas-title m-0" id="cartOffcanvasLabel">Current Sale</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#cartOffcanvas" aria-label="Close"></button>
+                </div>
+
+                <div class="p-3 border-bottom bg-body-tertiary d-none d-md-block">
+                    <h5 class="m-0">Current Sale <span id="cart-count" class="badge bg-secondary ms-2">0</span></h5>
+                </div>
+
+                <!-- Cart Items -->
+                <div class="flex-grow-1 overflow-auto p-3" id="cart-items-container">
+                    <div id="empty-cart-msg" class="text-center text-muted mt-5">
+                        <i class="fa-solid fa-basket-shopping fa-3x mb-3"></i>
+                        <p>No items in cart</p>
+                    </div>
+                    <ul class="list-group list-group-flush" id="cart-list">
+                        <!-- Cart items injected here -->
+                    </ul>
+                </div>
+
+                <!-- Totals Section -->
+                <div class="p-3 bg-body-tertiary border-top">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-body">Subtotal</span>
+                        <span id="subtotal-display" class="text-body">$0.00</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-3 text-secondary">
+                        <span>Tax (8%)</span>
+                        <span id="tax-display">$0.00</span>
+                    </div>
+
+                    <div class="d-flex justify-content-between mb-3 fs-4 fw-bold border-top pt-2">
+                        <span class="text-body">Total</span>
+                        <span id="total-display" class="text-body">$0.00</span>
+                    </div>
+
+                        <div class="d-grid gap-2">
+        <button class="btn btn-success btn-lg py-3 fw-bold" id="charge-btn" disabled>
+            Charge $0.00
+        </button>
+
+        <div class="row g-2">
+            <div class="col-6">
+        <button id="sendReceipt-btn" class="btn btn-outline-primary w-100 py-2">
+            <i class="fa-solid fa-paper-plane me-2"></i>Send Receipt
+        </button>
+            </div>
+            <div class="col-6">
+                <button id="openRegister-btn" class="btn btn-outline-secondary w-100 py-2">
+                    <i class="fa-solid fa-cash-register me-2"></i>Open
+                </button>
+            </div>
+        </div>
+
+       <button id="clearCart-btn" class="btn btn-outline-danger w-100 py-2">
+            <i class="fa-solid fa-trash-can me-2"></i>Clear
+        </button>
+    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Tip Modal -->
+    <div class="modal fade" id="tipModal" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add a Tip?</h5>
+                    <button type="button" class="btn-close" onclick="cancelTransaction()"></button>
+                </div>
+                <div class="modal-body text-center p-4">
+                    <p class="text-muted mb-1">Transaction Total</p>
+                    <h2 class="mb-4" id="tip-modal-total">$0.00</h2>
+
+                    <div id="tip-buttons-container" class="d-grid gap-2 d-md-flex justify-content-md-center mb-3">
+                        <!-- Tip buttons injected by JS -->
+                    </div>
+
+                    <div class="input-group mb-3 w-75 mx-auto">
+                        <span class="input-group-text">$</span>
+                        <input type="number" class="form-control" id="custom-tip-input" placeholder="Custom Tip" min="0"
+                            step="0.01">
+                        <button id="customTip-btn" class="btn btn-outline-primary" type="button">Apply</button>
+                    </div>
+
+                    <button class="btn btn-outline-primary" onclick="applyTip(0)">No Tip</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Modal -->
+    <div class="modal fade" id="paymentModal" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">Payment Required</h5>
+                    <button type="button" class="btn-close btn-close-white" onclick="cancelTransaction()"></button>
+                </div>
+                <div class="modal-body text-center p-5">
+                    <h2 class="mb-4" id="modal-amount-due">$0.00</h2>
+
+                    <div id="payment-instruction" class="mb-4 fs-5">
+                        Dip/Tap/Swipe/Scan...
+                    </div>
+
+                    <div class="spinner-border text-primary mb-3" role="status">
+                        <span class="visually-hidden">Waiting...</span>
+                    </div>
+
+                    <!-- Split Tender Alert -->
+                    <div id="split-payment-alert" class="alert alert-warning d-none text-start">
+                        <h6><i class="fa-solid fa-triangle-exclamation me-2"></i>Insufficient Funds</h6>
+                        <p class="mb-1 small">Token Balance Applied: <strong id="split-paid-amount">$0.00</strong></p>
+                        <p class="mb-0 small">Remaining Due: <strong id="split-remaining-amount">$0.00</strong></p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="cancelTransaction()">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Receipt Modal -->
+    <div class="modal fade" id="receiptModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content">
+                <div class="modal-body text-center p-4">
+                    <!-- Merchant Info -->
+                    <div id="receipt-merchant-info" class="mb-3 border-bottom pb-3">
+                        <!-- Injected by JS -->
+                    </div>
+
+                    <div id="receipt-icon-container" class="mb-3 text-success">
+                        <i id="receipt-icon" class="fa-regular fa-circle-check fa-4x"></i>
+                    </div>
+                    <h4 id="receipt-title">Payment Successful</h4>
+                    <p id="receipt-failure-msg" class="text-danger fw-bold d-none"></p>
+
+                    <!-- Transaction Meta -->
+                    <div id="receipt-meta-info" class="mb-3 text-muted small">
+                        <!-- Injected by JS -->
+                    </div>
+
+                    <!-- User Info Section -->
+                    <div class="my-3">
+                        <img id="receipt-user-img" src="" alt="User"
+                            class="rounded-circle border border-3 border-white shadow-sm mb-2"
+                            style="width: 80px; height: 80px; object-fit: cover; display: none;">
+                        <h5 id="receipt-user-name" class="fw-bold text-dark mb-0"></h5>
+                    </div>
+
+                    <!-- Payment Breakdown -->
+                    <div id="receipt-breakdown" class="mb-2 w-100 px-4">
+                        <!-- Injected by JS -->
+                    </div>
+
+                    <div class="d-flex justify-content-between px-4 mb-3 fw-bold fs-5 border-top pt-2">
+                        <span>Total Charged</span>
+                        <span id="receipt-total">$0.00</span>
+                    </div>
+
+                    <p id="receipt-balance-container" class="small text-muted border-top pt-2">Remaining Token
+                        Balance:<br><strong id="receipt-balance" class="fs-5">$0.00</strong></p>
+
+                    <!-- Token Info -->
+                    <div id="receipt-token-info" class="mt-3">
+                        <h5 id="receipt-token-use" class="fw-bold text-primary mb-1"></h5>
+                        <img id="receipt-banner-img" src="" alt="Token Banner" class="img-fluid rounded"
+                            style="max-height: 60px; display: none;">
+                    </div>
+
+                    <!-- Geo Location -->
+                    <div id="receipt-location" class="small text-muted mt-2"></div>
+
+                    <button class="btn btn-primary w-100 mt-3" onclick="window.location.reload()">New Sale</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal fade" id="settingsModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Settings</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="settings-form">
+                        <!-- Merchant Info Settings -->
+                        <h6 class="border-bottom pb-2 mb-3 d-flex justify-content-between align-items-center"
+                            data-bs-toggle="collapse" data-bs-target="#merchantInfoCollapse" aria-expanded="false"
+                            aria-controls="merchantInfoCollapse" style="cursor: pointer;">
+                            Merchant Info
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </h6>
+                        <div class="collapse" id="merchantInfoCollapse">
+                            <div class="mb-3">
+                                <label for="setting-merchant-name" class="form-label">Merchant Name</label>
+                                <input type="text" class="form-control" id="setting-merchant-name">
+                            </div>
+                            <div class="mb-3">
+                                <label for="setting-merchant-address1" class="form-label">Address 1</label>
+                                <input type="text" class="form-control" id="setting-merchant-address1">
+                            </div>
+                            <div class="mb-3">
+                                <label for="setting-merchant-address2" class="form-label">Address 2</label>
+                                <input type="text" class="form-control" id="setting-merchant-address2">
+                            </div>
+                            <div class="mb-3">
+                                <label for="setting-merchant-citystatezip" class="form-label">City, State, Zip</label>
+                                <input type="text" class="form-control" id="setting-merchant-citystatezip">
+                            </div>
+                            <div class="mb-3">
+                                <label for="setting-merchant-phone" class="form-label">Phone</label>
+                                <input type="text" class="form-control" id="setting-merchant-phone">
+                            </div>
+                            <div class="mb-3">
+                                <label for="setting-merchant-website" class="form-label">Website</label>
+                                <input type="text" class="form-control" id="setting-merchant-website">
+                            </div>
+                            <div class="mb-3">
+                                <label for="setting-merchant-email" class="form-label">Email</label>
+                                <input type="text" class="form-control" id="setting-merchant-email">
+                            </div>
+                        </div>
+
+                        <!-- Device Settings -->
+                        <h6 class="border-bottom pb-2 mb-3 mt-4">Device Settings</h6>
+                        <div class="mb-3">
+                            <label for="setting-mqtt-devpath" class="form-label">MQTT Dev Path</label>
+                            <input type="text" class="form-control" id="setting-mqtt-devpath"
+                                placeholder="MagTek/US/CA/...">
+                            <div class="form-text">Appended to primary URL for reader connection.</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="setting-mqtt-printpath" class="form-label">MQTT Print Path</label>
+                            <input type="text" class="form-control" id="setting-mqtt-printpath"
+                                placeholder="MagTek/...">
+                            <div class="form-text">Printer connection path.</div>
+                        </div>
+                        <!-- Tax Settings -->
+                        <h6 class="border-bottom pb-2 mb-3 mt-4">Tax Settings</h6>
+                        <div class="mb-3">
+                            <label for="setting-tax-rate" class="form-label">Tax Rate (%)</label>
+                            <input type="number" class="form-control" id="setting-tax-rate" step="0.01" min="0"
+                                value="8.00">
+                        </div>
+
+                        <!-- Tipping Settings -->
+                        <h6 class="border-bottom pb-2 mb-3 mt-4">Tipping Options</h6>
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" id="setting-tip-enabled">
+                            <label class="form-check-label" for="setting-tip-enabled">Enable Tipping</label>
+                        </div>
+
+                        <div id="tip-options-container" style="display: none;">
+                            <div class="mb-3">
+                                <label class="form-label d-block">Tip Type</label>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="tipType" id="tipTypeDollar"
+                                        value="$">
+                                    <label class="form-check-label" for="tipTypeDollar">$ Fixed Amount</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="tipType" id="tipTypePercent"
+                                        value="%" checked>
+                                    <label class="form-check-label" for="tipTypePercent">% Percentage</label>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="setting-tip-default" class="form-label">Default Tip</label>
+                                <input type="number" class="form-control" id="setting-tip-default" step="0.01" min="0">
+                            </div>
+
+                            <div class="row g-2">
+                                <div class="col-4">
+                                    <label for="setting-tip-1" class="form-label">Tip Option 1</label>
+                                    <input type="number" class="form-control" id="setting-tip-1" step="0.01" min="0">
+                                </div>
+                                <div class="col-4">
+                                    <label for="setting-tip-2" class="form-label">Tip Option 2</label>
+                                    <input type="number" class="form-control" id="setting-tip-2" step="0.01" min="0">
+                                </div>
+                                <div class="col-4">
+                                    <label for="setting-tip-3" class="form-label">Tip Option 3</label>
+                                    <input type="number" class="form-control" id="setting-tip-3" step="0.01" min="0">
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="saveSettings()">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden Log for Debugging & Legacy Elements -->
+    <div class="d-none">
+        <img id="USBStatus" src="">
+        <div id="DeviceDisplay"></div>
+
+        <!-- Legacy Elements required by mmsDisplayClaims.js to prevent errors -->
+        <div id="claims-list-container"></div>
+        <div id="owner-name"></div>
+        <img id="person-image-display">
+        <div id="bannerDisplayContainer"></div>
+        <img id="banner-image-display">
+        <div id="signatureDisplayContainer"></div>
+        <img id="signature-image-display">
+        <div class="account-info-details">
+            <h2></h2>
+            <div class="small"></div>
+        </div>
+        <div class="profile-avatar"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <!-- <div class="container-fluid mt-3">
+        <h6 class="border-bottom pb-2 mb-3 d-flex justify-content-between align-items-center"
+            data-bs-toggle="collapse" data-bs-target="#collapseLogs" aria-expanded="false"
+            aria-controls="collapseLogs" style="cursor: pointer;">
+            Log
+            <i class="fa-solid fa-chevron-down"></i>
+        </h6>
+        <div class="collapse mt-3" id="collapseLogs">
+            <textarea class="form-control font-monospace" id="LogData" rows="10" placeholder="Logs..."></textarea>
+        </div>
+    </div> -->
+
+</body>
+</html>

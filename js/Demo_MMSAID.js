@@ -407,13 +407,24 @@ const PINLogger = (e) => {
 const trxCompleteLogger = (e) => {
   mt_UI.LogData(`${e.Name}: ${e.Data}`);
 };
-const displayMessageLogger = (e) => {
-  mt_UI.LogData(`Display: ${e.Data}`);
-  //mt_UI.LogData(`Hex Display: ${mt_Utils.AsciiToHex(e.Data)}`);
-
-
-
+const displayMessageLogger = async (e) => {
   mt_UI.DeviceDisplay(e.Data);
+  if (e.Data.startsWith("Application ID Selection")){
+    let interval = parseInt(mt_UI.GetValue("interval"),0);
+    if (interval >= 0) {      
+      if (interval > 0){
+        mt_UI.LogData(`Pausing for ${interval}ms`);
+        await mt_Utils.wait(interval);
+      } 
+      mt_UI.LogData(`Selecting AID 0`);
+      mt_MMS.sendCommand("AA0081040100180284081802810100820100");
+    }
+    else
+    {
+      mt_UI.LogData(`You must manually select an AID`);
+    }
+    
+  }
 };
 const barcodeLogger = async (e) => {
   let bcData = "";
@@ -568,22 +579,19 @@ async function handleFileUpload(event) {
         await parseScriptFile(file);
         break;
       case "fw-boot":
-        await parseFirmwareFile(file, 0);  
+        await parseFirmwareFile(file, 0)  
         break;
       case "fw-main":
-        await parseFirmwareFile(file, 1);
+        await parseFirmwareFile(file, 1)
         break;
       case "fw-wifi":
-        await parseFirmwareFile(file, 2);
+        await parseFirmwareFile(file, 2)
         break;
       case "fw-ble":
-        await parseFirmwareFile(file, 3);
-        break;
-      case "bin":
-        await parseFirmwareFile(file, null);  
+        await parseFirmwareFile(file, 3)
         break;
       default:
-        mt_UI.LogData("Unknown File Type");
+        mt_UI.LogData("Unknown File Type")
         break;
     }
 };
@@ -605,31 +613,9 @@ async function parseFirmwareFile(file, fileType = 1){
   const reader = new FileReader();
     reader.onload = async function(e) {
       const firmwareBuffer = new Uint8Array(reader.result);
-      if(fileType == null  && firmwareBuffer.length > 0x1C)  //We will determine the type from the byte array
-      {
-        let TagE5 = mt_Utils.getTagValue("E5","",mt_Utils.toHexString(firmwareBuffer.subarray(8)),false);
-        let Tag81 =  mt_Utils.getTagValue("81","",TagE5,false);
-        let firmwareType = Tag81.substring(4,8);
-        fileType = 1;
-        switch (firmwareType) {
-          case "0100":  //Boot
-            fileType = 0;
-             break;
-          case "0200":  //Main
-            fileType = 1;
-            break;
-          case "2100":  //WiFi
-            fileType = 2;
-            break;
-          case "3100":  //BLE
-            fileType = 3;
-            break;  
-          default:
-            fileType = 1;
-            break;
-         }
-      }      
       let response =  await mt_MMS_Commands.GetLoadFimrwarefromByteArray(fileType, firmwareBuffer);
+        //mt_UI.LogData(`commit ${response.commitCmd}`);
+        //mt_UI.LogData(`fw ${response.firmwareCmd}`);
       window.mt_device_CommitCmd = response.commitCmd;
       mt_MMS.sendCommand(response.firmwareCmd);
     };
