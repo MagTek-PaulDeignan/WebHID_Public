@@ -91,10 +91,7 @@ async function handleOpenButton() {
 
 async function handleSendCommandButton() {
   const data = document.getElementById("sendData");
-  await parseCommand(data.value);
-  //let cmdsArray = data.value.split(/\r\n|\r/);
-  //await parseCommands("Sending Commands",cmdsArray);
-  
+  await parseCommand(data.value);  
 }
 
 async function parseCommands(description, messageArray) {
@@ -308,6 +305,9 @@ const deviceOpenLogger = async (e) => {
    if (cmds.status.ok){
      await parseCommands('Updating Device', cmds.data);
    }  
+   
+   await parseCommands('Updating Tags', ["UPDATETAGSRMS"]);
+   
 
 };
 const dataLogger = (e) => {
@@ -568,22 +568,22 @@ async function handleFileUpload(event) {
         await parseScriptFile(file);
         break;
       case "fw-boot":
-        await parseFirmwareFile(file, 0);  
+        await parseFirmwareFile(file, 0)  
         break;
       case "fw-main":
-        await parseFirmwareFile(file, 1);
+        await parseFirmwareFile(file, 1)
         break;
       case "fw-wifi":
-        await parseFirmwareFile(file, 2);
+        await parseFirmwareFile(file, 2)
         break;
       case "fw-ble":
-        await parseFirmwareFile(file, 3);
+        await parseFirmwareFile(file, 3)
         break;
       case "bin":
         await parseFirmwareFile(file, null);  
         break;
       default:
-        mt_UI.LogData("Unknown File Type");
+        mt_UI.LogData("Unknown File Type")
         break;
     }
 };

@@ -483,6 +483,7 @@ function parseNotificationFromDevice(Msg) {
       case "1803":
         NotifyDetail = Msg.TLVData;
         let Message = mt_Utils.hexToASCII(NotifyDetail.substring(44));
+
         EmitObject({ Name: "OnUIDisplayMessage", Data: Message });
         break;
       case "1805":        
