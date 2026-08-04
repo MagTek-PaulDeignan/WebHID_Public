@@ -122,6 +122,10 @@ export function hexToNumber(hexString) {
   return parseInt(hexString, 16);
 }
 
+export function hexToNumberString(hexString) {
+  return parseInt(hexString, 16).toString();
+}
+
 
 export function hexToASCIInulltoNewLine(hexString) {
   let str = "";
@@ -852,3 +856,5 @@ function parseID_Unknown(input){
   }
   return resp;
 }
+
+

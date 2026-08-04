@@ -32,20 +32,25 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
     </div>
     <div class="container">
       <div id="DeviceDisplay">WELCOME</div>
-      <br>
       <a href="GeoDash.html"> Geo Map</a>
+      <div id="imagedata"></div>
       <textarea class="form-control" name="LogData" id="LogData" rows="12"></textarea>
       <div class="form-group container-left">
         <img id="USBStatus" src="./images/usb-disconnected.png"><span id="lblUSBStatus">Disconnected</span>
       </div>
       <div class="form-group" id="autoStartOptions">
         <input type="checkbox" id="chk-AutoStart" name="AutoStart" value=""><label for="chk-AutoStart">Auto Start</label>
-         <br> 
-        <input type="checkbox" id="chk-AutoEMV" name="AutoEMV" value=""><label for="chk-AutoEMV">EMV</label>
-        <input type="checkbox" id="chk-AutoNFC" name="AutoNFC" value=""><label for="chk-AutoNFC">NFC</label>
+        <fieldset>        
+	      <input type="radio" id="chk-AutoEMV" name="AutoStartType" value="AutoEMV" checked ><label for="chk-AutoEMV">EMV</label>
+	      <input type="radio" id="chk-AutomDLAge" name="AutoStartType" value="AutomDLAge"><label for="chk-AutomDLAge">mDL Age</label>
+        <input type="radio" id="chk-AutomDLKYC" name="AutoStartType" value="AutomDLKYC"><label for="chk-AutomDLKYC">mDL KYC</label>
+        <input type="radio" id="chk-AutomPassAge" name="AutoStartType" value="AutomPassAge"><label for="chk-AutomPassAge">mPASS Age</label>
+        <input type="radio" id="chk-AutomPassKYC" name="AutoStartType" value="AutomPassKYC"><label for="chk-AutomPassKYC">mPASS KYC</label>
+        </fieldset>
+        <input type="checkbox" id="chk-AutoContact" name="AutoContact" value=""><label for="chk-AutoContact">Contact</label>
+        <input type="checkbox" id="chk-AutoNFC" name="AutoNFC" value=""><label for="chk-AutoNFC">Contactless</label>
         <input type="checkbox" id="chk-AutoMSR" name="AutoMSR" value=""><label for="chk-AutoMSR">MSR</label>
         <input type="checkbox" id="chk-AutoTouch" name="AutoTouch" value="" hidden="true"><label for="chk-AutoTouch" hidden="true">Touch</label>
-        
         <hr>
         <div id="updDeviceContainer" class="container" style.visibility ='hidden'>      
           <p></p> 
@@ -112,21 +117,15 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
     </div>
     <br>
 
-    <div id="device-links" class="container">
-    </div>
-
-    <div class="container">
-
-
     <div class="container">
       <button class="btn btn-primary" id="deviceOpen">Open</button>
       <button class="btn btn-primary" id="deviceClose">Close</button>
       <button class="btn btn-primary" id="clearCommand">Clear</button>
     </div>
-    <br>
+    <!-- <br> -->
     <div class="container">
       <input class="btn btn-primary" id="fileInput" type="file">
   </div>
-
+  <div id="device-links" class="container"></div>
   </body>
 </html>

@@ -16,6 +16,8 @@ import MMSBLEDevice from "./API_device_mmsBLE.js";
 import MMSHIDDevice from "./API_device_mmsHID.js";
 import MMSMQTTDevice from "./API_device_mmsMQTT.js";
 import MMSSerialDevice from "./API_device_mmsSerial.js";
+import StarHIDDevice from "./API_device_starHID.js";
+
 
 /**
  * @class DeviceFactory
@@ -44,6 +46,8 @@ class DeviceFactory {
         return new MMSMQTTDevice();
       case "MMS_SERIAL":
         return new MMSSerialDevice();
+      case "STAR_HID":
+        return new StarHIDDevice();
       default:
         throw new Error(`Unsupported device type: ${type}. Available types are MMS_WEBSOCKET, MMS_BLE, MMS_HID, MMS_MQTT, MMS_SERIAL.`);
     }

@@ -121,21 +121,6 @@ async function parseCommand(message) {
 ## File Upload for Batch Processing
 
 Allows batch command execution from a file:
-```javascript
-async function handleFileUpload(event) {
-  if (event.target.files.length === 1) {
-    const file = event.target.files[0];
-    const reader = new FileReader();
-    reader.onload = async function(e) {
-      const lines = e.target.result.split('\n');
-      for (const line of lines) {
-        await parseCommand(line);
-      }
-    };
-    reader.readAsText(file); 
-  }
-}
-```
 
 ---
 

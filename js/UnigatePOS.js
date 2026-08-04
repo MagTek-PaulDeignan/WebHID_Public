@@ -20,7 +20,7 @@ let mt_Device = DeviceFactory.getDevice("MMS_MQTT");
 
 
 let lastPrintTime = 0;
-const minimumGap = 2200; // 3 seconds
+const minimumGap = 2200; // 2.2 seconds
 let ReadyForSale = false;
 let OpeningTill = false;
 
@@ -139,31 +139,6 @@ function EmitObject(e_obj) {
   EventEmitter.emit(e_obj.Name, e_obj);
 };
 
-// Initialize the access display
-// function initAccessDisplay() {
-//     const display = document.getElementById('access-display');
-//     if (!display) return;
-    
-//     display.innerHTML = ''; // Clear existing
-    
-//     const card = document.createElement('div');
-//     card.className = 'attendance-tile empty'; // Reusing class for styling, but will override size in CSS or inline
-//     card.id = 'access-card';
-//     card.style.position = 'relative';
-//     card.style.width = '100%';
-//     card.style.maxWidth = '500px';
-//     card.style.height = '400px'; // Taller for single view
-//     card.style.fontSize = '1.2rem';
-
-//     card.innerHTML = `
-//         <div style="font-size: 5rem; margin-bottom: 20px; opacity: 0.5;">+</div>
-//         <div class="h4">Ready to Scan</div>
-//         <div class="small opacity-75">Present Token for Access</div>
-//     `;
-    
-//    display.appendChild(card);
-// }
-
 
 async function handleDOMLoaded() {
   mt_UI.LogData(`Configured Device: ${devPath}`);
@@ -278,7 +253,7 @@ async function handleClearButton() {
           Amount.SubTotal = parseFloat(amt);
           Amount.Tax = parseFloat(tax);
           Amount.Tip = parseFloat(tip);
-    
+
           
             mt_Unigate.setUsername(mt_Utils.getEncodedValue("MPPG_UserName", "VFNZU1BpbG90UFJPRA=="));
             mt_Unigate.setPassword(mt_Utils.getEncodedValue("MPPG_Password", "UGFzc3dvcmQjMTIzNDU="));
@@ -330,7 +305,8 @@ async function handleClearButton() {
                                   await mt_Utils.wait(delayNeeded);
                                 }
                                 await mt_Device.StarPrintData(PrinterPath, Outdata, _CashDrawer);
-                                lastPrintTime = Date.now();
+                                lastPrintTime = Date.now();                                
+
                             }
                             else
                             {
@@ -355,8 +331,15 @@ async function handleClearButton() {
                   mt_UI.LogData(`============================Receipt=============================`);
                   mt_UI.LogData(`${Outdata}`);
                   mt_UI.LogData(`============================Receipt============================`);
-
               }
+              
+              const foundItem = cart.find(item => item.name === "Claw Machine Paoli");
+              if (foundItem) {
+                  await mt_Device.AddCredits("ESP-752EDD",foundItem.quantity);
+                  mt_UI.LogData(`Adding ${foundItem.quantity} Credits`);
+              }
+
+
               window.mt_device_ARQCData = null;
               ReadyForSale = false;
               clearCart();
@@ -595,12 +578,7 @@ const userEventLogger = (e) => {
 };
 
 const mqttStatus = e => {
-  //let topicArray = e.Data.Topic.split('/');
-  //let deviceStatus = e.Data.Message;
-  //let deviceType = topicArray[topicArray.length-3];
-  //let deviceName = topicArray[topicArray.length-2];
-
-    let topicArray = e.Data.Topic.split('/');
+  let topicArray = e.Data.Topic.split('/');
   let deviceStatus = e.Data.Message;
   let deviceType = topicArray[topicArray.length-3];
   let deviceName = topicArray[topicArray.length-2];  
@@ -1041,7 +1019,7 @@ const productThemes = {
 { id: 208, name: "San Pellegrino", price: 3.59, color: "bg-primary" },
 { id: 209, name: "Gallon Iced Tea", price: 6.99, color: "bg-dark" },
 { id: 210, name: "Hot Coffee", price: 2.99, color: "bg-info" },
-{ id: 211, name: "Iced Coffee", price: 3.79, color: "bg-info" },
+{ id: 211, name: "Claw Machine Paoli", price: .50, color: "bg-info" },
 { id: 212, name: "Strawberry-Passion Fruit Limonata", price: 4.29, color: "bg-success" }
 ]
 };
@@ -1182,11 +1160,14 @@ window.addCustomAmount = function() {
 
  window.addToCart = function(name, price) {
      const existingItem = cart.find(item => item.name === name && item.price === price);
-     if (existingItem) {
+     if (existingItem) 
+     {
          existingItem.quantity++;
-     } else {
+     } 
+     else 
+    {
          cart.push({ name, price, id: Date.now(), quantity: 1 });
-     }
+    }
      updateCartUI();
  };
 

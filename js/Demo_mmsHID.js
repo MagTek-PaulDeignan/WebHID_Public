@@ -70,15 +70,18 @@ async function handleDOMLoaded() {
 
 }
 
+function ClearImage() {
+  let imgData = document.getElementById('imagedata');
+  imgData.innerHTML = "";
+}
+
 async function handleCloseButton() {
   mt_MMS.closeDevice();
   mt_UI.ClearLog();
   mt_UI.DeviceDisplay("");
 }
 async function handleClearButton() {
-  
-  let imgData = document.getElementById('imagedata');
-  imgData.innerHTML = "";
+  ClearImage();
   mt_UI.ClearLog();
   mt_UI.DeviceDisplay("");
   document.getElementById("fileInput").value = null;  
@@ -119,6 +122,7 @@ async function parseCommand(message) {
   let fw = "";
   let hexData = null;
   let b64Data = null;
+  let asAscii = false;
   let cmd = message.split(",");
   switch (cmd[0].toUpperCase()) {
     case "GETAPPVERSION":
@@ -170,10 +174,15 @@ async function parseCommand(message) {
       if (window.mt_device_hid.opened) _DeviceDetected = true;
       break;
     case "GETTAGVALUE":
-      let asAscii = (cmd[4] === 'true');
+      asAscii = (cmd[4] === 'true');
       retval = mt_Utils.getTagValue(cmd[1], cmd[2], cmd[3], asAscii);
       mt_UI.LogData(retval);
       break;
+    case "GETNESTEDTAGVALUE":
+      asAscii = (cmd[4] === 'true');
+      retval = mt_Utils.getNestedTagValue(cmd[1], cmd[2], cmd[3], asAscii);
+      mt_UI.LogData(retval);
+      break;  
     case "PARSETLV":
       retval = mt_Utils.tlvParser(cmd[1]);
       mt_UI.LogData(JSON.stringify(retval));
@@ -336,7 +345,7 @@ const hostActionCompleteLogger = async (e) => {
       
       break;
     case "05040100": //Playing Sound
-      mt_UI.LogData(`Done Playing Sound`);
+      //mt_UI.LogData(`Done Playing Sound`);
       break;
     case "06050100":
       mt_UI.LogData(`NFC Card Emulation`);
@@ -408,15 +417,11 @@ const trxCompleteLogger = (e) => {
   mt_UI.LogData(`${e.Name}: ${e.Data}`);
 };
 const displayMessageLogger = (e) => {
-  mt_UI.LogData(`Display: ${e.Data}`);
-  //mt_UI.LogData(`Hex Display: ${mt_Utils.AsciiToHex(e.Data)}`);
-
-
-
   mt_UI.DeviceDisplay(e.Data);
 };
 const barcodeLogger = async (e) => {
   let bcData = "";
+  //mt_UI.LogData(`Barcode  Data: ${e.Data}`);
   bcData = mt_Utils.getTagValue("DF74", "", e.Data, true);
   mt_UI.LogData(`Barcode  Data: ${bcData}`);
   if (bcData.toLowerCase().startsWith('http'))
@@ -424,11 +429,10 @@ const barcodeLogger = async (e) => {
     mt_UI.LogData(`Opening: ${bcData}` );
     window.open(bcData, '_blank');
   }
-   
-  
-    let interval = parseInt(mt_UI.GetValue("interval"),10);
+    //let interval = parseInt(mt_UI.GetValue("interval"),10);
     //await mt_UI.simulateTyping(`BARCODE-${bcData}-BARCODE`, interval);
 };
+
 
 const arqcLogger = async (e) => {
   mt_UI.LogData(`${e.Source} ARQC Data:  ${e.Data}`);
@@ -436,7 +440,7 @@ const arqcLogger = async (e) => {
   let TLVs = mt_Utils.tlvParser(e.Data.substring(4));
    mt_UI.PrintTLVs(TLVs);
    
-   let interval = parseInt(mt_UI.GetValue("interval"),10);
+   //let interval = parseInt(mt_UI.GetValue("interval"),10);
    //await mt_UI.simulateTyping(`ARQC-${e.Data}-ARQC`, interval); 
    
 };
@@ -479,23 +483,48 @@ const touchDownLogger = (e) => {
 
 const contactlessCardDetectedLogger = async (e) => {
   if (e.Data.toLowerCase() == "idle") mt_UI.LogData(`Contactless Card Detected`);
-  let chk = document.getElementById("chk-AutoNFC");
-  let chkEMV = document.getElementById("chk-AutoEMV");  
   let _autoStart = document.getElementById("chk-AutoStart");
-  if (_autoStart.checked & chk.checked & (e.Data.toLowerCase() == "idle")) {
-    ClearAutoCheck();
-    mt_UI.LogData(`Auto Starting...`);
-    if (chkEMV.checked) {
-      _AwaitingContactEMV = true;
-      mt_UI.LogData(`Delaying Contactless ${_contactlessDelay}ms`);
-      await mt_Utils.wait(_contactlessDelay);
-    }
-    if (!_contactSeated) {
-      _AwaitingContactEMV = false;
-      // We didn't get a contact seated, do start the contactless transaction
-      mt_MMS.sendCommand("AA00810401031001843D1001820178A3098101008201008301038402020386279C01009F02060000000001009F03060000000000005F2A0208405F3601029F150200009F530100");
-    }
+  const selectedValue = document.querySelector('input[name="AutoStartType"]:checked')?.value;
+  
+  if (_autoStart.checked & (e.Data.toLowerCase() == "idle")) {
+  ClearAutoCheck();
+  await mt_MMS.sendCommand("AA0081040103180584081805810403B80040");
+  switch (selectedValue) {
+    case "AutoEMV":
+      let chk = document.getElementById("chk-AutoNFC");    
+      let chkEMV = document.getElementById("chk-AutoEMV");  
+      mt_UI.LogData(`Auto Starting...`);
+      if (chkEMV.checked) {
+        _AwaitingContactEMV = true;
+        mt_UI.LogData(`Delaying Contactless ${_contactlessDelay}ms`);
+        await mt_Utils.wait(_contactlessDelay);
+      }
+      if (!_contactSeated) {
+        _AwaitingContactEMV = false;
+        // We didn't get a contact seated, do start the contactless transaction
+        await mt_MMS.sendCommand("AA00810401031001843D1001820178A3098101008201008301038402020386279C01009F02060000000001009F03060000000000005F2A0208405F3601029F150200009F530100");
+      }
+      break;
+    case "AutomDLAge":
+        mt_UI.LogData(`Auto Starting mDL Age Verify...`);        
+        await mt_MMS.sendCommand("AA00810401051201841E120181010082011E830C000000000080010700000000A306830101850101");            
+      break;
+    case "AutomDLKYC":
+        mt_UI.LogData(`Auto Starting mDL KYC...`);
+        await mt_MMS.sendCommand("AA00810401051201841E120181010082011E830C00000000780401FF00000800A306830101850101");    
+      break;
+    case "AutomPassAge":
+        mt_UI.LogData(`Auto Starting mPass Age Verify...`);              
+        await mt_MMS.sendCommand("AA00810401051201841E120181010182011E830C000038230000000000000000A306830101850101");        
+      break;
+    case "AutomPassKYC":
+         mt_UI.LogData(`Auto Starting mPass KYC...`);
+         await mt_MMS.sendCommand("AA00810401051201841E120181010182011E830C0003FEF30000000000000000A306830101850101");    
+      break;
+    default:
+      break;
   }
+}
 };
 
 const contactlessCardRemovedLogger = (e) => {
@@ -505,7 +534,7 @@ const contactlessCardRemovedLogger = (e) => {
 const contactCardInsertedLogger = (e) => {
   _contactSeated = true;
   if (e.Data.toLowerCase() == "idle") mt_UI.LogData(`Contact Card Inserted`);
-  let chk = document.getElementById("chk-AutoEMV");
+  let chk = document.getElementById("chk-AutoContact");
   let _autoStart = document.getElementById("chk-AutoStart");
   if (
     _autoStart.checked & chk.checked & (e.Data.toLowerCase() == "idle") ||
@@ -607,9 +636,7 @@ async function parseFirmwareFile(file, fileType = 1){
       const firmwareBuffer = new Uint8Array(reader.result);
       if(fileType == null  && firmwareBuffer.length > 0x1C)  //We will determine the type from the byte array
       {
-        let TagE5 = mt_Utils.getTagValue("E5","",mt_Utils.toHexString(firmwareBuffer.subarray(8)),false);
-        let Tag81 =  mt_Utils.getTagValue("81","",TagE5,false);
-        let firmwareType = Tag81.substring(4,8);
+        let firmwareType = mt_Utils.getNestedTagValue("E5/81","",mt_Utils.toHexString(firmwareBuffer.subarray(8)),false).substring(4,8);
         fileType = 1;
         switch (firmwareType) {
           case "0100":  //Boot
@@ -646,6 +673,52 @@ const displayRMSProgressLogger = (e) => {
 
 const displayFirmwareLoadStatusLogger = (e) => {  
   mt_UI.LogData(`RMS Firmware Load Status: ${e.Data}`);
+};
+
+
+
+// Handler for mDoc notifications
+const mDocLogger = async (e) => {
+  try
+  {
+    //mt_UI.LogData(`mDoc Notification (TLVData only): ${e.Data}`);
+    let tagDF74 = mt_Utils.getTagValue("DF74","",e.Data.substring(40), false);
+
+    if (tagDF74.length > 0 )
+    {
+      await mt_MMS.sendCommand("AA00810401031805840C1805810801B8009603700096");  // Play Good Sound
+      
+      
+      let TLVs = mt_Utils.tlvParser(tagDF74);
+      mt_UI.PrintFormattedTLVs(TLVs);
+
+      
+      let imgTag = mt_Utils.hexToBase64(mt_Utils.getTagValue("9F66","",tagDF74, false));
+
+      if (imgTag.length == 0) imgTag = mt_Utils.hexToBase64(mt_Utils.getTagValue("9F09","",tagDF74, false));
+
+      if (imgTag.length > 0 )
+      {
+        ClearImage();
+        let img = document.createElement('img');
+        img.alt = 'Portrait';
+        img.height = 200;
+        img.setAttribute('src', "data:image/jpeg;base64," + imgTag);
+        let imgData = document.getElementById('imagedata');
+        imgData.append(img);
+      }
+    }
+    
+    else
+    {
+      mt_UI.DeviceDisplay(`mDoc NFC Engagement Detected`);      
+      //mt_UI.LogData(`mDoc NFC Engagement Detected`);
+    }
+  } 
+  catch (error) 
+  {
+     mt_UI.LogData(`Error handling mDoc notification: ${error.message}`);     
+  }
 };
 
 
@@ -997,3 +1070,4 @@ EventEmitter.on("OnRMSProgress", displayRMSProgressLogger);
 EventEmitter.on("OnFirmwareLoadStatus", displayFirmwareLoadStatusLogger);
 
 EventEmitter.on("OnDeviceSendProgress", displayProgressLogger);
+EventEmitter.on("OnmDocNotification", mDocLogger);

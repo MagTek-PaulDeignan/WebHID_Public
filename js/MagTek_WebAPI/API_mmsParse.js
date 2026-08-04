@@ -391,6 +391,58 @@ function parseBarcodeDetail(Msg) {
   }
 }
 
+function emitmDocNotification(Msg) {
+  EmitObject({
+    Name: "OnmDocNotification",
+    Source: "mDoc",
+    Data: Msg.TLVData,
+    HexString: Msg.HexString,
+    FullMessage: Msg,
+  });
+}
+
+function parsemDocDetail(Msg) {
+  let NotifyDetail = mt_Utils.getTagValue("82", "", Msg.TLVData, false);
+  let technology = NotifyDetail.substring(0, 2);
+  let Detail = NotifyDetail.substring(2, 8);
+
+  if (technology === "40") {
+    emitmDocNotification(Msg);
+    return;
+  }
+  
+  switch (Detail) {
+    case "080302": //mDoc Data Notification (first notification type)
+      emitmDocNotification(Msg);
+      break;
+    case "080402": //mDoc Data Notification (second notification type)
+      emitmDocNotification(Msg);
+      break;
+    case "080303": //mDoc Error Notification (if applicable)
+    case "080403": //mDoc Error Notification (if applicable)
+      EmitObject({ 
+        Name: "OnmDocError", 
+        Source: "mDoc",
+        Data: Msg.TLVData,
+        HexString: Msg.HexString
+      });
+      break;
+    default:
+      // Handle any other 0803xx or 0804xx codes as mDoc notifications
+      if (Detail.startsWith("0803") || Detail.startsWith("0804")) {
+        emitmDocNotification(Msg);
+      } else {
+        EmitObject({ 
+          Name: "OnError", 
+          Source: "mDocError", 
+          Data: NotifyDetail 
+        });
+      }
+      break;
+  }
+}
+
+
 function parseNotificationFromDevice(Msg) {
   try {
     let NotifyDetail = mt_Utils.getTagValue("82", "", Msg.TLVData, false);
@@ -415,7 +467,10 @@ function parseNotificationFromDevice(Msg) {
           case "30": //Barcode
             parseBarcodeDetail(Msg);
             break;
-          default:
+          case "40": //mDoc(mDoc)
+            parsemDocDetail(Msg);
+            break;          
+            default:
             console.log(` Unknown Tech ${Msg.HexString}`);
             EmitObject({
               Name: "OnError",

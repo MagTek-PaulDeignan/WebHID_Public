@@ -193,14 +193,168 @@ export function FromListToText(event) {
    } catch (error) { }
    }
  
+ const FORMATTERS = 
+ {
+  "ASCII": mt_Utils.hexToASCII,
+  "Base64": mt_Utils.hexToBase64,  
+  "Decimal": mt_Utils.hexToNumberString,
+  "Hex": null,
+  "CheckMark": hexToCheck,
+  "Boolean": hexToBoolString
+ };
+
+function hexToCheck(hexString) {
+  if(hexString == "01") return "&#9989;";
+  else return "&#10060;"
+}
+function hexToBoolString(hexString) {
+    if(hexString == "01") return "True";
+  else return "False"
+}
+
+
+const MDoc_TAG_CONFIG = {
+  "DFDF59": { desc: "Encrypted Payload", format: "Hex" },
+  "9F01": { desc: "Family Name", format: "ASCII" },
+  "9F02": { desc: "Given Name", format: "ASCII" },
+  "9F03": { desc: "Birth Date", format: "ASCII" },
+  "9F04": { desc: "Issue Date", format: "ASCII" },
+  "9F05": { desc: "Expiry Date", format: "ASCII" },
+  "9F06": { desc: "Issuing Country", format: "ASCII" },
+  "9F07": { desc: "Issuing Authority", format: "ASCII" },
+  "9F08": { desc: "Document Number", format: "ASCII" },
+  "9F09": { desc: "Portrait", format: "Base64" },
+  "9F0A": { desc: "Driving Privileges", format: "ASCII" },
+  "9F0B": { desc: "Undistinguishing Sign", format: "ASCII" },
+  "9F0C": { desc: "Administrative Number", format: "Decimal" },
+  "9F0D": { desc: "Sex", format: "ASCII" },
+  "9F0E": { desc: "Height(cm)", format: "Decimal" },
+  "9F0F": { desc: "Weight(kg)", format: "Decimal" },
+  "9F10": { desc: "Eye Color", format: "ASCII" },
+  "9F11": { desc: "Hair Color", format: "ASCII" },
+  "9F12": { desc: "Birth Place", format: "ASCII" },
+  "9F13": { desc: "Resident Address", format: "ASCII" },
+  "9F14": { desc: "Portrait Capture Date", format: "ASCII" },
+  "9F15": { desc: "Age in years", format: "Decimal" },
+  "9F16": { desc: "Age birth year", format: "Decimal" },
+  "9F17": { desc: "Age over 18", format: "CheckMark" },
+  "9F18": { desc: "Age over 21", format: "CheckMark" },
+  "9F19": { desc: "Age over 25", format: "CheckMark" },
+  "9F1A": { desc: "Issuing Jurisdiction", format: "ASCII" },
+  "9F1B": { desc: "Nationality", format: "ASCII" },    
+  "9F1C": { desc: "Resident City", format: "ASCII" },    
+  "9F1D": { desc: "Resident State", format: "ASCII" },    
+  "9F1E": { desc: "Resident Postal Code", format: "ASCII" },    
+  "9F1F": { desc: "Resident Country", format: "ASCII" },    
+  "9F01":{ desc:  "Family Name", format: "ASCII" },
+  "9F20":{ desc:  "Biometric Template xx", format: "ASCII" },
+  "9F21":{ desc:  "Family name national character", format: "ASCII" },
+  "9F22":{ desc:  "Given name national character", format: "ASCII" },
+  "9F23":{ desc:  "Signature usual mark", format: "ASCII" },
+  // AAM{ desc: VA supplemental (DF74 / mDL namespace, format: "ASCII" },
+  "9F41":{ desc:  "domestic_driving_privileges", format: "ASCII" },
+  "9F42":{ desc:  "name_suffix", format: "ASCII" },
+  "9F43":{ desc:  "organ_donor", format: "ASCII" },
+  "9F44":{ desc:  "veteran", format: "ASCII" },
+  "9F45":{ desc:  "family_name_truncation", format: "ASCII" },
+  "9F46":{ desc:  "given_name_truncation", format: "ASCII" },
+  "9F47":{ desc:  "aka_family_name.v2", format: "ASCII" },
+  "9F48":{ desc:  "aka_given_name.v2", format: "ASCII" },
+  "9F49":{ desc:  "aka_suffix", format: "ASCII" },
+  "9F4A":{ desc:  "weight_range", format: "ASCII" },
+  "9F4B":{ desc:  "race_ethnicity", format: "ASCII" },
+  "9F4C":{ desc:  "sex (AAMVA supplemental)", format: "ASCII" },
+  "9F4D":{ desc:  "first_name", format: "ASCII" },
+  "9F4E":{ desc:  "middle_names", format: "ASCII" },
+  "9F4F":{ desc:  "first_name_truncation", format: "ASCII" },
+  "9F50":{ desc:  "middle_names_truncation", format: "ASCII" },
+  "9F51":{ desc:  "EDL_credential", format: "ASCII" },
+  "9F52":{ desc:  "EDL_credential.v2", format: "ASCII" },
+  "9F53":{ desc:  "DHS_compliance", format: "ASCII" },
+  "9F54":{ desc:  "resident_county", format: "ASCII" },
+  "9F55":{ desc:  "resident_county.v2", format: "ASCII" },
+  "9F56":{ desc:  "hazmat_endorsement_expiration_date", format: "ASCII" },
+  "9F57":{ desc:  "CDL_indicator", format: "ASCII" },
+  "9F58":{ desc:  "CDL_non_domiciled", format: "ASCII" },
+  "9F59":{ desc:  "CDL_non_domiciled.v2", format: "ASCII" },
+  "9F5A":{ desc:  "DHS_compliance_text", format: "ASCII" },
+  "9F5B":{ desc:  "DHS_temporary_lawful_status", format: "ASCII" },
+
+  "9F61":{ desc:  "Family Name", format: "ASCII" },
+  "9F62":{ desc:  "Given Name", format: "ASCII" },
+  "9F63":{ desc:  "Family Name", format: "ASCII" },
+  "9F64":{ desc:  "Given Name", format: "ASCII" },
+  "9F65":{ desc:  "Birth Date", format: "ASCII" },
+  "9F66":{ desc:  "Portrait", format: "Hex" },
+  "9F67":{ desc:  "Issue Date", format: "ASCII" },
+  "9F68":{ desc:  "Expiry Date", format: "ASCII" },
+  "9F69":{ desc:  "Issuing Authority Unicode", format: "ASCII" },
+  "9F6A":{ desc:  "Issuing Country", format: "ASCII" },
+  "9F6B":{ desc:  "Age In Years", format: "Decimal" },
+  "9F6C":{ desc:  "Age Over 18", format: "Boolean" },
+  "9F6D":{ desc:  "Age Over 21", format: "Boolean" },
+  "9F6E":{ desc:  "Age Over 25", format: "Boolean" },
+  "9F6F":{ desc:  "Age Birth Year", format: "Decimal" },
+  "9F70":{ desc:  "Sex", format: "Hex" },
+  "9F71":{ desc:  "Nationality", format: "ASCII" },
+  "9F72":{ desc:  "Document Number", format: "ASCII" },
+  "9F73":{ desc:  "Issuing Authority Latin1", format: "ASCII" },
+  "9F74":{ desc:  "Portrait Capture Date", format: "ASCII" }
+};
+
+
+  function formatTLVElement(element) {
+  const { tag, tagValue } = element;
+  
+  // Get config for the tag (fallback to defaults if the tag isn't known)
+  const config = MDoc_TAG_CONFIG[tag] || { desc: "Unknown Tag", format: "Hex" };
+  
+  // Dynamically fetch the correct formatting function from our map
+  const formatterFn = FORMATTERS[config.format];
+  
+  // Format the value if a valid formatter exists, otherwise keep raw hex
+  const formattedValue = formatterFn ? formatterFn(tagValue) : tagValue;
+  
+  // Return a beautiful, informative log string
+  return `${config.desc} [${tag}]: ${formattedValue}`;
+}
+
    export function PrintTLVs(TLVs){
     LogData("TLVs---------------------------------");
     TLVs.forEach(element => {
+      //const logLine = formatTLVElement(element);
+      //LogData(logLine);
       LogData(`${element.tag} : ${element.tagValue} `);    
     });   
+    
     LogData("TLVs---------------------------------");
    }
 
+   export function PrintFormattedTLVs(TLVs){
+    LogData("                                                   ");
+    LogData("mDoc Data Elements---------------------------------");
+    
+     const sortedTLVs = [...TLVs].sort((a, b) => {
+         return String(a.tag).localeCompare(String(b.tag), undefined, { numeric: true });
+     });
+    //TLVs.forEach(element => {
+      sortedTLVs.forEach(element => {
+      switch (element.tag) {
+        case "9F66":
+          // Not Printing Portrait Data
+          break;
+        case "9F09":
+          // Not Printing Portrait Data
+          break;
+        default:
+          const logLine = formatTLVElement(element);
+          LogData(`   ${logLine}`);      
+          break;
+      }
+    });   
+    LogData("mDoc Data Elements---------------------------------");
+    LogData("                                                   ");
+   }
 
    // Function to show the loading spinner
 export function showSpinner() {

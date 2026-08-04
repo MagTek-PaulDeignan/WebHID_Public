@@ -334,6 +334,17 @@ class MMSMQTTDevice extends AbstractDevice {
       return false;
     }
   }
+  
+  async AddCredits(device, creditCount) {
+  let options = {
+        qos : 0
+    }
+  let strCreditCount = String(creditCount).padStart(4, '0');
+  let cmdData = `PULSE${strCreditCount}0050`
+  this._client.publish(`MagTek/Client/Device/Pulse/${device}`, cmdData, options);
+  return true;
+}
+  
   /**
    * @method GetDeviceSN
    * @description
