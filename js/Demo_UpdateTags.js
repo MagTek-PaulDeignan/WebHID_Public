@@ -607,9 +607,7 @@ async function parseFirmwareFile(file, fileType = 1){
       const firmwareBuffer = new Uint8Array(reader.result);
       if(fileType == null  && firmwareBuffer.length > 0x1C)  //We will determine the type from the byte array
       {
-        let TagE5 = mt_Utils.getTagValue("E5","",mt_Utils.toHexString(firmwareBuffer.subarray(8)),false);
-        let Tag81 =  mt_Utils.getTagValue("81","",TagE5,false);
-        let firmwareType = Tag81.substring(4,8);
+        let firmwareType = mt_Utils.getNestedTagValue("E5/81","",mt_Utils.toHexString(firmwareBuffer.subarray(8)),false).substring(4,8);
         fileType = 1;
         switch (firmwareType) {
           case "0100":  //Boot

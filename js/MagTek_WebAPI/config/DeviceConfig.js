@@ -89,6 +89,13 @@ export function getHIDDeviceInfo(pid) {
       deviceType = "MMS";
       reportID = 1;
       break;
+    case 0x101A: // Star Scanner
+      reportLen = 0x40;
+      deviceType = "STAR";
+      reportID = 1;
+      break;
+    
+    
     default:
       reportLen = 0x40;
       deviceType = "V5";
@@ -172,6 +179,12 @@ export const ID5G3filters = [
     }
 ];
   
+export const Starfilters = [
+    {
+      vendorId: 0x0519,
+      productId: 0x101A,
+    }
+];
 
 export function filterDevices(devices, filters)
 {
